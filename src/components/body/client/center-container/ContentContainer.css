@@ -5,3 +5,44 @@
     width: 40%;
     border: 1px solid lightgray;
 }
+
+#client-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+
+#client-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+#url {
+    padding-left: 5px;
+    padding-right: 5px;
+    width: 100%;
+}
+
+#client-button-send {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+#client-button-send:hover {
+    background-color: #c1d7e4;
+}
+
+.client-bar-component {
+    height: 25px;
+    box-sizing: border-box;
+    border: 1px solid #9b9b9b;
+    cursor: pointer;
+}
+
+select.client-bar-component:focus, input.client-bar-component:focus {
+    outline: solid;
+    outline-color: #9b9b9b;
+    outline-width: 1px;
+}
