@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import './ContentContainer.css'
 import { MethodSelector } from "./method-selector/MethodSelector";
+import { ArgumentsSelector } from "./client-arguments/ArgumentsSelector";
 
 export function ContentContainer() {
     const [formData, setFormData] = useState({
@@ -29,6 +30,12 @@ export function ContentContainer() {
                     <MethodSelector selected={formData.method} onMethodChange={handleMethodChange}/>
                     <input id="url" className="client-bar-component" name="url" type="text" onChange={handleChange} value={formData.url}/>
                     <button id="client-button-send" className="client-bar-component">Send</button>
+                </div>
+                <div id="client-content">
+                    <ArgumentsSelector/>
+                </div>
+                <div id="client-buttons" className="border-top">
+                    <button type="submit">Save</button>
                 </div>
             </form>
         </div>

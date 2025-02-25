@@ -46,3 +46,13 @@ select.client-bar-component:focus, input.client-bar-component:focus {
     outline-color: #9b9b9b;
     outline-width: 1px;
 }
+
+#client-content {
+    flex: 1 1 auto;
+}
+
+#client-buttons {
+    display: flex;
+    justify-content: center;
+    padding: 15px;
+}
