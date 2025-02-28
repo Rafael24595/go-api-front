@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { HttpMethod } from '../../../../../constants/HttpMethod';
 
 import './MethodSelector.css'
-import { HttpMethod } from '../../../../../constants/HttpMethod';
 
 interface MethodSelectorProps {
     selected?: string;

@@ -1,20 +1,35 @@
 import { useEffect, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import type { StatusKeyValue } from '../../../../../../interfaces/StatusKeyValue';
+
 import './StatusKeyValue.css'
-import type { StatusKeyValue } from '../../../../../../interfaces/request/StatusKeyValue';
+
+export interface ItemStatusKeyValue {
+    id: string
+    status: boolean
+    key: string
+    value: string
+    focus: string
+}
+
+export const toItem = (rowsStr?: StatusKeyValue[]): ItemStatusKeyValue[] => {
+    if(!rowsStr) {
+        return [];
+    }
+    return [...rowsStr].map(r => ({...r, id: uuidv4(), focus: ""}));
+}
 
 interface StatusKeyValueProps {
     order?: number
     focus?: string
     value?: StatusKeyValue
-    definition: Definition 
+    definition: {
+        key: string
+        value: string
+        disabled: boolean
+    }     
     rowPush: (row: StatusKeyValue, focus: string, order?: number) => void;
     rowTrim: (order: number) => void;
-}
-
-interface Definition {
-    key: string
-    value: string
-    disabled: boolean
 }
 
 export function StatusKeyValue({order, focus, value, definition, rowPush, rowTrim}: StatusKeyValueProps) {
@@ -31,6 +46,7 @@ export function StatusKeyValue({order, focus, value, definition, rowPush, rowTri
         if(definition.disabled) {
             return;
         }
+
         setRow({ ...row, [e.target.name]: e.target.checked })
         rowPush(row, e.target.name, order)
     };
@@ -42,8 +58,10 @@ export function StatusKeyValue({order, focus, value, definition, rowPush, rowTri
             rowPush({status: true, key: key, value: value},  e.target.name, order)    
             return;
         }
-        setRow({ ...row, [e.target.name]: e.target.value })
-        rowPush(row, e.target.name, order)
+
+        let newRow = {...row,  [e.target.name]: e.target.value };
+        setRow(newRow)
+        rowPush(newRow, e.target.name, order)
     };
 
     const handleDelete = () => {

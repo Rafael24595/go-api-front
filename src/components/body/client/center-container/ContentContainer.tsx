@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { MethodSelector } from "./method-selector/MethodSelector";
+import { ArgumentsSelector } from "./client-arguments/ParameterSelector";
 
 import './ContentContainer.css'
-import { MethodSelector } from "./method-selector/MethodSelector";
-import { ArgumentsSelector } from "./client-arguments/ArgumentsSelector";
 
 export function ContentContainer() {
     const [formData, setFormData] = useState({

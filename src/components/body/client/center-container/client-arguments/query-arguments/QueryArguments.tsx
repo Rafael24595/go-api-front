@@ -1,36 +1,22 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { StatusKeyValue as StrStatusKeyValue } from '../../../../../../interfaces/request/StatusKeyValue';
-import { StatusKeyValue } from '../status-key-value/StatusKeyValue'
+import { StatusKeyValue as StrStatusKeyValue } from '../../../../../../interfaces/StatusKeyValue';
+import { ItemStatusKeyValue, StatusKeyValue, toItem } from '../status-key-value/StatusKeyValue';
+
 import './QueryArguments.css'
 
 const ROW_DEFINITION = { 
     key: "Parameter", 
     value: "Value", 
-    disabled: false 
+    disabled: true 
 }
 
-interface ItemStatusKeyValue {
-    id: string
-    status: boolean
-    key: string
-    value: string
-    focus: string
-}
-
-const toItem = (rowsStr?: StrStatusKeyValue[]): ItemStatusKeyValue[] => {
-    if(!rowsStr) {
-        return [];
-    }
-    return [...rowsStr].map(r => ({...r, id: uuidv4(), focus: ""}));
-}
-
-interface QueryArgumentsProps {
+interface QueryProps {
     values?: StrStatusKeyValue[]
     onValueChange: (rows: StrStatusKeyValue[]) => void;
 }
 
-export function QueryArguments({ values, onValueChange }: QueryArgumentsProps) {
+export function QueryArguments({ values, onValueChange }: QueryProps) {
     const [rows, setRows] = useState<ItemStatusKeyValue[]>(toItem(values));
 
     const rowTrim = (order: number) => {
@@ -48,9 +34,15 @@ export function QueryArguments({ values, onValueChange }: QueryArgumentsProps) {
     const rowPush = (row: StrStatusKeyValue, focus: string, order?: number) => {
         let newRows = copyRows();
         if(order != undefined && 0 <= order && rows.length >= order) {
-            newRows[order] = {...row, id: newRows[order].id, focus: ""};
+            newRows[order] = {
+                ...row, 
+                id: newRows[order].id, 
+                focus: ""};
         } else {
-            newRows.push({...row, id: uuidv4(), focus: focus});
+            newRows.push({
+                ...row, 
+                id: uuidv4(), 
+                focus: focus});
         }
 
         setRows(newRows);
