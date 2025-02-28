@@ -5,7 +5,7 @@ import { HttpMethod } from '../../../../../constants/HttpMethod';
 
 interface MethodSelectorProps {
     selected?: string;
-    onMethodChange: (method: string) => void; 
+    onMethodChange: (method: string) => void;
 }
 
 export function MethodSelector ({selected, onMethodChange }: MethodSelectorProps) {

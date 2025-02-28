@@ -4,6 +4,7 @@ import { QueryArguments } from './query-arguments/QueryArguments';
 import { HeaderArguments } from './header-arguments/HeaderArguments';
 import { AuthArguments } from './auth-arguments/AuthArguments';
 import { BodyArguments } from './body-arguments/BodyArguments';
+import { StatusKeyValue } from '../../../../../interfaces/request/StatusKeyValue';
 
 const VIEW_QUERY = "query";
 const VIEW_HEADER = "header";
@@ -22,6 +23,10 @@ export function ArgumentsSelector({cursorStatus}: ArgumentsSelectorArgs) {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCursor(e.target.value)
     };
+
+    const queryChange = (rows: StatusKeyValue[]) => {
+
+    }
 
     return (
         <>
@@ -50,7 +55,7 @@ export function ArgumentsSelector({cursorStatus}: ArgumentsSelectorArgs) {
                 </div>
             </div>
             <div id="client-argument-content">
-                {cursor === VIEW_QUERY && <QueryArguments/>}
+                {cursor === VIEW_QUERY && <QueryArguments onValueChange={queryChange}/>}
                 {cursor === VIEW_HEADER && <HeaderArguments/>}
                 {cursor === VIEW_AUTH && <AuthArguments/>}
                 {cursor === VIEW_BODY && <BodyArguments/>}
