@@ -38,20 +38,20 @@ const mergeStatusKeyValue = (oldValues: Dict<StatusKeyValue[]>, newValues: Statu
     return oldValues
 }
 
-interface ArgumentsSelectorArgs {
+interface ParameterSelectorProps {
     request?: Request
     cursorStatus?: string;
 }
 
-export function ArgumentsSelector({request, cursorStatus}: ArgumentsSelectorArgs) {
+export function ParameterSelector({request, cursorStatus}: ParameterSelectorProps) {
     const [table, setTable] = useState({
         cursor: cursorStatus || DEFAULT_CURSOR,
         query: request ? detachStatusKeyValue(request.query.queries) : [],
         header: request ? detachStatusKeyValue(request.header.headers) : []
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTable({...table, [e.target.name]: e.target.value})
+    const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTable({...table, cursor: e.target.value})
     };
 
     const queryChange = (rows: StatusKeyValue[]) => {
@@ -66,25 +66,25 @@ export function ArgumentsSelector({request, cursorStatus}: ArgumentsSelectorArgs
         <>
             <div id="client-argument-headers">
                 <div className="radio-button-group border-bottom">
-                    <input type="radio" id="tag-client-query" className="client-tag" name="cursor" 
+                    <input type="radio" id="tag-client-query" className="client-tag" name="cursor-client"
                         checked={table.cursor === VIEW_QUERY} 
                         value={VIEW_QUERY} 
-                        onChange={handleChange}/>
+                        onChange={cursorChange}/>
                     <label htmlFor="tag-client-query" id="client-label-query">Query</label>
-                    <input type="radio" id="tag-client-header" className="client-tag" name="cursor" 
+                    <input type="radio" id="tag-client-header" className="client-tag" name="cursor-client"
                         checked={table.cursor === VIEW_HEADER} 
                         value={VIEW_HEADER} 
-                        onChange={handleChange}/>
+                        onChange={cursorChange}/>
                     <label htmlFor="tag-client-header" id="client-label-header">Headers</label>
-                    <input type="radio" id="tag-client-auth" className="client-tag" name="cursor" 
+                    <input type="radio" id="tag-client-auth" className="client-tag" name="cursor-client"
                         checked={table.cursor === VIEW_AUTH} 
                         value={VIEW_AUTH} 
-                        onChange={handleChange}/>
+                        onChange={cursorChange}/>
                     <label htmlFor="tag-client-auth" id="client-label-auth">Auth</label>
-                    <input type="radio" id="tag-client-body" className="client-tag" name="cursor" 
+                    <input type="radio" id="tag-client-body" className="client-tag" name="cursor-client"
                         checked={table.cursor === VIEW_BODY} 
                         value={VIEW_BODY} 
-                        onChange={handleChange}/>
+                        onChange={cursorChange}/>
                     <label htmlFor="tag-client-body" id="client-label-body">Body</label>
                 </div>
             </div>

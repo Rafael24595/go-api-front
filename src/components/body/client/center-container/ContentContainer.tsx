@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { MethodSelector } from "./method-selector/MethodSelector";
-import { ArgumentsSelector } from "./client-arguments/ParameterSelector";
+import { ParameterSelector } from "./client-arguments/ParameterSelector";
 
 import './ContentContainer.css'
 
@@ -32,7 +32,7 @@ export function ContentContainer() {
                     <button id="client-button-send" className="client-bar-component">Send</button>
                 </div>
                 <div id="client-content">
-                    <ArgumentsSelector/>
+                    <ParameterSelector/>
                 </div>
                 <div id="client-buttons" className="border-top">
                     <button type="submit">Save</button>
