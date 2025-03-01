@@ -1,15 +1,73 @@
-import './BearerData.css'
+import { useState } from 'react';
+import { Auth } from '../../../../../../../interfaces/request/Request';
 
+import './BearerData.css';
+import '../../status-key-value/StatusKeyValue.css';
+
+export const AUTH_CODE_BEARER = "BEARER";
 interface BearerDataProps {
-    values?: any
-    onValueChange: (data: any) => void;
+    value?: Auth
+    onValueChange: (auth: Auth) => void;
 }
 
-export function BearerData({values, onValueChange}: BearerDataProps) {
-    console.log(values)
+interface Payload {
+    status: boolean;
+    bearer: string;
+    token: string;
+}
+
+export function BearerData({value, onValueChange}: BearerDataProps) {
+    const [data, setData] = useState<Payload>({
+        status: value ? value.status : false,
+        bearer: value && value.parameters["bearer"] ? value.parameters["bearer"] : "",
+        token: value && value.parameters["token"] ? value.parameters["token"] : "",
+    });
+
+    const handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let newData = { ...data, status: e.target.checked };
+        setData(newData);
+        onValueChange(makeAuth(newData));
+    };
+
+    const inputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let newData = {...data,  [e.target.name]: e.target.value };
+        setData(newData);
+        onValueChange(makeAuth(newData));
+    };
+
+    const textareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        let newData = {...data,  [e.target.name]: e.target.value };
+        setData(newData);
+        onValueChange(makeAuth(newData));
+    };
+
+    const makeAuth = (payload: Payload): Auth => {
+        return {
+            code: AUTH_CODE_BEARER,
+            status: payload.status,
+            parameters: {
+                "bearer": payload.bearer,
+                "token": payload.token
+            }
+        };
+    };
+
     return (
         <>
-            <p>//TODO: Implement BearerData</p>
+            <div className="parameter-container">
+                <input name="status" type="checkbox" onChange={handleChecked} checked={data.status}/>
+                <input className="parameter-input" name="bearer" type="text" onChange={inputChange} placeholder="bearer" value={data.bearer}/>
+            </div>
+            <div className="parameter-container">
+                <textarea 
+                    id="bearer-input"
+                    className="parameter-input"
+                    name="token"
+                    onChange={textareaChange}
+                    placeholder="token"
+                    value={data.token}
+                />
+            </div>
         </>
     )
 }

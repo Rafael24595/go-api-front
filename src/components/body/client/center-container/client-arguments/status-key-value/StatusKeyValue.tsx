@@ -32,11 +32,17 @@ interface StatusKeyValueProps {
     rowTrim: (order: number) => void;
 }
 
+interface Payload {
+    status: boolean;
+    key: string;
+    value: string;
+}
+
 export function StatusKeyValue({order, focus, value, definition, rowPush, rowTrim}: StatusKeyValueProps) {
     const inputKey = useRef<HTMLInputElement>(null);
     const inputValue = useRef<HTMLInputElement>(null);
 
-    const [row, setRow] = useState({
+    const [row, setRow] = useState<Payload>({
         status: value ? value.status : false,
         key: value ? value.key : "",
         value: value ? value.value : "",
