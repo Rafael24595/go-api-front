@@ -70,25 +70,23 @@ export function AuthArguments({values, cursorStatus, onValueChange}: AuthArgumen
 
     return (
         <>
-            <div id="client-argument-auth">
-                <div className="radio-button-group border-bottom">
-                    <input 
-                        name="status" 
-                        id="auth-enable" 
-                        type="checkbox" 
-                        checked={data.status}
-                        onChange={statusChange}/>
-                    <input type="radio" id="tag-auth-basic" className="client-tag" name="cursor-auth" 
-                        checked={data.cursor === VIEW_BASIC} 
-                        value={VIEW_BASIC} 
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-auth-basic">Basic</label>
-                    <input type="radio" id="tag-auth-bearer" className="client-tag" name="cursor-auth" 
-                        checked={data.cursor === VIEW_BEARER} 
-                        value={VIEW_BEARER} 
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-auth-bearer">Bearer</label>
-                </div>
+            <div className="radio-button-group border-bottom">
+                <input 
+                    name="status" 
+                    id="auth-enable" 
+                    type="checkbox" 
+                    checked={data.status}
+                    onChange={statusChange}/>
+                <input type="radio" id="tag-auth-basic" className="client-tag" name="cursor-auth" 
+                    checked={data.cursor === VIEW_BASIC} 
+                    value={VIEW_BASIC} 
+                    onChange={cursorChange}/>
+                <label htmlFor="tag-auth-basic">Basic</label>
+                <input type="radio" id="tag-auth-bearer" className="client-tag" name="cursor-auth" 
+                    checked={data.cursor === VIEW_BEARER} 
+                    value={VIEW_BEARER} 
+                    onChange={cursorChange}/>
+                <label htmlFor="tag-auth-bearer">Bearer</label>
             </div>
             <div id="client-argument-content">
                 {data.cursor === VIEW_BASIC && <BasicData value={data.basic} onValueChange={authChange}/>}

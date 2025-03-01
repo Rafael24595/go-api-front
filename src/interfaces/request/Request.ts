@@ -29,6 +29,7 @@ export interface Cookies {
 }
 
 export interface Body {
+  status: boolean
   contentType: string
   payload: string
 }

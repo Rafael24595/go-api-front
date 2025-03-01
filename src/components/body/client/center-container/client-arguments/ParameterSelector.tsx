@@ -4,7 +4,8 @@ import { HeaderArguments } from './header-arguments/HeaderArguments';
 import { AuthArguments } from './auth-arguments/AuthArguments';
 import { BodyArguments } from './body-arguments/BodyArguments';
 import { StatusKeyValue } from '../../../../../interfaces/StatusKeyValue';
-import { Auths, Request } from '../../../../../interfaces/request/Request';
+import { Auths, Body, Request } from '../../../../../interfaces/request/Request';
+import { CONTENT_TYPE as CONTENT_TYPE_TEXT } from './body-arguments/text/TextData';
 import { Dict } from '../../../../../types/Dict';
 
 import './ParameterSelector.css'
@@ -48,6 +49,7 @@ interface Payload {
     query: StatusKeyValue[];
     header: StatusKeyValue[];
     auth: Auths;
+    body: Body;
 }
 
 export function ParameterSelector({request, cursorStatus}: ParameterSelectorProps) {
@@ -55,7 +57,8 @@ export function ParameterSelector({request, cursorStatus}: ParameterSelectorProp
         cursor: cursorStatus || DEFAULT_CURSOR,
         query: request ? detachStatusKeyValue(request.query.queries) : [],
         header: request ? detachStatusKeyValue(request.header.headers) : [],
-        auth: request ? request.auth : { status: false, auths: {} }
+        auth: request ? request.auth : { status: false, auths: {} },
+        body: request ? request.body : { status: true, contentType: CONTENT_TYPE_TEXT, payload: "" }
     });
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,6 +75,10 @@ export function ParameterSelector({request, cursorStatus}: ParameterSelectorProp
 
     const authChange = (auth: Auths) => {
         setTable({...table, auth: auth})
+    }
+
+    const bodyChange = (body: Body) => {
+        setTable({...table, body: body})
     }
 
     return (
@@ -104,7 +111,7 @@ export function ParameterSelector({request, cursorStatus}: ParameterSelectorProp
                 {table.cursor === VIEW_QUERY && <QueryArguments values={table.query} onValueChange={queryChange}/>}
                 {table.cursor === VIEW_HEADER && <HeaderArguments values={table.header} onValueChange={headerChange}/>}
                 {table.cursor === VIEW_AUTH && <AuthArguments values={table.auth} onValueChange={authChange}/>}
-                {table.cursor === VIEW_BODY && <BodyArguments/>}
+                {table.cursor === VIEW_BODY && <BodyArguments value={table.body} onValueChange={bodyChange}/>}
             </div>
         </>
     )
