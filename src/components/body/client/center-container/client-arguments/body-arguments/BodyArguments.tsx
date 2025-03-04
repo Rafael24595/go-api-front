@@ -31,30 +31,30 @@ export function BodyArguments({value, cursorStatus, onValueChange}: BodyArgument
             payload: value ? value.payload : "",
         });
     
-        const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            let newData = {...data, cursor: e.target.value};
-            setData(newData);
-        };
-    
-        const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          let newData = {...data, status: e.target.checked};
-          setData(newData);
-          onValueChange(makeBody(newData));
-      };
+    const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let newData = {...data, cursor: e.target.value};
+        setData(newData);
+    };
 
-      const payloadChange = (content: string, payload: string) => {
-          let newData = {...data, content: content, payload: payload};
-          setData(newData);
-          onValueChange(makeBody(newData));
-      }
+    const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let newData = {...data, status: e.target.checked};
+        setData(newData);
+        onValueChange(makeBody(newData));
+    };
 
-      const makeBody = (payload: Payload): Body => {
+    const payloadChange = (content: string, payload: string) => {
+        let newData = {...data, content: content, payload: payload};
+        setData(newData);
+        onValueChange(makeBody(newData));
+    }
+
+    const makeBody = (payload: Payload): Body => {
         return {
             status: payload.status,
             contentType: payload.content,
             payload: payload.payload
         };
-      }
+    }
 
     return (
         <>
