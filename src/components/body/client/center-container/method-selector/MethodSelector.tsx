@@ -18,7 +18,7 @@ export function MethodSelector ({selected, onMethodChange }: MethodSelectorProps
     };
 
     return (
-        <select id="method" className="client-bar-component" name="method" value={selectedMethod} onChange={handleChange}>
+        <select id="method" className="client-bar-component section-header-element" name="method" value={selectedMethod} onChange={handleChange}>
             {methods.map((method, index) => (
                 <option key={index} value={method}>
                     {method}

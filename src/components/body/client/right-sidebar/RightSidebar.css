@@ -2,6 +2,16 @@
     overflow: hidden;
     display: flex;
     flex: 1 1 auto;
+    flex-direction: column;
     width: 40%;
     border: 1px solid lightgray;
+}
+
+#response-metadata {
+    padding: 15px;
+    display: flex ;
+}
+
+#response-metadata span {
+    margin-right: 10px;
 }

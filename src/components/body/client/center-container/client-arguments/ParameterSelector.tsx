@@ -7,6 +7,7 @@ import { StatusKeyValue } from '../../../../../interfaces/StatusKeyValue';
 import { Auths, Body, Request } from '../../../../../interfaces/request/Request';
 import { CONTENT_TYPE as CONTENT_TYPE_TEXT } from './body-arguments/text/TextData';
 import { Dict } from '../../../../../types/Dict';
+import { detachStatusKeyValue } from '../../../../../services/Utils';
 
 import './ParameterSelector.css'
 
@@ -16,16 +17,6 @@ const VIEW_AUTH = "auth";
 const VIEW_BODY = "body";
 
 const DEFAULT_CURSOR = VIEW_QUERY;
-
-const detachStatusKeyValue = (dict: Dict<StatusKeyValue[]>): StatusKeyValue[] => {
-    const vector = [];
-    for (const values of Object.values(dict)) {
-        for (const value of values) {
-            vector.push(value)
-        }
-    }
-    return vector;
-}
 
 const mergeStatusKeyValue = (oldValues: Dict<StatusKeyValue[]>, newValues: StatusKeyValue[]): Dict<StatusKeyValue[]> => {
     for (const value of newValues) {

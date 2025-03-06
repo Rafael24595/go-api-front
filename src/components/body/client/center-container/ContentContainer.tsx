@@ -28,8 +28,8 @@ export function ContentContainer() {
             <form id="client-form" onSubmit={handleSubmit}>
                 <div id="client-bar">
                     <MethodSelector selected={formData.method} onMethodChange={handleMethodChange}/>
-                    <input id="url" className="client-bar-component" name="url" type="text" onChange={handleChange} value={formData.url}/>
-                    <button id="client-button-send" className="client-bar-component">Send</button>
+                    <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={handleChange} value={formData.url}/>
+                    <button id="client-button-send" className="client-bar-component section-header-element">Send</button>
                 </div>
                 <div id="client-content">
                     <ParameterSelector/>

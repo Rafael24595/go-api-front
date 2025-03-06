@@ -35,7 +35,6 @@
 }
 
 .client-bar-component {
-    height: 25px;
     box-sizing: border-box;
     border: 1px solid #9b9b9b;
     cursor: pointer;
