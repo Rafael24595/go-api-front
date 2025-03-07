@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import './BodyArguments.css'
-import { CONTENT_TYPE as CONTENT_TYPE_TEXT, TextData } from './text/TextData';
+import { TextData } from './text/TextData';
 import { Body } from '../../../../../../interfaces/request/Request';
 import { JsonData } from './json/JsonData';
 
@@ -11,7 +11,7 @@ const VIEW_JSON = "json";
 const DEFAULT_CURSOR = VIEW_TEXT;
 
 interface BodyArgumentsProps {
-    value?: Body
+    value: Body
     cursorStatus?: string;
     onValueChange: (body: Body) => void;
 }
@@ -26,9 +26,9 @@ interface Payload {
 export function BodyArguments({value, cursorStatus, onValueChange}: BodyArgumentsProps) {
     const [data, setData] = useState<Payload>({
             cursor: cursorStatus || DEFAULT_CURSOR,
-            status: value ? value.status : false, 
-            content: value ? value.contentType : CONTENT_TYPE_TEXT,
-            payload: value ? value.payload : "",
+            status: value.status, 
+            content: value.contentType,
+            payload: value.payload,
         });
     
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {

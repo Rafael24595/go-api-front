@@ -9,12 +9,12 @@ import './JsonData.css'
 export const CONTENT_TYPE = "json";
 
 interface Payload {
-  value?: string;
+  value: string;
   onValueChange: (content: string, payload: string) => void;
 }
 
 export function JsonData({value, onValueChange}: Payload) {
-    const [data, setData] = useState(value || "{}");
+    const [data, setData] = useState(value);
     
     const onChange = (value: string) => {
       setData(value);

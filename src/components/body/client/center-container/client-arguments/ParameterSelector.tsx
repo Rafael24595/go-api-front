@@ -4,8 +4,7 @@ import { HeaderArguments } from './header-arguments/HeaderArguments';
 import { AuthArguments } from './auth-arguments/AuthArguments';
 import { BodyArguments } from './body-arguments/BodyArguments';
 import { StatusKeyValue } from '../../../../../interfaces/StatusKeyValue';
-import { Auths, Body, Request } from '../../../../../interfaces/request/Request';
-import { CONTENT_TYPE as CONTENT_TYPE_TEXT } from './body-arguments/text/TextData';
+import { Auths, Body, Headers, Queries } from '../../../../../interfaces/request/Request';
 import { Dict } from '../../../../../types/Dict';
 import { detachStatusKeyValue } from '../../../../../services/Utils';
 
@@ -18,21 +17,30 @@ const VIEW_BODY = "body";
 
 const DEFAULT_CURSOR = VIEW_QUERY;
 
-const mergeStatusKeyValue = (oldValues: Dict<StatusKeyValue[]>, newValues: StatusKeyValue[]): Dict<StatusKeyValue[]> => {
+const mergeStatusKeyValue = (newValues: StatusKeyValue[]): Dict<StatusKeyValue[]> => {
+    const merge: Dict<StatusKeyValue[]> = {};
     for (const value of newValues) {
-        const vector = oldValues[value.key];
+        const vector = merge[value.key];
         if(!vector) {
-            oldValues[value.key] = [value]
+            merge[value.key] = [value]
             continue;
         }
         vector.push(value)
     }
-    return oldValues
+    return merge;
+}
+
+export interface ItemRequestParameters {
+    query: Queries;
+    header: Headers;
+    body: Body;
+    auth: Auths;
 }
 
 interface ParameterSelectorProps {
-    request?: Request
+    request: ItemRequestParameters
     cursorStatus?: string;
+    onValueChange: (parameters: ItemRequestParameters) => void;
 }
 
 interface Payload {
@@ -43,33 +51,50 @@ interface Payload {
     body: Body;
 }
 
-export function ParameterSelector({request, cursorStatus}: ParameterSelectorProps) {
+export function ParameterSelector({request, cursorStatus, onValueChange}: ParameterSelectorProps) {
     const [table, setTable] = useState<Payload>({
         cursor: cursorStatus || DEFAULT_CURSOR,
-        query: request ? detachStatusKeyValue(request.query.queries) : [],
-        header: request ? detachStatusKeyValue(request.header.headers) : [],
-        auth: request ? request.auth : { status: false, auths: {} },
-        body: request ? request.body : { status: true, contentType: CONTENT_TYPE_TEXT, payload: "" }
+        query: detachStatusKeyValue(request.query.queries),
+        header: detachStatusKeyValue(request.header.headers),
+        auth: request.auth,
+        body: request.body
     });
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTable({...table, cursor: e.target.value})
+        setTable({...table, cursor: e.target.value});
     };
 
     const queryChange = (rows: StatusKeyValue[]) => {
-        setTable({...table, query: rows})
+        let newTable = {...table, query: rows};
+        setTable(newTable);
+        onValueChange(makeRequestParameters(newTable));
     }
 
     const headerChange = (rows: StatusKeyValue[]) => {
-        setTable({...table, header: rows})
+        let newTable = {...table, header: rows};
+        setTable(newTable);
+        onValueChange(makeRequestParameters(newTable));
     }
 
     const authChange = (auth: Auths) => {
-        setTable({...table, auth: auth})
+        let newTable = {...table, auth: auth};
+        setTable(newTable);
+        onValueChange(makeRequestParameters(newTable));
     }
 
     const bodyChange = (body: Body) => {
-        setTable({...table, body: body})
+        let newTable = {...table, body: body};
+        setTable(newTable);
+        onValueChange(makeRequestParameters(newTable));
+    }
+
+    const makeRequestParameters = (payload: Payload): ItemRequestParameters => {
+        return {
+            query: { queries: mergeStatusKeyValue(payload.query) },
+            header: { headers: mergeStatusKeyValue(payload.header) },
+            auth: payload.auth,
+            body: payload.body
+        }
     }
 
     return (

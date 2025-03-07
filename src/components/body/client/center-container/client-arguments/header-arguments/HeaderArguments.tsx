@@ -12,7 +12,7 @@ const ROW_DEFINITION = {
 }
 
 interface HeaderProps {
-    values?: StrStatusKeyValue[]
+    values: StrStatusKeyValue[]
     onValueChange: (rows: StrStatusKeyValue[]) => void;
 }
 

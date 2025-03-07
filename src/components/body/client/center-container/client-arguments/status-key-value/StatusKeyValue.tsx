@@ -12,7 +12,7 @@ export interface ItemStatusKeyValue {
     focus: string
 }
 
-export const toItem = (rowsStr?: StatusKeyValue[]): ItemStatusKeyValue[] => {
+export const toItem = (rowsStr: StatusKeyValue[]): ItemStatusKeyValue[] => {
     if(!rowsStr) {
         return [];
     }

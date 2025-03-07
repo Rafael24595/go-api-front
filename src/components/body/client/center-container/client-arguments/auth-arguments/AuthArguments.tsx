@@ -12,7 +12,7 @@ const VIEW_BEARER = "bearer";
 const DEFAULT_CURSOR = VIEW_BASIC;
 
 interface AuthArgumentsProps {
-    values?: Auths
+    values: Auths
     cursorStatus?: string;
     onValueChange: (auth: Auths) => void;
 }

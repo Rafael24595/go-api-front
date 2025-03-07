@@ -8,12 +8,12 @@ import './TextData.css'
 export const CONTENT_TYPE = "text";
 
 interface Payload {
-  value?: string;
+  value: string;
   onValueChange: (content: string, payload: string) => void;
 }
 
 export function TextData({value, onValueChange}: Payload) {
-    const [data, setData] = useState(value || "");
+    const [data, setData] = useState(value);
     
     const onChange = (value: string) => {
       setData(value);

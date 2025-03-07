@@ -21,6 +21,7 @@
     visibility: hidden;
     height: 25px;
     width: 25px;
+    padding: revert;
     border: 1px solid #9b9b9b;
     cursor: pointer;
 }

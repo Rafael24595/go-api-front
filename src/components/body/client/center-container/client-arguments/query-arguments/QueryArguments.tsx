@@ -12,7 +12,7 @@ const ROW_DEFINITION = {
 }
 
 interface QueryProps {
-    values?: StrStatusKeyValue[]
+    values: StrStatusKeyValue[]
     onValueChange: (rows: StrStatusKeyValue[]) => void;
 }
 

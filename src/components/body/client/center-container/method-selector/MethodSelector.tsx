@@ -4,13 +4,13 @@ import { HttpMethod } from '../../../../../constants/HttpMethod';
 import './MethodSelector.css'
 
 interface MethodSelectorProps {
-    selected?: string;
+    selected: string;
     onMethodChange: (method: string) => void;
 }
 
 export function MethodSelector ({selected, onMethodChange }: MethodSelectorProps) {
     const methods = Object.values(HttpMethod);
-    const [selectedMethod, setSelectedMethod] = useState(selected || methods[0]);
+    const [selectedMethod, setSelectedMethod] = useState(selected);
 
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedMethod(e.target.value);
