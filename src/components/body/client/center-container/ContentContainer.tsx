@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { MethodSelector } from "./method-selector/MethodSelector";
 import { ItemRequestParameters, ParameterSelector } from "./client-arguments/ParameterSelector";
-import { Auths, Body, Headers, Queries } from "../../../../interfaces/request/Request";
+import { Auths, Body, Headers, Queries, Request } from "../../../../interfaces/request/Request";
 import { CONTENT_TYPE as CONTENT_TYPE_TEXT } from './client-arguments/body-arguments/text/TextData';
+import { HttpMethod } from "../../../../constants/HttpMethod";
+import { executeFormAction } from "../../../../services/api/ServiceManager";
 
 import './ContentContainer.css'
-import { HttpMethod } from "../../../../constants/HttpMethod";
 
 interface ItemRequest {
     url: string;
@@ -40,8 +41,27 @@ export function ContentContainer() {
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+        const request = makeRequest();
+        executeFormAction(request);
         console.log("Form Data Submitted:", formData);
     };
+
+    const makeRequest = (): Request => {
+        const now = Date.now();
+        const name = `temp-${formData.method}-${now}`;
+        return {
+            timestamp: Date.now(),
+            name: name,
+            method: formData.method,
+            uri: formData.url,
+            query: formData.query,
+            header: formData.header,
+            cookie: { cookies: {} },
+            body: formData.body,
+            auth: formData.auth,
+            status: "historic",
+        }
+    }
 
     return (
         <div id='content-container'>

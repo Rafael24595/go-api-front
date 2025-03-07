@@ -1,12 +1,11 @@
-import { HttpMethod } from "../../constants/HttpMethod";
 import { Dict } from "../../types/Dict";
 import { StatusKeyValue } from "../StatusKeyValue";
 
 export interface Request {
-  id: string;
+  id?: string;
   timestamp: number;
   name: string;
-  method: HttpMethod;
+  method: string;
   uri: string;
   query: Queries;
   header: Headers;

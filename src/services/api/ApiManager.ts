@@ -1,19 +1,19 @@
 import axios from "axios";
 
 function baseURL(): string {
-  const url = process.env.REACT_APP_SERVICE_API_MANAGER;
+  const url = import.meta.env.VITE_SERVICE_API_MANAGER;
   if(url != undefined) {
     return url
   }
   throw new Error("Manager service URI is not defined.")
 }
 
-const apiStorage = axios.create({
+const apiManager = axios.create({
   baseURL: baseURL(),
   timeout: 10000,
 });
 
-apiStorage.interceptors.request.use(
+apiManager.interceptors.request.use(
   (config) => {
     //TODO: Implement user token.
     return config;
@@ -21,7 +21,7 @@ apiStorage.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-apiStorage.interceptors.response.use(
+apiManager.interceptors.response.use(
   (response) => response,
   (error) => {
     //TODO: Manage exceptions.
@@ -30,4 +30,4 @@ apiStorage.interceptors.response.use(
   }
 );
 
-export default apiStorage;
+export default apiManager;
