@@ -7,22 +7,17 @@ interface TextViewProps {
   value?: string;
 }
 
-interface Payload {
-  value: string;
-}
-
 export function TextView({value}: TextViewProps) {
-    const data: Payload = {
-      value: value ? value : ""
-    }
+    const data: string = value ? value : "";
 
     return (
         <>
             <CodeMirror
-                value={data.value}
-                height="300px"
+                value={data}
+                height="100%"
                 extensions={[
-                  lintGutter(), EditorState.readOnly.of(true)
+                  lintGutter(), 
+                  EditorState.readOnly.of(true)
                 ]}
                 theme="light"
             />

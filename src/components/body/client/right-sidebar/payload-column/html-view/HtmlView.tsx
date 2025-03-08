@@ -31,7 +31,10 @@ export function HtmlView({ value }: HtmlViewProps) {
       <CodeMirror
         value={data}
         height="100%"
-        extensions={[html(), lintGutter(), EditorState.readOnly.of(true)]}
+        extensions={[
+          html(), 
+          lintGutter(), 
+          EditorState.readOnly.of(true)]}
         theme="light"
       />
     </>

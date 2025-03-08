@@ -46,7 +46,7 @@ export function PayloadColumn({body}: PayloadColumnProps) {
                 <div id="response-content-types">
                     <span>{ ViewParse(data.contentType) }</span>
                 </div>
-                <div>
+                <div id="response-content-bytes">
                     {data.contentType === VIEW_TEXT && <TextView value={data.payload}/>}
                     {data.contentType === VIEW_JSON && <JsonView value={data.payload}/>}
                     {data.contentType === VIEW_HTML && <HtmlView value={data.payload}/>}
