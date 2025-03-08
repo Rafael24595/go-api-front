@@ -1,6 +1,8 @@
 import { Dict } from "../../types/Dict";
 import { StatusKeyValue } from "../StatusKeyValue";
 
+type Status = 'historic' | 'saved';
+
 export interface Request {
   id?: string;
   timestamp: number;
@@ -24,7 +26,20 @@ export interface Headers {
 }
 
 export interface Cookies {
-  cookies: Dict<StatusKeyValue[]>
+  cookies: Dict<Cookie>
+}
+
+export interface Cookie {
+	status: boolean,
+	code:       string,
+	value:      string,
+	domain:     string,
+	path:       string,
+	expiration: string,
+	maxage:     number,
+	secure:     boolean,
+	httponly:   boolean,
+	samesite:   string
 }
 
 export interface Body {
@@ -44,4 +59,36 @@ export interface Auth {
   parameters: Dict<string>
 }
 
-type Status = 'historic' | 'saved';
+export function cookieToString(cookie: Cookie): string {
+  let cookieString = cookie.value;
+
+  if (cookie.domain) {
+    cookieString += `; Domain=${cookie.domain}`;
+  }
+
+  if (cookie.path) {
+    cookieString += `; Path=${cookie.path}`;
+  }
+
+  if (cookie.expiration) {
+    cookieString += `; Expires=${cookie.expiration}`;
+  }
+
+  if (cookie.maxage !== undefined) {
+    cookieString += `; Max-Age=${cookie.maxage}`;
+  }
+
+  if (cookie.secure) {
+    cookieString += `; Secure`;
+  }
+
+  if (cookie.httponly) {
+    cookieString += `; HttpOnly`;
+  }
+
+  if (cookie.samesite && cookie.samesite !== "None") {
+    cookieString += `; SameSite=${cookie.samesite}`;
+  }
+
+  return cookieString;
+}

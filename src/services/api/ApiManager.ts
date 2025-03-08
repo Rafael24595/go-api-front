@@ -10,7 +10,6 @@ function baseURL(): string {
 
 const apiManager = axios.create({
   baseURL: baseURL(),
-  timeout: 10000,
 });
 
 apiManager.interceptors.request.use(

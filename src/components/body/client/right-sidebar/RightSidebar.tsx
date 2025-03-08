@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Response } from '../../../../interfaces/response/Response';
+import { useEffect, useState } from 'react';
+import { Body, Response } from '../../../../interfaces/response/Response';
 import { formatBytes, millisecondsToTime } from '../../../../services/Tools';
 import { PayloadColumn } from './payload-column/PayloadColumn';
 import { HeaderColumn } from './header-column/HeaderColumn';
 import { CookieColumn } from './cookie-column/CookieColumn';
 import { StatusKeyValue } from '../../../../interfaces/StatusKeyValue';
 import { detachStatusKeyValue } from '../../../../services/Utils';
+import { Cookie } from '../../../../interfaces/request/Request';
 
 import './RightSidebar.css'
 
@@ -26,18 +27,33 @@ interface Payload {
     time: number;
     size: number;
     header: StatusKeyValue[];
-    cookies: StatusKeyValue[];
+    cookies: Cookie[];
+    body?: Body;
 }
 
 export function RightSidebar({cursorStatus, response}: RightSidebarProps) {
+    //TODO: Refactorize.
     const [data, setData] = useState<Payload>({
         cursor: cursorStatus || DEFAULT_CURSOR,
         status: response ? `${response.status}` : "",
         time: response ? response.time : NaN,
         size: response ? response.size : NaN,
         header: response ? detachStatusKeyValue(response.headers.headers) : [],
-        cookies: response ? detachStatusKeyValue(response.cookies.cookies) : []
+        cookies: response ? Object.values(response.cookies.cookies) : [],
+        body: response ? response.body : undefined
     });
+
+    useEffect(() => {
+        setData({
+            cursor: data.cursor,
+            status: response ? `${response.status}` : "",
+            time: response ? response.time : NaN,
+            size: response ? response.size : NaN,
+            header: response ? detachStatusKeyValue(response.headers.headers) : [],
+            cookies: response ? Object.values(response.cookies.cookies) : [],
+            body: response ? response.body : undefined
+        });
+    }, [response, cursorStatus]);
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newData = {...data, cursor: e.target.value};
@@ -68,10 +84,10 @@ export function RightSidebar({cursorStatus, response}: RightSidebarProps) {
                     onChange={cursorChange}/>
                 <label htmlFor="tag-right-sidebar-collection">Cookie {data.cookies.length > 0 && `(${data.cookies.length})`}</label>
             </div>
-            <div id="request-form-options">
-                {data.cursor === VIEW_PAYLOAD && <PayloadColumn/>}
-                {data.cursor === VIEW_HEADER && <HeaderColumn/>}
-                {data.cursor === VIEW_COOKIE && <CookieColumn/>}
+            <div id="response-container">
+                {data.cursor === VIEW_PAYLOAD && <PayloadColumn body={data.body}/>}
+                {data.cursor === VIEW_HEADER && <HeaderColumn header={data.header}/>}
+                {data.cursor === VIEW_COOKIE && <CookieColumn cookie={data.cookies}/>}
             </div>
         </div>
     )

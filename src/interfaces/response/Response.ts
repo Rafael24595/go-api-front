@@ -1,4 +1,4 @@
-import { Body, Cookies, Headers } from "../request/Request"
+import { Cookies, Headers } from "../request/Request"
 
 export interface Response {
     id: string
@@ -11,3 +11,9 @@ export interface Response {
     body: Body
     size: number
 }
+
+export interface Body {
+    status: boolean
+    content_type: string
+    bytes: string
+  }

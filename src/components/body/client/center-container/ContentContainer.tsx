@@ -5,8 +5,13 @@ import { Auths, Body, Headers, Queries, Request } from "../../../../interfaces/r
 import { CONTENT_TYPE as CONTENT_TYPE_TEXT } from './client-arguments/body-arguments/text/TextData';
 import { HttpMethod } from "../../../../constants/HttpMethod";
 import { executeFormAction } from "../../../../services/api/ServiceManager";
+import { Response } from "../../../../interfaces/response/Response";
 
 import './ContentContainer.css'
+
+interface ContentContainerProps {
+    onValueChange: (response: Response) => void
+}
 
 interface ItemRequest {
     url: string;
@@ -17,7 +22,7 @@ interface ItemRequest {
     body: Body;
 }
 
-export function ContentContainer() {
+export function ContentContainer({onValueChange}: ContentContainerProps) {
     const [formData, setFormData] = useState<ItemRequest>({
         url: "",
         method: HttpMethod.GET,
@@ -42,8 +47,9 @@ export function ContentContainer() {
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         const request = makeRequest();
-        executeFormAction(request);
-        console.log("Form Data Submitted:", formData);
+        executeFormAction(request).then(data => {
+            onValueChange(data.response);
+        });
     };
 
     const makeRequest = (): Request => {
