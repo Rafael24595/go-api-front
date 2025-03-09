@@ -6,9 +6,11 @@ import { CONTENT_TYPE as CONTENT_TYPE_TEXT } from './client-arguments/body-argum
 import { HttpMethod } from "../../../../constants/HttpMethod";
 import { executeFormAction } from "../../../../services/api/ServiceManager";
 import { Response } from "../../../../interfaces/response/Response";
+import { pushHistoric } from "../../../../services/api/ServiceStorage";
 
 import './ContentContainer.css'
 
+//TODO: Add request prop.
 interface ContentContainerProps {
     onValueChange: (response: Response) => void
 }
@@ -46,9 +48,12 @@ export function ContentContainer({onValueChange}: ContentContainerProps) {
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+
         const request = makeRequest();
         executeFormAction(request).then(data => {
             onValueChange(data.response);
+            //TODO: Manage user session.
+            pushHistoric("anonymous", data.request, data.response)
         });
     };
 
@@ -65,7 +70,7 @@ export function ContentContainer({onValueChange}: ContentContainerProps) {
             cookie: { cookies: {} },
             body: formData.body,
             auth: formData.auth,
-            status: "historic",
+            status: "draft",
         }
     }
 

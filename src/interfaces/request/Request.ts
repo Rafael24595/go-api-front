@@ -1,10 +1,10 @@
 import { Dict } from "../../types/Dict";
 import { StatusKeyValue } from "../StatusKeyValue";
 
-type Status = 'historic' | 'saved';
+type Status = 'draft' | 'final';
 
 export interface Request {
-  id?: string;
+  _id?: string;
   timestamp: number;
   name: string;
   method: string;

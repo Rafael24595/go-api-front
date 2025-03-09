@@ -1,7 +1,7 @@
 import axios from "axios";
 
 function baseURL(): string {
-  const url = process.env.REACT_APP_SERVICE_API_STORAGE;
+  const url = process.env.VITE_SERVICE_API_STORAGE;
   if(url != undefined) {
     return url
   }
@@ -11,7 +11,6 @@ function baseURL(): string {
 
 const apiStorage = axios.create({
   baseURL: baseURL(),
-  timeout: 10000,
 });
 
 apiStorage.interceptors.request.use(

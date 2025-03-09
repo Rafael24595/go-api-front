@@ -17,7 +17,6 @@ export function Client() {
 
     const responseChange = (response: Response) => {
         let newData = {...data, response};
-        console.log(response)
         setData(newData);
     }
 

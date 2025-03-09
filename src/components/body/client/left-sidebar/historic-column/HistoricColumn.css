@@ -1,0 +1,33 @@
+#actions-container {
+    scrollbar-gutter: stable;
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 10px;
+}
+
+.request-preview {
+    display: flex;
+    border-bottom: 1px solid #b3b3b3;
+    padding: 10px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.request-link {
+    overflow: hidden;
+}
+
+.request-sign {
+    display: flex;
+}
+
+.request-sign-method {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.request-sign-url {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
