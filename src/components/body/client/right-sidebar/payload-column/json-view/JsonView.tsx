@@ -15,17 +15,17 @@ interface JsonViewProps {
 export function JsonView({value}: JsonViewProps) {
     const [data, setFormattedValue] = useState<string>(value || '');
     
-      useEffect(() => {
-        const formatData = async () => {
-          const formatted = await prettier.format(value || '', {
-            parser: 'json',
-            plugins: [babelParser, prettierEstreePlugin],
-          });
-          setFormattedValue(formatted);
-        };
-    
-        formatData();
-      }, [value]);
+    useEffect(() => {
+      const formatData = async () => {
+        const formatted = await prettier.format(value || '', {
+          parser: 'json',
+          plugins: [babelParser, prettierEstreePlugin],
+        });
+        setFormattedValue(formatted);
+      };
+  
+      formatData();
+    }, [value]);
 
     return (
         <>
