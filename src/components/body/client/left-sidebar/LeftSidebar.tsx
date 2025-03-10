@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { HistoricColumn } from './historic-column/HistoricColumn';
 import { StoredColumn } from './stored-column/StoredColumn';
 import { CollectionColumn } from './collection-column/CollectionColumn';
+import { Request } from '../../../../interfaces/request/Request';
 
 import './LeftSidebar.css';
 
@@ -13,13 +14,14 @@ const DEFAULT_CURSOR = VIEW_HISTORIC;
 
 interface LeftSidebarProps {
     cursorStatus?: string;
+    selectRequest: (request: Request) => Promise<void>;
 }
 
 interface Payload {
     cursor: string;
 }
 
-export function LeftSidebar({cursorStatus}: LeftSidebarProps) {
+export function LeftSidebar({cursorStatus, selectRequest}: LeftSidebarProps) {
     const [data, setData] = useState<Payload>({
         cursor: cursorStatus || DEFAULT_CURSOR,
     });
@@ -49,7 +51,7 @@ export function LeftSidebar({cursorStatus}: LeftSidebarProps) {
                 <label htmlFor="tag-left-sidebar-collection">Collection</label>
             </div>
             <div id="request-form-options">
-                {data.cursor === VIEW_HISTORIC && <HistoricColumn/>}
+                {data.cursor === VIEW_HISTORIC && <HistoricColumn selectRequest={selectRequest}/>}
                 {data.cursor === VIEW_STORED && <StoredColumn/>}
                 {data.cursor === VIEW_COLLECTION && <CollectionColumn/>}
             </div>

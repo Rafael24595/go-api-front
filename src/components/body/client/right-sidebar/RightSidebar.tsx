@@ -32,27 +32,22 @@ interface Payload {
 }
 
 export function RightSidebar({cursorStatus, response}: RightSidebarProps) {
-    //TODO: Refactorize.
-    const [data, setData] = useState<Payload>({
-        cursor: cursorStatus || DEFAULT_CURSOR,
-        status: response ? `${response.status}` : "",
-        time: response ? response.time : NaN,
-        size: response ? response.size : NaN,
-        header: response ? detachStatusKeyValue(response.headers.headers) : [],
-        cookies: response ? Object.values(response.cookies.cookies) : [],
-        body: response ? response.body : undefined
-    });
-
-    useEffect(() => {
-        setData({
-            cursor: data.cursor,
+    const makeData = (): Payload => {
+        return {
+            cursor: cursorStatus || DEFAULT_CURSOR,
             status: response ? `${response.status}` : "",
             time: response ? response.time : NaN,
             size: response ? response.size : NaN,
             header: response ? detachStatusKeyValue(response.headers.headers) : [],
-            cookies: response ? Object.values(response.cookies.cookies) : [],
+            cookies: response && response.cookies.cookies ? Object.values(response.cookies.cookies) : [],
             body: response ? response.body : undefined
-        });
+        }
+    }
+
+    const [data, setData] = useState<Payload>(makeData());
+
+    useEffect(() => {
+        setData({ ...makeData(), cursor: data.cursor });
     }, [response, cursorStatus]);
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {

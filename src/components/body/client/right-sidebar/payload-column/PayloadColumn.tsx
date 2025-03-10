@@ -38,8 +38,6 @@ export function PayloadColumn({body}: PayloadColumnProps) {
         payload: body ? atob(body.bytes) : ""
     }
 
-    console.log(data)
-    
     return (
         <>
             <div id="response-payload-bytes">

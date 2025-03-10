@@ -1,89 +1,61 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MethodSelector } from "./method-selector/MethodSelector";
 import { ItemRequestParameters, ParameterSelector } from "./client-arguments/ParameterSelector";
-import { Auths, Body, Headers, Queries, Request } from "../../../../interfaces/request/Request";
-import { CONTENT_TYPE as CONTENT_TYPE_TEXT } from './client-arguments/body-arguments/text/TextData';
-import { HttpMethod } from "../../../../constants/HttpMethod";
+import { Request } from "../../../../interfaces/request/Request";
 import { executeFormAction } from "../../../../services/api/ServiceManager";
 import { Response } from "../../../../interfaces/response/Response";
 import { pushHistoric } from "../../../../services/api/ServiceStorage";
 
 import './ContentContainer.css'
 
-//TODO: Add request prop.
 interface ContentContainerProps {
-    onValueChange: (response: Response) => void
+    request: Request;
+    onValueChange: (request: Request, response: Response) => void
 }
 
-interface ItemRequest {
-    url: string;
-    method: string;
-    query: Queries;
-    header: Headers;
-    auth: Auths;
-    body: Body;
-}
+export function ContentContainer({request, onValueChange}: ContentContainerProps) {
+    const [data, setData] = useState<Request>(request);
 
-export function ContentContainer({onValueChange}: ContentContainerProps) {
-    const [formData, setFormData] = useState<ItemRequest>({
-        url: "",
-        method: HttpMethod.GET,
-        query: { queries: {} },
-        header: { headers: {} },
-        auth: { status: true, auths: {} },
-        body: { status: true, contentType: CONTENT_TYPE_TEXT, payload: "" }
-      });
+    useEffect(() => {
+        console.log("State Updated:", request);
+        setData(request);
+    }, [request]);
     
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        setData({ ...data, uri: e.target.value });
     };
 
     const methodChange = (method: string) => {
-        setFormData({ ...formData, method });
+        setData({ ...data, method });
     };
 
     const parametersChange = (parameters: ItemRequestParameters) => {
-        setFormData({ ...formData, ...parameters });
+        setData({ ...data, ...parameters });
     }
 
-    const handleSubmit = (e: { preventDefault: () => void; }) => {
+    const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
 
-        const request = makeRequest();
-        executeFormAction(request).then(data => {
-            onValueChange(data.response);
-            //TODO: Manage user session.
-            pushHistoric("anonymous", data.request, data.response)
-        });
-    };
+        data.timestamp = Date.now();
+        data.name = `temp-${data.method}-${data.timestamp}`;
 
-    const makeRequest = (): Request => {
-        const now = Date.now();
-        const name = `temp-${formData.method}-${now}`;
-        return {
-            timestamp: Date.now(),
-            name: name,
-            method: formData.method,
-            uri: formData.url,
-            query: formData.query,
-            header: formData.header,
-            cookie: { cookies: {} },
-            body: formData.body,
-            auth: formData.auth,
-            status: "draft",
-        }
-    }
+        const apiResponse = await executeFormAction(data);
+
+        onValueChange(apiResponse.request, apiResponse.response);
+        //TODO: Manage user session.
+        pushHistoric("anonymous", apiResponse.request, apiResponse.response)
+    };
 
     return (
         <div id='content-container'>
             <form id="client-form" onSubmit={handleSubmit}>
                 <div id="client-bar">
-                    <MethodSelector selected={formData.method} onMethodChange={methodChange}/>
-                    <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={urlChange} value={formData.url}/>
+                    <MethodSelector selected={data.method} onMethodChange={methodChange}/>
+                    <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={urlChange} value={data.uri}/>
                     <button id="client-button-send" className="client-bar-component section-header-element">Send</button>
                 </div>
                 <div id="client-content">
-                    <ParameterSelector request={formData} onValueChange={parametersChange}/>
+                    <ParameterSelector request={data} onValueChange={parametersChange}/>
                 </div>
                 <div id="client-buttons" className="border-top">
                     <button type="submit">Save</button>

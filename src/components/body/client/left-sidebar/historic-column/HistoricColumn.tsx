@@ -1,15 +1,19 @@
 import './HistoricColumn.css'
 import { Request } from '../../../../../interfaces/request/Request';
-import { findHistoric } from '../../../../../services/api/ServiceStorage';
+import { findAllHistoric } from '../../../../../services/api/ServiceStorage';
 import { useEffect, useState } from 'react';
 import { millisecondsToDate } from '../../../../../services/Tools';
 
-export function HistoricColumn() {
+interface HistoricColumnProps {
+    selectRequest: (request: Request) => void;
+}
+
+export function HistoricColumn({ selectRequest }:HistoricColumnProps) {
     const [requests, setHistoric] = useState<Request[]>([]);
 
     const fetchHistoric = async () => {
         try {
-            const data = await findHistoric("anonymous");
+            const data = await findAllHistoric("anonymous");
             setHistoric(data);
         } catch (error) {
             console.error("Error fetching history:", error);
@@ -40,7 +44,8 @@ export function HistoricColumn() {
                     {requests.length > 0 ? (
                         requests.map((request) => (
                             <div key={ makeKey(request) } className="request-preview">
-                                <a className="request-link" title={ request.uri }>
+                                <a className="request-link" title={ request.uri }
+                                    onClick={() => selectRequest(request)}>
                                     <div className="request-sign">
                                         <span className="request-sign-method">{ request.method }</span>
                                         <span className="request-sign-url">{ request.uri }</span>
