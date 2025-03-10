@@ -23,9 +23,18 @@ export const pushHistoric = async (user: string, request: Request, response?: Re
     }
 };
 
-export const findHistoric = async (user: string): Promise<Request[]> => {
+export const findAllHistoric = async (user: string): Promise<Request[]> => {
     try {
         const apiResponse = await apiManager.get(`/api/v1/historic/${user}`);
+        return apiResponse.data;
+    } catch (error) {
+      throw error;
+    }
+};
+
+export const findAction = async (user: string, request: Request): Promise<ResponseExecuteAction> => {
+    try {
+        const apiResponse = await apiManager.get(`/api/v1/storage/${user}/${request._id}`);
         return apiResponse.data;
     } catch (error) {
       throw error;
