@@ -1,3 +1,4 @@
+import { HttpMethod } from "../../constants/HttpMethod";
 import { Dict } from "../../types/Dict";
 import { StatusKeyValue } from "../StatusKeyValue";
 
@@ -30,7 +31,7 @@ export interface Cookies {
 }
 
 export interface Cookie {
-	status: boolean,
+	status:     boolean,
 	code:       string,
 	value:      string,
 	domain:     string,
@@ -57,6 +58,22 @@ export interface Auth {
   status: boolean
   code: string
   parameters: Dict<string>
+}
+
+export function newRequest(): Request {
+  return {
+    _id: "",
+    timestamp: 0,
+    name: "",
+    method: HttpMethod.GET,
+    uri: "",
+    query: { queries: {} },
+    header: { headers: {} },
+    auth: { status: true, auths: {} },
+    body: { status: true, contentType: "", payload: "" },
+    cookie: { cookies: {} },
+    status: "draft"
+  }
 }
 
 export function cookieToString(cookie: Cookie): string {
