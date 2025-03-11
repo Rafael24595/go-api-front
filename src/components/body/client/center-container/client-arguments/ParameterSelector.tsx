@@ -38,12 +38,16 @@ export interface ItemRequestParameters {
 }
 
 interface ParameterSelectorProps {
+    uriProcess: boolean;
     request: ItemRequestParameters
     cursorStatus?: string;
+    processUri: () => void;
+    onUriProcessChange: (uriProcess: boolean) => void;
     onValueChange: (parameters: ItemRequestParameters) => void;
 }
 
 interface Payload {
+    uriProcess: boolean;
     cursor: string;
     query: StatusKeyValue[];
     header: StatusKeyValue[];
@@ -51,8 +55,9 @@ interface Payload {
     body: Body;
 }
 
-export function ParameterSelector({request, cursorStatus, onValueChange}: ParameterSelectorProps) {
+export function ParameterSelector({ uriProcess, request, cursorStatus, processUri, onUriProcessChange, onValueChange }: ParameterSelectorProps) {
     const [table, setTable] = useState<Payload>({
+        uriProcess: uriProcess,
         cursor: cursorStatus || DEFAULT_CURSOR,
         query: detachStatusKeyValue(request.query.queries),
         header: detachStatusKeyValue(request.header.headers),
@@ -63,6 +68,12 @@ export function ParameterSelector({request, cursorStatus, onValueChange}: Parame
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setTable({...table, cursor: e.target.value});
     };
+
+    const onUriProcessChangeLevel = (uriProcess: boolean) => {
+        let newTable = {...table, uriProcess: uriProcess};
+        setTable(newTable);
+        onUriProcessChange(uriProcess);
+    }
 
     const queryChange = (rows: StatusKeyValue[]) => {
         let newTable = {...table, query: rows};
@@ -124,10 +135,21 @@ export function ParameterSelector({request, cursorStatus, onValueChange}: Parame
                 </div>
             </div>
             <div id="client-argument-content">
-                {table.cursor === VIEW_QUERY && <QueryArguments values={table.query} onValueChange={queryChange}/>}
-                {table.cursor === VIEW_HEADER && <HeaderArguments values={table.header} onValueChange={headerChange}/>}
-                {table.cursor === VIEW_AUTH && <AuthArguments values={table.auth} onValueChange={authChange}/>}
-                {table.cursor === VIEW_BODY && <BodyArguments value={table.body} onValueChange={bodyChange}/>}
+                {table.cursor === VIEW_QUERY && <QueryArguments 
+                    uriProcess={table.uriProcess} 
+                    values={table.query} 
+                    processUri={processUri}
+                    onUriProcessChange={onUriProcessChangeLevel} 
+                    onValueChange={queryChange}/>}
+                {table.cursor === VIEW_HEADER && <HeaderArguments 
+                    values={table.header} 
+                    onValueChange={headerChange}/>}
+                {table.cursor === VIEW_AUTH && <AuthArguments 
+                    values={table.auth} 
+                    onValueChange={authChange}/>}
+                {table.cursor === VIEW_BODY && <BodyArguments 
+                    value={table.body} 
+                    onValueChange={bodyChange}/>}
             </div>
         </>
     )

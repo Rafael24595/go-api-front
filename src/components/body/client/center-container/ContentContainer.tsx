@@ -13,21 +13,40 @@ interface ContentContainerProps {
     onValueChange: (request: Request, response: Response) => void
 }
 
+interface Payload {
+    uriProcess: boolean;
+    request: Request;
+}
+
 export function ContentContainer({request, onValueChange}: ContentContainerProps) {
-    const [data, setData] = useState<Request>(request);
+    const [data, setData] = useState<Payload>({
+        uriProcess: false,
+        request: request,
+    });
 
     useEffect(() => {
-        console.log("State Updated:", request);
-        setData(request);
+        let newData = {...data, request};
+        setData(newData);
     }, [request]);
     
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setData({ ...data, uri: e.target.value });
+        let newRequest = {...data.request, uri: e.target.value};
+        setData({ ...data, request: newRequest });
     };
 
     const methodChange = (method: string) => {
-        setData({ ...data, method });
+        let newRequest = {...data.request, method: method};
+        setData({ ...data, request: newRequest });
     };
+
+    const processUri = () => {
+        console.log("Processing uri query parameters.");
+    }
+
+    const onUriProcessChange = (uriProcess: boolean) => {
+        console.log("Auto processing uri query parameters status: " + uriProcess);
+        setData({ ...data, uriProcess: uriProcess });
+    }
 
     const parametersChange = (parameters: ItemRequestParameters) => {
         setData({ ...data, ...parameters });
@@ -36,10 +55,10 @@ export function ContentContainer({request, onValueChange}: ContentContainerProps
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
 
-        data.timestamp = Date.now();
-        data.name = `temp-${data.method}-${data.timestamp}`;
+        data.request.timestamp = Date.now();
+        data.request.name = `temp-${data.request.method}-${data.request.timestamp}`;
 
-        const apiResponse = await executeFormAction(data);
+        const apiResponse = await executeFormAction(data.request);
 
         onValueChange(apiResponse.request, apiResponse.response);
         //TODO: Manage user session.
@@ -50,12 +69,17 @@ export function ContentContainer({request, onValueChange}: ContentContainerProps
         <div id='content-container'>
             <form id="client-form" onSubmit={handleSubmit}>
                 <div id="client-bar">
-                    <MethodSelector selected={data.method} onMethodChange={methodChange}/>
-                    <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={urlChange} value={data.uri}/>
+                    <MethodSelector selected={data.request.method} onMethodChange={methodChange}/>
+                    <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={urlChange} value={data.request.uri}/>
                     <button id="client-button-send" className="client-bar-component section-header-element">Send</button>
                 </div>
                 <div id="client-content">
-                    <ParameterSelector request={data} onValueChange={parametersChange}/>
+                    <ParameterSelector 
+                        uriProcess={data.uriProcess} 
+                        request={data.request} 
+                        processUri={processUri}
+                        onUriProcessChange={onUriProcessChange} 
+                        onValueChange={parametersChange}/>
                 </div>
                 <div id="client-buttons" className="border-top">
                     <button type="submit">Save</button>
