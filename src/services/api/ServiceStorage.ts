@@ -13,6 +13,15 @@ export const insertAction = async (user: string, request: Request, response?: Re
     }
 };
 
+export const deleteAction = async (user: string, request: Request): Promise<ResponseExecuteAction> => {
+  try {
+      const apiResponse = await apiManager.delete(`/api/v1/storage/${user}/${request._id}`);
+      return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const pushHistoric = async (user: string, request: Request, response?: Response): Promise<ResponseExecuteAction> => {
     try {
         const payload = { request, response };

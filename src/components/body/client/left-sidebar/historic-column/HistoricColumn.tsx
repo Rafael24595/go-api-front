@@ -1,20 +1,32 @@
-import './HistoricColumn.css'
-import { Request } from '../../../../../interfaces/request/Request';
-import { findAllHistoric } from '../../../../../services/api/ServiceStorage';
+import { newRequest, Request } from '../../../../../interfaces/request/Request';
+import { deleteAction, findAllHistoric } from '../../../../../services/api/ServiceStorage';
 import { useEffect, useState } from 'react';
 import { millisecondsToDate } from '../../../../../services/Tools';
 
+import './HistoricColumn.css';
+
 interface HistoricColumnProps {
+    defineRequest: (request: Request) => void;
     selectRequest: (request: Request) => void;
 }
 
-export function HistoricColumn({ selectRequest }:HistoricColumnProps) {
+export function HistoricColumn({ defineRequest, selectRequest }:HistoricColumnProps) {
     const [requests, setHistoric] = useState<Request[]>([]);
 
     const fetchHistoric = async () => {
         try {
-            const data = await findAllHistoric("anonymous");
+            const data = (await findAllHistoric("anonymous"))
+                .sort((a, b) => b.timestamp - a.timestamp);
             setHistoric(data);
+        } catch (error) {
+            console.error("Error fetching history:", error);
+        }
+    };
+
+    const deleteHistoric = async (request: Request) => {
+        try {
+            await deleteAction("anonymous", request);
+            await fetchHistoric();
         } catch (error) {
             console.error("Error fetching history:", error);
         }
@@ -37,7 +49,10 @@ export function HistoricColumn({ selectRequest }:HistoricColumnProps) {
     return (
         <>
             <div id="column-container">
-                <button className="column-option option-button border-bottom">
+                <button 
+                    type="button"
+                    className="column-option option-button border-bottom"
+                    onClick={() => defineRequest(newRequest())}>
                     <span>Clean</span>
                 </button>
                 <div id="actions-container">
@@ -54,11 +69,15 @@ export function HistoricColumn({ selectRequest }:HistoricColumnProps) {
                                         <span className="request-sign-timestamp">{ millisecondsToDate(request.timestamp) }</span>
                                     </div>
                                 </a>
-                                <button type="button" className="remove-button show"></button>
+                                <button 
+                                    type="button" 
+                                    className="remove-button show"
+                                    onClick={() => deleteHistoric(request)}
+                                    ></button>
                             </div>
                         ))
                     ) : (
-                        <p>No history available</p>
+                        <p className="no-data"> - No history available - </p>
                     )}
                 </div>
             </div>

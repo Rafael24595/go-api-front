@@ -17,6 +17,7 @@ const DEFAULT_CURSOR = VIEW_HISTORIC;
 const CURSOR_KEY = "LeftSidebarCursor";
 
 interface LeftSidebarProps {
+    defineRequest: (request: Request) => Promise<void>;
     selectRequest: (request: Request) => Promise<void>;
 }
 
@@ -24,7 +25,7 @@ interface Payload {
     cursor: string;
 }
 
-export function LeftSidebar({ selectRequest }: LeftSidebarProps) {
+export function LeftSidebar({ defineRequest, selectRequest }: LeftSidebarProps) {
     const getCursor = () => {
         const storedValue = localStorage.getItem(CURSOR_KEY);
         return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
@@ -63,7 +64,9 @@ export function LeftSidebar({ selectRequest }: LeftSidebarProps) {
                 <label htmlFor="tag-left-sidebar-collection">Collection</label>
             </div>
             <div id="request-form-options">
-                {data.cursor === VIEW_HISTORIC && <HistoricColumn selectRequest={selectRequest}/>}
+                {data.cursor === VIEW_HISTORIC && <HistoricColumn 
+                    defineRequest={defineRequest}
+                    selectRequest={selectRequest}/>}
                 {data.cursor === VIEW_STORED && <StoredColumn/>}
                 {data.cursor === VIEW_COLLECTION && <CollectionColumn/>}
             </div>
