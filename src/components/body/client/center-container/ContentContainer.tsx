@@ -10,6 +10,8 @@ import { detachStatusKeyValue } from "../../../../services/Utils";
 
 import './ContentContainer.css'
 
+const AUTO_READ_URI_KEY = "AutoReadUriKey";
+
 interface ContentContainerProps {
     request: Request;
     onValueChange: (request: Request, response: Response) => void
@@ -21,8 +23,16 @@ interface Payload {
 }
 
 export function ContentContainer({request, onValueChange}: ContentContainerProps) {
+    const getCursor = () => {
+        return localStorage.getItem(AUTO_READ_URI_KEY) == "true";
+    }
+
+    const setCursor = (autoReadUri: boolean) => {
+        localStorage.setItem(AUTO_READ_URI_KEY, `${autoReadUri}`);
+    }
+
     const [data, setData] = useState<Payload>({
-        autoReadUri: false,
+        autoReadUri: getCursor(),
         request: request,
     });
     
@@ -64,6 +74,7 @@ export function ContentContainer({request, onValueChange}: ContentContainerProps
 
     const onReadUriChange = (autoReadUri: boolean) => {
         console.log("Auto processing uri query parameters status: " + autoReadUri);
+        setCursor(autoReadUri);
         setData({ ...data, autoReadUri: autoReadUri });
     }
 
