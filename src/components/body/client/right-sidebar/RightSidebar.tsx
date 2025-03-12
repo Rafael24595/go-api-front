@@ -14,10 +14,13 @@ const VIEW_PAYLOAD = "payload";
 const VIEW_HEADER = "header";
 const VIEW_COOKIE = "cookie";
 
+const VALID_CURSORS = [VIEW_PAYLOAD, VIEW_HEADER, VIEW_COOKIE];
+
 const DEFAULT_CURSOR = VIEW_PAYLOAD;
 
+const CURSOR_KEY = "RightSidebarCursor";
+
 interface RightSidebarProps {
-    cursorStatus?: string;
     response?: Response
 }
 
@@ -31,10 +34,19 @@ interface Payload {
     body?: Body;
 }
 
-export function RightSidebar({cursorStatus, response}: RightSidebarProps) {
+export function RightSidebar({ response }: RightSidebarProps) {
+    const getCursor = () => {
+        const storedValue = localStorage.getItem(CURSOR_KEY);
+        return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
+    }
+
+    const setCursor = (cursor: string) => {
+        localStorage.setItem(CURSOR_KEY, cursor);
+    }
+
     const makeData = (): Payload => {
         return {
-            cursor: cursorStatus || DEFAULT_CURSOR,
+            cursor: getCursor(),
             status: response ? `${response.status}` : "",
             time: response ? response.time : NaN,
             size: response ? response.size : NaN,
@@ -48,11 +60,11 @@ export function RightSidebar({cursorStatus, response}: RightSidebarProps) {
 
     useEffect(() => {
         setData({ ...makeData(), cursor: data.cursor });
-    }, [response, cursorStatus]);
+    }, [response]);
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let newData = {...data, cursor: e.target.value};
-        setData(newData);
+        setCursor(e.target.value);
+        setData({...data, cursor: e.target.value});
     };
 
     return (

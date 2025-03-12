@@ -1,7 +1,7 @@
 import { Cookies, Headers } from "../request/Request"
 
 export interface Response {
-    id: string
+    _id: string
     request: string
     date: number
     time: number

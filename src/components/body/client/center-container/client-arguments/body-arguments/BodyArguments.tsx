@@ -8,11 +8,14 @@ import { JsonData } from './json/JsonData';
 const VIEW_TEXT = "text";
 const VIEW_JSON = "json";
 
+const VALID_CURSORS = [VIEW_TEXT, VIEW_JSON];
+
 const DEFAULT_CURSOR = VIEW_TEXT;
 
+const CURSOR_KEY = "BodyArgumentsCursor";
+
 interface BodyArgumentsProps {
-    value: Body
-    cursorStatus?: string;
+    argument: Body
     onValueChange: (body: Body) => void;
 }
 
@@ -23,17 +26,26 @@ interface Payload {
     payload: string;
 }
 
-export function BodyArguments({value, cursorStatus, onValueChange}: BodyArgumentsProps) {
+export function BodyArguments({ argument, onValueChange }: BodyArgumentsProps) {
+    const getCursor = () => {
+        const storedValue = localStorage.getItem(CURSOR_KEY);
+        return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
+    }
+    
+    const setCursor = (cursor: string) => {
+        localStorage.setItem(CURSOR_KEY, cursor);
+    } 
+
     const [data, setData] = useState<Payload>({
-            cursor: cursorStatus || DEFAULT_CURSOR,
-            status: value.status, 
-            content: value.contentType,
-            payload: value.payload,
-        });
+            cursor: getCursor(),
+            status: argument.status, 
+            content: argument.contentType,
+            payload: argument.payload,
+    });
     
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let newData = {...data, cursor: e.target.value};
-        setData(newData);
+        setCursor(e.target.value);
+        setData({...data, cursor: e.target.value});
     };
 
     const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -15,7 +15,11 @@ const VIEW_HEADER = "header";
 const VIEW_AUTH = "auth";
 const VIEW_BODY = "body";
 
+const VALID_CURSORS = [VIEW_QUERY, VIEW_HEADER, VIEW_AUTH, VIEW_BODY];
+
 const DEFAULT_CURSOR = VIEW_QUERY;
+
+const CURSOR_KEY = "ParameterSelectorCursor";
 
 const mergeStatusKeyValue = (newValues: StatusKeyValue[]): Dict<StatusKeyValue[]> => {
     const merge: Dict<StatusKeyValue[]> = {};
@@ -38,64 +42,73 @@ export interface ItemRequestParameters {
 }
 
 interface ParameterSelectorProps {
-    uriProcess: boolean;
-    request: ItemRequestParameters
-    cursorStatus?: string;
-    processUri: () => void;
-    onUriProcessChange: (uriProcess: boolean) => void;
+    autoReadUri: boolean;
+    parameters: ItemRequestParameters
+    readUri: () => StatusKeyValue[];
+    onReadUriChange: (uriProcess: boolean) => void;
     onValueChange: (parameters: ItemRequestParameters) => void;
 }
 
 interface Payload {
-    uriProcess: boolean;
     cursor: string;
+    autoReadUri: boolean;
     query: StatusKeyValue[];
     header: StatusKeyValue[];
     auth: Auths;
     body: Body;
 }
 
-export function ParameterSelector({ uriProcess, request, cursorStatus, processUri, onUriProcessChange, onValueChange }: ParameterSelectorProps) {
-    const [table, setTable] = useState<Payload>({
-        uriProcess: uriProcess,
-        cursor: cursorStatus || DEFAULT_CURSOR,
-        query: detachStatusKeyValue(request.query.queries),
-        header: detachStatusKeyValue(request.header.headers),
-        auth: request.auth,
-        body: request.body
-    });
+export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriChange, onValueChange }: ParameterSelectorProps) {
+    const getCursor = () => {
+        const storedValue = localStorage.getItem(CURSOR_KEY);
+        return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
+    }
 
+    const setCursor = (cursor: string) => {
+        localStorage.setItem(CURSOR_KEY, cursor);
+    }
+
+    const [data, setData] = useState<Payload>({
+        autoReadUri: autoReadUri,
+        cursor: getCursor(),
+        query: detachStatusKeyValue(parameters.query.queries),
+        header: detachStatusKeyValue(parameters.header.headers),
+        auth: parameters.auth,
+        body: parameters.body
+    });
+    
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTable({...table, cursor: e.target.value});
+        setCursor(e.target.value);
+        setData({...data, cursor: e.target.value});
     };
 
-    const onUriProcessChangeLevel = (uriProcess: boolean) => {
-        let newTable = {...table, uriProcess: uriProcess};
-        setTable(newTable);
-        onUriProcessChange(uriProcess);
+    const onReadUriChangeStatus = (uriProcess: boolean) => {
+        let newTable = {...data, autoReadUri: uriProcess};
+        setData(newTable);
+        onReadUriChange(uriProcess);
     }
 
     const queryChange = (rows: StatusKeyValue[]) => {
-        let newTable = {...table, query: rows};
-        setTable(newTable);
+        let newTable = {...data, query: rows};
+        setData(newTable);
         onValueChange(makeRequestParameters(newTable));
     }
 
     const headerChange = (rows: StatusKeyValue[]) => {
-        let newTable = {...table, header: rows};
-        setTable(newTable);
+        let newTable = {...data, header: rows};
+        setData(newTable);
         onValueChange(makeRequestParameters(newTable));
     }
 
     const authChange = (auth: Auths) => {
-        let newTable = {...table, auth: auth};
-        setTable(newTable);
+        let newTable = {...data, auth: auth};
+        setData(newTable);
         onValueChange(makeRequestParameters(newTable));
     }
 
     const bodyChange = (body: Body) => {
-        let newTable = {...table, body: body};
-        setTable(newTable);
+        let newTable = {...data, body: body};
+        setData(newTable);
         onValueChange(makeRequestParameters(newTable));
     }
 
@@ -113,42 +126,42 @@ export function ParameterSelector({ uriProcess, request, cursorStatus, processUr
             <div id="client-argument-headers">
                 <div className="radio-button-group border-bottom">
                     <input type="radio" id="tag-client-query" className="client-tag" name="cursor-client"
-                        checked={table.cursor === VIEW_QUERY} 
+                        checked={data.cursor === VIEW_QUERY} 
                         value={VIEW_QUERY} 
                         onChange={cursorChange}/>
                     <label htmlFor="tag-client-query" id="client-label-query">Query</label>
                     <input type="radio" id="tag-client-header" className="client-tag" name="cursor-client"
-                        checked={table.cursor === VIEW_HEADER} 
+                        checked={data.cursor === VIEW_HEADER} 
                         value={VIEW_HEADER} 
                         onChange={cursorChange}/>
                     <label htmlFor="tag-client-header" id="client-label-header">Headers</label>
                     <input type="radio" id="tag-client-auth" className="client-tag" name="cursor-client"
-                        checked={table.cursor === VIEW_AUTH} 
+                        checked={data.cursor === VIEW_AUTH} 
                         value={VIEW_AUTH} 
                         onChange={cursorChange}/>
                     <label htmlFor="tag-client-auth" id="client-label-auth">Auth</label>
                     <input type="radio" id="tag-client-body" className="client-tag" name="cursor-client"
-                        checked={table.cursor === VIEW_BODY} 
+                        checked={data.cursor === VIEW_BODY} 
                         value={VIEW_BODY} 
                         onChange={cursorChange}/>
                     <label htmlFor="tag-client-body" id="client-label-body">Body</label>
                 </div>
             </div>
             <div id="client-argument-content">
-                {table.cursor === VIEW_QUERY && <QueryArguments 
-                    uriProcess={table.uriProcess} 
-                    values={table.query} 
-                    processUri={processUri}
-                    onUriProcessChange={onUriProcessChangeLevel} 
+                {data.cursor === VIEW_QUERY && <QueryArguments 
+                    autoReadUri={data.autoReadUri} 
+                    argument={data.query} 
+                    readUri={readUri}
+                    onReadUriChange={onReadUriChangeStatus} 
                     onValueChange={queryChange}/>}
-                {table.cursor === VIEW_HEADER && <HeaderArguments 
-                    values={table.header} 
+                {data.cursor === VIEW_HEADER && <HeaderArguments 
+                    argument={data.header} 
                     onValueChange={headerChange}/>}
-                {table.cursor === VIEW_AUTH && <AuthArguments 
-                    values={table.auth} 
+                {data.cursor === VIEW_AUTH && <AuthArguments 
+                    argument={data.auth} 
                     onValueChange={authChange}/>}
-                {table.cursor === VIEW_BODY && <BodyArguments 
-                    value={table.body} 
+                {data.cursor === VIEW_BODY && <BodyArguments 
+                    argument={data.body} 
                     onValueChange={bodyChange}/>}
             </div>
         </>

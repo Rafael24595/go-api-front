@@ -33,7 +33,7 @@ export function Client() {
     return (
         <>
             <LeftSidebar selectRequest={selectRequest}/>
-            <ContentContainer request={data.request} onValueChange={responseChange}/>
+            <ContentContainer key={data.request._id} request={data.request} onValueChange={responseChange}/>
             <RightSidebar response={data.response}/>
         </>
     )

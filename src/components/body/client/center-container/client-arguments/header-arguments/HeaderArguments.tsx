@@ -12,29 +12,29 @@ const ROW_DEFINITION = {
 }
 
 interface HeaderProps {
-    values: StrStatusKeyValue[]
+    argument: StrStatusKeyValue[]
     onValueChange: (rows: StrStatusKeyValue[]) => void;
 }
 
 
-export function HeaderArguments({ values, onValueChange }: HeaderProps) {
-    const [rows, setRows] = useState<ItemStatusKeyValue[]>(toItem(values));
+export function HeaderArguments({ argument, onValueChange }: HeaderProps) {
+    const [data, setData] = useState<ItemStatusKeyValue[]>(toItem(argument));
 
     const rowTrim = (order: number) => {
-        if(order < 0 || rows.length < order ) {
+        if(order < 0 || data.length < order ) {
             return;
         }
 
         let newRows = copyRows();
         newRows.splice(order, 1);
 
-        setRows(newRows)
+        setData(newRows)
         onValueChange(newRows)
     }
 
     const rowPush = (row: StrStatusKeyValue, focus: string, order?: number) => {
         let newRows = copyRows();
-        if(order != undefined && 0 <= order && rows.length >= order) {
+        if(order != undefined && 0 <= order && data.length >= order) {
             newRows[order] = {
                 ...row, 
                 id: newRows[order].id, 
@@ -46,17 +46,17 @@ export function HeaderArguments({ values, onValueChange }: HeaderProps) {
                 focus: focus});
         }
 
-        setRows(newRows);
+        setData(newRows);
         onValueChange(newRows)
     }
 
     const copyRows = (): ItemStatusKeyValue[] => {
-        return [...rows].map(r => ({...r, focus: ""}));
+        return [...data].map(r => ({...r, focus: ""}));
     }
 
     return (
         <>
-            {rows.map((item, i) => (
+            {data.map((item, i) => (
                 <StatusKeyValue
                     key={`query-param-${item.id}`}
                     order={i}

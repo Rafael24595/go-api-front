@@ -12,65 +12,71 @@ const ROW_DEFINITION = {
 }
 
 interface QueryProps {
-    uriProcess: boolean,
-    values: StrStatusKeyValue[]
-    processUri: () => void;
-    onUriProcessChange: (uriProcess: boolean) => void;
+    autoReadUri: boolean,
+    argument: StrStatusKeyValue[]
+    readUri: () => StrStatusKeyValue[];
+    onReadUriChange: (uriProcess: boolean) => void;
     onValueChange: (rows: StrStatusKeyValue[]) => void;
 }
 
 interface Payload {
-    uriProcess: boolean,
-    rows: ItemStatusKeyValue[]
+    autoReadUri: boolean,
+    argument: ItemStatusKeyValue[]
 }
 
-export function QueryArguments({ uriProcess, values, processUri, onUriProcessChange, onValueChange }: QueryProps) {
-    const [data, setRows] = useState<Payload>({
-        uriProcess: uriProcess,
-        rows: toItem(values)
+export function QueryArguments({ readUri, argument, autoReadUri, onReadUriChange, onValueChange }: QueryProps) {
+    const [data, setData] = useState<Payload>({
+        autoReadUri: autoReadUri,
+        argument: toItem(argument)
     });
 
     const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let newData = {...data, uriProcess: e.target.checked};
-        setRows(newData);
-        onUriProcessChange(newData.uriProcess);
+        let newData = {...data, autoReadUri: e.target.checked};
+        setData(newData);
+        onReadUriChange(newData.autoReadUri);
     };
 
+    const executeReadUri = () => {
+        const queries = readUri();
+        const newData = {...data, argument: toItem(queries)};
+        setData(newData);
+    }
+
     const rowTrim = (order: number) => {
-        if(order < 0 || data.rows.length < order ) {
+        if(order < 0 || data.argument.length < order ) {
             return;
         }
 
         let newRows = copyRows();
         newRows.splice(order, 1);
 
-        const newData = {...data, rows: newRows};
+        const newData = {...data, argument: newRows};
 
-        setRows(newData)
-        onValueChange(newRows)
+        setData(newData);
+        onValueChange(newRows);
     }
 
     const rowPush = (row: StrStatusKeyValue, focus: string, order?: number) => {
-        let newRows = copyRows();
-        if(order != undefined && 0 <= order && data.rows.length >= order) {
-            newRows[order] = {
+        let newArgument = copyRows();
+        if(order != undefined && 0 <= order && data.argument.length >= order) {
+            newArgument[order] = {
                 ...row, 
-                id: newRows[order].id, 
+                id: newArgument[order].id, 
                 focus: ""};
         } else {
-            newRows.push({
+            newArgument.push({
                 ...row, 
                 id: uuidv4(), 
                 focus: focus});
         }
 
-        const newData = {...data, rows: newRows};
-        setRows(newData);
-        onValueChange(newRows)
+        const newData = {...data, argument: newArgument};
+        setData(newData);
+        onValueChange(newArgument);
     }
 
     const copyRows = (): ItemStatusKeyValue[] => {
-        return [...data.rows].map(r => ({...r, focus: ""}));
+        return [...data.argument].map(r => ({...r, focus: ""}));
     }
 
     return (
@@ -82,13 +88,13 @@ export function QueryArguments({ uriProcess, values, processUri, onUriProcessCha
                         name="status" 
                         id="process-uri" 
                         type="checkbox" 
-                        checked={data.uriProcess}
+                        checked={data.autoReadUri}
                         onChange={statusChange}/>
                 </div>
-                <button type="button" onClick={processUri}>Process</button>
+                <button type="button" onClick={executeReadUri}>Process</button>
             </div>
             <div id="client-argument-content">
-                {data.rows.map((item, i) => (
+                {data.argument.map((item, i) => (
                     <StatusKeyValue
                         key={`query-param-${item.id}`}
                         order={i}

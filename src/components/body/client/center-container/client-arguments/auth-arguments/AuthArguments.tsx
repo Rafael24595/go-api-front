@@ -9,11 +9,14 @@ import './AuthArguments.css'
 const VIEW_BASIC = "basic";
 const VIEW_BEARER = "bearer";
 
+const VALID_CURSORS = [VIEW_BASIC, VIEW_BEARER];
+
 const DEFAULT_CURSOR = VIEW_BASIC;
 
+const CURSOR_KEY = "AuthArgumentsCursor";
+
 interface AuthArgumentsProps {
-    values: Auths
-    cursorStatus?: string;
+    argument: Auths
     onValueChange: (auth: Auths) => void;
 }
 
@@ -24,17 +27,26 @@ interface Payload {
     bearer: Auth | undefined;
 }
 
-export function AuthArguments({values, cursorStatus, onValueChange}: AuthArgumentsProps) {
+export function AuthArguments({ argument, onValueChange }: AuthArgumentsProps) {
+    const getCursor = () => {
+        const storedValue = localStorage.getItem(CURSOR_KEY);
+        return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
+    }
+
+    const setCursor = (cursor: string) => {
+        localStorage.setItem(CURSOR_KEY, cursor);
+    }
+
     const [data, setData] = useState<Payload>({
-        cursor: cursorStatus || DEFAULT_CURSOR,
-        status: values ? values.status : true,
-        basic: values?.auths[AUTH_CODE_BASIC],
-        bearer: values?.auths[AUTH_CODE_BEARER]
+        cursor: getCursor(),
+        status: argument ? argument.status : true,
+        basic: argument?.auths[AUTH_CODE_BASIC],
+        bearer: argument?.auths[AUTH_CODE_BEARER]
     });
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let newData = {...data, cursor: e.target.value};
-        setData(newData);
+        setCursor(e.target.value);
+        setData({...data, cursor: e.target.value});
     };
 
     const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -53,8 +53,9 @@ export function StatusKeyValue({order, focus, value, definition, rowPush, rowTri
             return;
         }
 
-        setRow({ ...row, [e.target.name]: e.target.checked })
-        rowPush(row, e.target.name, order)
+        const newRow = {...row, status: e.target.checked }
+        setRow(newRow)
+        rowPush(newRow, e.target.name, order)
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

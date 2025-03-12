@@ -10,10 +10,13 @@ const VIEW_HISTORIC = "historic";
 const VIEW_STORED = "stored";
 const VIEW_COLLECTION = "collection";
 
+const VALID_CURSORS = [VIEW_HISTORIC, VIEW_STORED, VIEW_COLLECTION];
+
 const DEFAULT_CURSOR = VIEW_HISTORIC;
 
+const CURSOR_KEY = "LeftSidebarCursor";
+
 interface LeftSidebarProps {
-    cursorStatus?: string;
     selectRequest: (request: Request) => Promise<void>;
 }
 
@@ -21,14 +24,23 @@ interface Payload {
     cursor: string;
 }
 
-export function LeftSidebar({cursorStatus, selectRequest}: LeftSidebarProps) {
+export function LeftSidebar({ selectRequest }: LeftSidebarProps) {
+    const getCursor = () => {
+        const storedValue = localStorage.getItem(CURSOR_KEY);
+        return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
+    }
+
+    const setCursor = (cursor: string) => {
+        localStorage.setItem(CURSOR_KEY, cursor);
+    }
+
     const [data, setData] = useState<Payload>({
-        cursor: cursorStatus || DEFAULT_CURSOR,
+        cursor: getCursor(),
     });
         
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let newData = {...data, cursor: e.target.value};
-        setData(newData);
+        setCursor(e.target.value);
+        setData({...data, cursor: e.target.value});
     };
 
     return (
