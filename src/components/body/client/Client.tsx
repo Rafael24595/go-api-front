@@ -5,6 +5,7 @@ import { RightSidebar } from './right-sidebar/RightSidebar'
 import { Response } from '../../../interfaces/response/Response';
 import { newRequest, Request } from '../../../interfaces/request/Request';
 import { findAction } from '../../../services/api/ServiceStorage';
+import { v4 as uuidv4 } from 'uuid';
 
 import './Client.css'
 
@@ -19,6 +20,10 @@ export function Client() {
         response: undefined
     });
 
+    const defineRequest = async (request: Request) => {
+        setData({ request: request, response: undefined });
+    }
+
     const selectRequest = async (request: Request) => {
         //TODO: Manage with session.
         const apiResponse = await findAction("anonymous", request);
@@ -30,10 +35,16 @@ export function Client() {
         setData(newData);
     }
 
+    const keygen = () => {
+        return `${uuidv4()}-${Date.now()}`;
+    }
+
     return (
         <>
-            <LeftSidebar selectRequest={selectRequest}/>
-            <ContentContainer key={data.request._id} request={data.request} onValueChange={responseChange}/>
+            <LeftSidebar 
+                defineRequest={defineRequest}
+                selectRequest={selectRequest}/>
+            <ContentContainer key={keygen()} request={data.request} onValueChange={responseChange}/>
             <RightSidebar response={data.response}/>
         </>
     )
