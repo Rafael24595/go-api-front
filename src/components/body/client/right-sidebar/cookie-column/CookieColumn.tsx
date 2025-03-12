@@ -16,24 +16,28 @@ export function CookieColumn({cookie}: CookieColumnProps) {
 
     return (
         <>
-            <table className="table-styled table-fix">
-                <tbody>
-                    <tr>
-                        <th>Name</th>
-                        <th>Value</th>
-                    </tr>
-                    {data.cookie.map((cookie) => (
+            {data.cookie.length > 0 ? (
+                <table className="table-styled table-fix">
+                    <tbody>
                         <tr>
-                            <td>
-                                { cookie.code }
-                            </td>
-                            <td>
-                                { cookieToString(cookie) }
-                            </td>
+                            <th>Name</th>
+                            <th>Value</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                        {data.cookie.map((cookie) => (
+                            <tr>
+                                <td>
+                                    { cookie.code }
+                                </td>
+                                <td>
+                                    { cookieToString(cookie) }
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            ) : (
+                <p className="no-data"> - No cookies found - </p>
+            )}
         </>
     )
 }

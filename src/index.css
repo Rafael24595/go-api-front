@@ -136,3 +136,8 @@ button:hover {
 }
 
 /* ----------------------- */
+
+.no-data {
+  text-align: center;
+  font-weight: 500;
+}
