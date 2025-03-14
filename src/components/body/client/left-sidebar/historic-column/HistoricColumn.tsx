@@ -10,7 +10,7 @@ interface HistoricColumnProps {
     selectRequest: (request: Request) => void;
 }
 
-export function HistoricColumn({ defineRequest, selectRequest }:HistoricColumnProps) {
+export function HistoricColumn({ defineRequest, selectRequest }: HistoricColumnProps) {
     const [requests, setHistoric] = useState<Request[]>([]);
 
     const fetchHistoric = async () => {
@@ -77,7 +77,7 @@ export function HistoricColumn({ defineRequest, selectRequest }:HistoricColumnPr
                             </div>
                         ))
                     ) : (
-                        <p className="no-data"> - No history available - </p>
+                        <p className="no-data"> - No history found - </p>
                     )}
                 </div>
             </div>
