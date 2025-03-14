@@ -15,6 +15,7 @@ export interface Request {
   cookie: Cookies;
   body: Body;
   auth: Auths;
+  modified: number;
   status: Status;
 }
 
@@ -60,11 +61,11 @@ export interface Auth {
   parameters: Dict<string>
 }
 
-export function newRequest(): Request {
+export function newRequest(name?: string): Request {
   return {
     _id: "",
     timestamp: 0,
-    name: "",
+    name: name || "",
     method: HttpMethod.GET,
     uri: "",
     query: { queries: {} },
@@ -72,6 +73,7 @@ export function newRequest(): Request {
     auth: { status: true, auths: {} },
     body: { status: true, contentType: "", payload: "" },
     cookie: { cookies: {} },
+    modified: 0,
     status: "draft"
   }
 }
