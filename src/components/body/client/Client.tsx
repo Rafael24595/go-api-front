@@ -44,7 +44,11 @@ export function Client() {
             <LeftSidebar 
                 defineRequest={defineRequest}
                 selectRequest={selectRequest}/>
-            <ContentContainer key={keygen()} request={data.request} onValueChange={responseChange}/>
+            <ContentContainer 
+                key={keygen()} 
+                request={data.request}
+                response={data.response}
+                onValueChange={responseChange}/>
             <RightSidebar response={data.response}/>
         </>
     )

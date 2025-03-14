@@ -4,7 +4,7 @@ import { ItemRequestParameters, ParameterSelector } from "./client-arguments/Par
 import { Request } from "../../../../interfaces/request/Request";
 import { executeFormAction } from "../../../../services/api/ServiceManager";
 import { Response } from "../../../../interfaces/response/Response";
-import { pushHistoric } from "../../../../services/api/ServiceStorage";
+import { insertAction, pushHistoric } from "../../../../services/api/ServiceStorage";
 import { StatusKeyValue } from "../../../../interfaces/StatusKeyValue";
 import { detachStatusKeyValue } from "../../../../services/Utils";
 
@@ -14,15 +14,17 @@ const AUTO_READ_URI_KEY = "AutoReadUriKey";
 
 interface ContentContainerProps {
     request: Request;
+    response?: Response;
     onValueChange: (request: Request, response: Response) => void
 }
 
 interface Payload {
     autoReadUri: boolean;
     request: Request;
+    response?: Response;
 }
 
-export function ContentContainer({request, onValueChange}: ContentContainerProps) {
+export function ContentContainer({request, response, onValueChange}: ContentContainerProps) {
     const getCursor = () => {
         return localStorage.getItem(AUTO_READ_URI_KEY) == "true";
     }
@@ -34,6 +36,7 @@ export function ContentContainer({request, onValueChange}: ContentContainerProps
     const [data, setData] = useState<Payload>({
         autoReadUri: getCursor(),
         request: request,
+        response: response
     });
     
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,13 +86,37 @@ export function ContentContainer({request, onValueChange}: ContentContainerProps
         setData({ ...data, request: newRequest });
     }
 
-    const handleSubmit = async (e: { preventDefault: () => void; }) => {
+    const executeAction = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
 
-        data.request.timestamp = Date.now();
-        data.request.name = `temp-${data.request.method}-${data.request.timestamp}`;
+        if(data.request.timestamp == 0) {
+            data.request.timestamp = Date.now();
+        }
+
+        if(data.request.name == "") {
+            data.request.name = `temp-${data.request.method}-${data.request.timestamp}`;
+        }
 
         const apiResponse = await executeFormAction(data.request);
+
+        onValueChange(apiResponse.request, apiResponse.response);
+        setData({ ...data, request: apiResponse.request, response: apiResponse.response });
+
+        //TODO: Manage user session.
+        pushHistoric("anonymous", apiResponse.request, apiResponse.response)
+    };
+
+    const insertFormAction = async (e: { preventDefault: () => void; }) => {
+        e.preventDefault();
+
+        if(data.request.timestamp == 0) {
+            data.request.timestamp = Date.now();
+        }
+
+        data.request.name = prompt("Insert a name: ") || `action-${data.request.method}-${data.request.timestamp}`;
+
+        //TODO: Manage user session.
+        const apiResponse = await insertAction("anonymous", data.request, data.response);
 
         onValueChange(apiResponse.request, apiResponse.response);
         //TODO: Manage user session.
@@ -98,11 +125,11 @@ export function ContentContainer({request, onValueChange}: ContentContainerProps
 
     return (
         <div id='content-container'>
-            <form id="client-form" onSubmit={handleSubmit}>
+            <form id="client-form" onSubmit={executeAction}>
                 <div id="client-bar">
                     <MethodSelector selected={data.request.method} onMethodChange={methodChange}/>
                     <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={urlChange} value={data.request.uri}/>
-                    <button id="client-button-send" className="client-bar-component section-header-element">Send</button>
+                    <button type="submit" id="client-button-send" className="client-bar-component section-header-element">Send</button>
                 </div>
                 <div id="client-content">
                     <ParameterSelector 
@@ -113,7 +140,7 @@ export function ContentContainer({request, onValueChange}: ContentContainerProps
                         onValueChange={parametersChange}/>
                 </div>
                 <div id="client-buttons" className="border-top">
-                    <button type="submit">Save</button>
+                    <button type="submit" onClick={insertFormAction}>Save</button>
                 </div>
             </form>
         </div>
