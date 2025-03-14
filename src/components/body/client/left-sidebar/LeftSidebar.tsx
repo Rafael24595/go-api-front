@@ -67,7 +67,9 @@ export function LeftSidebar({ defineRequest, selectRequest }: LeftSidebarProps) 
                 {data.cursor === VIEW_HISTORIC && <HistoricColumn 
                     defineRequest={defineRequest}
                     selectRequest={selectRequest}/>}
-                {data.cursor === VIEW_STORED && <StoredColumn/>}
+                {data.cursor === VIEW_STORED && <StoredColumn
+                    defineRequest={defineRequest}
+                    selectRequest={selectRequest}/>}
                 {data.cursor === VIEW_COLLECTION && <CollectionColumn/>}
             </div>
         </div>
