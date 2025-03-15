@@ -28,6 +28,7 @@
     padding: 7px;
     font-style: italic;
     white-space: break-spaces;
+    word-break: break-word;
 }
 
 #dictionary-title {

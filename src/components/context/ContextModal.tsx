@@ -1,22 +1,49 @@
 import { useState } from 'react';
 import { Modal } from '../utils/modal/Modal';
 import { v4 as uuidv4 } from 'uuid';
-import { StatusKeyValue as StrStatusKeyValue } from '../../interfaces/StatusKeyValue';
-import { ItemStatusKeyValue, StatusKeyValue, toItem } from '../body/client/center-container/client-arguments/status-key-value/StatusKeyValue';
+import { StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
+import { ItemStatusCategoryKeyValue, StatusCategoryKeyValue, toItem } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
 
 import './ContextModal.css'
 
 const STATUS_KEY = "ContextModalPreviewStatus";
 const CONTENT_KEY = "ContextModalPreviewContent";
 
-const ROW_DEFINITION = { 
+const ROW_DEFINITION = {
+    categories: [
+        {
+            key: "Global",
+            value: "global"
+        },
+        {
+            key: "URI",
+            value: "uri"
+        },
+        {
+            key: "Query",
+            value: "query"
+        },
+        {
+            key: "Header",
+            value: "header"
+        },
+        {
+            key: "Auth",
+            value: "auth"
+        },
+        {
+            key: "Payload",
+            value: "payload"
+        }
+
+    ],
     key: "Key", 
     value: "Value", 
     disabled: true 
 }
 
-const TEMPLATE = `curl -X GET https://github.com/\${username}/\${repository} \\
--H "\${header-key}: \${header-value}"`
+const TEMPLATE = `curl -X GET https://github.com/\${username}/\${uri.repository}/tree/\${global.branch} \\
+-H "\${header.header-key}: \${header.header-value}"`
 
 interface ContextModalProps {
     isOpen: boolean,
@@ -27,7 +54,7 @@ interface Payload {
     template: string;
     preview: string;
     showPreview: boolean;
-    argument: ItemStatusKeyValue[];
+    argument: ItemStatusCategoryKeyValue[];
 }
 
 export function ContextModal({ isOpen, onClose }: ContextModalProps) {
@@ -65,7 +92,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         updatePreview(data.template, newArgument);
     }
 
-    const rowPush = (row: StrStatusKeyValue, focus: string, order?: number) => {
+    const rowPush = (row: StrStatusCategoryKeyValue, focus: string, order?: number) => {
         let newArgument = copyRows();
         if(order != undefined && 0 <= order && data.argument.length >= order) {
             newArgument[order] = {
@@ -82,7 +109,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         updatePreview(data.template, newArgument);
     }
 
-    const copyRows = (): ItemStatusKeyValue[] => {
+    const copyRows = (): ItemStatusCategoryKeyValue[] => {
         return [...data.argument].map(r => ({...r, focus: ""}));
     }
 
@@ -99,7 +126,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         updatePreview(e.target.value, data.argument);
     }
 
-    const updatePreview = (template: string, args: ItemStatusKeyValue[]) => {
+    const updatePreview = (template: string, args: ItemStatusCategoryKeyValue[]) => {
         setTemplate(template);
         if(template == "") {
             return;
@@ -110,7 +137,12 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
             if(!arg.status) {
                 continue;
             }
-            newPreview = newPreview.replace(`\${${arg.key}}`, arg.value);
+            if(arg.category == "global") {
+                const pattern = new RegExp(`\\$\\{(?:${arg.category}\\.)?${arg.key}\\}`, "g");
+                newPreview = newPreview.replace(pattern, arg.value);
+            } else {
+                newPreview = newPreview.replace(`\${${arg.category}.${arg.key}}`, arg.value);
+            }
         }
         setData({...data, template: template, argument: args, preview: newPreview});
     }
@@ -140,12 +172,13 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                 </div>
                 <div id="client-argument-content">
                     {data.argument.map((item, i) => (
-                        <StatusKeyValue
-                            key={`query-param-${item.id}`}
+                        <StatusCategoryKeyValue
+                            key={`context-param-${item.id}`}
                             order={i}
                             focus={item.focus}
                             value={{
                                 status: item.status,
+                                category: item.category,
                                 key: item.key,
                                 value: item.value
                             }}
@@ -156,7 +189,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                             rowTrim={rowTrim}
                         />
                     ))}
-                    <StatusKeyValue 
+                    <StatusCategoryKeyValue 
                         definition={ ROW_DEFINITION }
                         rowPush={rowPush}
                         rowTrim={rowTrim}
