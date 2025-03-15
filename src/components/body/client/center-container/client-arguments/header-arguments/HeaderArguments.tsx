@@ -25,29 +25,29 @@ export function HeaderArguments({ argument, onValueChange }: HeaderProps) {
             return;
         }
 
-        let newRows = copyRows();
-        newRows.splice(order, 1);
+        let newArgument = copyRows();
+        newArgument.splice(order, 1);
 
-        setData(newRows)
-        onValueChange(newRows)
+        setData(newArgument)
+        onValueChange(newArgument)
     }
 
     const rowPush = (row: StrStatusKeyValue, focus: string, order?: number) => {
-        let newRows = copyRows();
+        let newArgument = copyRows();
         if(order != undefined && 0 <= order && data.length >= order) {
-            newRows[order] = {
+            newArgument[order] = {
                 ...row, 
-                id: newRows[order].id, 
+                id: newArgument[order].id, 
                 focus: ""};
         } else {
-            newRows.push({
+            newArgument.push({
                 ...row, 
                 id: uuidv4(), 
                 focus: focus});
         }
 
-        setData(newRows);
-        onValueChange(newRows)
+        setData(newArgument);
+        onValueChange(newArgument)
     }
 
     const copyRows = (): ItemStatusKeyValue[] => {

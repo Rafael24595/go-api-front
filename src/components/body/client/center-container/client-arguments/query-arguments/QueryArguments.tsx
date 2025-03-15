@@ -47,13 +47,13 @@ export function QueryArguments({ readUri, argument, autoReadUri, onReadUriChange
             return;
         }
 
-        let newRows = copyRows();
-        newRows.splice(order, 1);
+        let newArgument = copyRows();
+        newArgument.splice(order, 1);
 
-        const newData = {...data, argument: newRows};
+        const newData = {...data, argument: newArgument};
 
         setData(newData);
-        onValueChange(newRows);
+        onValueChange(newArgument);
     }
 
     const rowPush = (row: StrStatusKeyValue, focus: string, order?: number) => {
