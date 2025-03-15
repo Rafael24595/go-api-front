@@ -1,0 +1,43 @@
+#preview-container {
+    display: flex;
+    padding: 10px;
+}
+
+#preview-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#preview-buttons button {
+    margin-left: 10px;
+    height: 22px;
+    width: 60px;
+}
+
+.preview-component {
+    flex: 1 1 auto;
+    margin: 0px;
+    margin-left: 10px;
+    margin-right: 10px;
+    width: 50%;
+    height: 85px;
+    resize: none;
+    background-color: #e3e3e3;
+    box-sizing: border-box;
+    padding: 7px;
+    font-style: italic;
+    white-space: break-spaces;
+}
+
+#dictionary-title {
+    margin-top: 30px;
+}
+
+#dictionary-title, #preview-title {
+    margin-bottom: 10px;
+}
+
+#dictionary-title p, #preview-title p {
+    margin-bottom: 10px;
+}

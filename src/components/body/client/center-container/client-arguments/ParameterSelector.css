@@ -1,3 +1,13 @@
+#parameter-selector-components {
+    display: flex;
+    justify-content: space-between;
+}
+
 #client-argument-content {
     padding: 10px;
+}
+
+#contex-container {
+    display: flex;
+    padding: 5px 15px;
 }

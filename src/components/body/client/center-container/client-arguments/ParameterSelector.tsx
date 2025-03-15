@@ -7,6 +7,7 @@ import { StatusKeyValue } from '../../../../../interfaces/StatusKeyValue';
 import { Auths, Body, Headers, Queries } from '../../../../../interfaces/request/Request';
 import { Dict } from '../../../../../types/Dict';
 import { detachStatusKeyValue } from '../../../../../services/Utils';
+import { ContextModal } from '../../../../context/ContextModal';
 
 import './ParameterSelector.css'
 
@@ -51,6 +52,7 @@ interface ParameterSelectorProps {
 
 interface Payload {
     cursor: string;
+    modalStatus: boolean;
     autoReadUri: boolean;
     query: StatusKeyValue[];
     header: StatusKeyValue[];
@@ -69,8 +71,9 @@ export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriC
     }
 
     const [data, setData] = useState<Payload>({
-        autoReadUri: autoReadUri,
         cursor: getCursor(),
+        modalStatus: false,
+        autoReadUri: autoReadUri,
         query: detachStatusKeyValue(parameters.query.queries),
         header: detachStatusKeyValue(parameters.header.headers),
         auth: parameters.auth,
@@ -80,6 +83,10 @@ export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriC
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCursor(e.target.value);
         setData({...data, cursor: e.target.value});
+    };
+
+    const setModalStatus = (status: boolean) => {
+        setData({...data, modalStatus: status});
     };
 
     const onReadUriChangeStatus = (uriProcess: boolean) => {
@@ -124,27 +131,32 @@ export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriC
     return (
         <>
             <div id="client-argument-headers">
-                <div className="radio-button-group border-bottom">
-                    <input type="radio" id="tag-client-query" className="client-tag" name="cursor-client"
-                        checked={data.cursor === VIEW_QUERY} 
-                        value={VIEW_QUERY} 
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-client-query" id="client-label-query">Query</label>
-                    <input type="radio" id="tag-client-header" className="client-tag" name="cursor-client"
-                        checked={data.cursor === VIEW_HEADER} 
-                        value={VIEW_HEADER} 
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-client-header" id="client-label-header">Headers</label>
-                    <input type="radio" id="tag-client-auth" className="client-tag" name="cursor-client"
-                        checked={data.cursor === VIEW_AUTH} 
-                        value={VIEW_AUTH} 
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-client-auth" id="client-label-auth">Auth</label>
-                    <input type="radio" id="tag-client-body" className="client-tag" name="cursor-client"
-                        checked={data.cursor === VIEW_BODY} 
-                        value={VIEW_BODY} 
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-client-body" id="client-label-body">Body</label>
+                <div id="parameter-selector-components" className="border-bottom">    
+                    <div className="radio-button-group">
+                        <input type="radio" id="tag-client-query" className="client-tag" name="cursor-client"
+                            checked={data.cursor === VIEW_QUERY} 
+                            value={VIEW_QUERY} 
+                            onChange={cursorChange}/>
+                        <label htmlFor="tag-client-query" id="client-label-query">Query</label>
+                        <input type="radio" id="tag-client-header" className="client-tag" name="cursor-client"
+                            checked={data.cursor === VIEW_HEADER} 
+                            value={VIEW_HEADER} 
+                            onChange={cursorChange}/>
+                        <label htmlFor="tag-client-header" id="client-label-header">Headers</label>
+                        <input type="radio" id="tag-client-auth" className="client-tag" name="cursor-client"
+                            checked={data.cursor === VIEW_AUTH} 
+                            value={VIEW_AUTH} 
+                            onChange={cursorChange}/>
+                        <label htmlFor="tag-client-auth" id="client-label-auth">Auth</label>
+                        <input type="radio" id="tag-client-body" className="client-tag" name="cursor-client"
+                            checked={data.cursor === VIEW_BODY} 
+                            value={VIEW_BODY} 
+                            onChange={cursorChange}/>
+                        <label htmlFor="tag-client-body" id="client-label-body">Body</label>
+                    </div>
+                    <div id="contex-container">
+                        <button type="button" onClick={() => setModalStatus(true)}>Context</button>
+                    </div>
                 </div>
             </div>
             <div id="client-argument-content">
@@ -164,6 +176,7 @@ export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriC
                     argument={data.body} 
                     onValueChange={bodyChange}/>}
             </div>
+            <ContextModal isOpen={data.modalStatus} onClose={() => setModalStatus(false)}/>
         </>
     )
 }
