@@ -1,0 +1,36 @@
+#modal-area {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+#modal-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+    min-width: 500px;
+    padding: 15px;
+    background-color: white;
+}
+
+#modal-title h3 {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+#modal-content {
+    flex: 1 1 auto;
+    padding: 10px;
+}
+
+#modal-buttons {
+    display: flex;
+    justify-content: center;
+    padding-top: 15px;
+}
