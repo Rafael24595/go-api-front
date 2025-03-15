@@ -111,7 +111,7 @@ export function StatusCategoryKeyValue({order, focus, value, definition, rowPush
         <>
             <div className="parameter-container">{}
                 <input name="status" type="checkbox" onChange={handleChecked} disabled={definition.disabled} checked={row.status}/>
-                <select className="parameter-input secondary" name="category" onChange={handleCategoryChange} disabled={definition.disabled}>
+                <select className="parameter-input secondary" name="category" onChange={handleCategoryChange}>
                     {definition.categories.map(c => (
                         <option value={c.value} selected={c.value == row.category}>{c.key}</option>
                     ))}

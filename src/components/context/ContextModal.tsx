@@ -8,6 +8,7 @@ import './ContextModal.css'
 
 const STATUS_KEY = "ContextModalPreviewStatus";
 const CONTENT_KEY = "ContextModalPreviewContent";
+const FILTER_KEY = "ContextModalFilterContent";
 
 const ROW_DEFINITION = {
     categories: [
@@ -45,15 +46,31 @@ const ROW_DEFINITION = {
 const TEMPLATE = `curl -X GET https://github.com/\${username}/\${uri.repository}/tree/\${global.branch} \\
 -H "\${header.header-key}: \${header.header-value}"`
 
+const EMPTY_FILTER: Filter = {
+    category: "",
+    key: "",
+    status: "",
+    value: ""
+};
+
 interface ContextModalProps {
     isOpen: boolean,
     onClose: () => void,
+}
+
+interface Filter {
+    status: string
+    category: string
+    key: string
+    value: string
 }
 
 interface Payload {
     template: string;
     preview: string;
     showPreview: boolean;
+    filter: Filter;
+    status: boolean;
     argument: ItemStatusCategoryKeyValue[];
 }
 
@@ -74,12 +91,34 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         localStorage.setItem(CONTENT_KEY, template);
     }
 
+    const getFilter = () => {
+        try {
+            const stored = localStorage.getItem(FILTER_KEY);
+            if(stored) {
+                return JSON.parse(stored);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        return EMPTY_FILTER;
+    }
+
+    const setFilter = (filter: Filter) => {
+        localStorage.setItem(FILTER_KEY, JSON.stringify(filter));
+    }
+
     const [data, setData] = useState<Payload>({
         template: getTemplate(),
         preview: getTemplate(),
         showPreview: getStatus(),
+        filter: getFilter(),
+        status: true,
         argument: toItem([])
     });
+
+    const onStatusChange = (e: React.ChangeEvent<HTMLInputElement>)  => {
+        setData({...data, status: e.target.checked});
+    }
 
     const rowTrim = (order: number) => {
         if(order < 0 || data.argument.length < order ) {
@@ -105,7 +144,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                 id: uuidv4(), 
                 focus: focus});
         }
-
+        
         updatePreview(data.template, newArgument);
     }
 
@@ -168,9 +207,35 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                     </div>
                 )}
                 <div id="dictionary-title" className="border-bottom">
+                    <input type="checkbox" onChange={onStatusChange} checked={data.status}/>
                     <p className="title">Dictionary:</p>
                 </div>
-                <div id="client-argument-content">
+                <div id="filter-container">
+                    <div className='filter-fragment'>
+                        <label htmlFor="filter-status">Status:</label>
+                        <input type="checkbox" name="filter-status"/>
+                    </div>
+                    <div className='filter-fragment'>
+                    <label htmlFor="filter-category">Category:</label>
+                        <select name="category">
+                            {ROW_DEFINITION.categories.map(c => (
+                                <option value={c.value}>{c.key}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className='filter-fragment'>
+                        <label htmlFor="filter-key">Key:</label>
+                        <input type="input" name="filter-key"/>
+                    </div>
+                    <div className='filter-fragment'>
+                        <label htmlFor="filter-value">Value:</label>
+                        <input type="input" name="filter-value"/>
+                    </div>
+                    <div className='filter-fragment'>
+                        <button type="button">Clean</button>
+                    </div>
+                </div>
+                <div id="context-dictionary-content">
                     {data.argument.map((item, i) => (
                         <StatusCategoryKeyValue
                             key={`context-param-${item.id}`}
@@ -190,6 +255,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                         />
                     ))}
                     <StatusCategoryKeyValue 
+                        key={uuidv4()}
                         definition={ ROW_DEFINITION }
                         rowPush={rowPush}
                         rowTrim={rowTrim}
