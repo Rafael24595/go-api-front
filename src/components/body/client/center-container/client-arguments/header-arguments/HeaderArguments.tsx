@@ -74,6 +74,7 @@ export function HeaderArguments({ argument, onValueChange }: HeaderProps) {
                 />
             ))}
             <StatusKeyValue 
+                key={uuidv4()}
                 definition={ ROW_DEFINITION }
                 rowPush={rowPush}
                 rowTrim={rowTrim}

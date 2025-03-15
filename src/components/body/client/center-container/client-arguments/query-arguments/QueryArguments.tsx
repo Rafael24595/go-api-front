@@ -112,6 +112,7 @@ export function QueryArguments({ readUri, argument, autoReadUri, onReadUriChange
                     />
                 ))}
                 <StatusKeyValue 
+                    key={uuidv4()}
                     definition={ ROW_DEFINITION }
                     rowPush={rowPush}
                     rowTrim={rowTrim}
