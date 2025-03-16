@@ -65,6 +65,19 @@
     margin-left: 15px;
 }
 
+#dictionary-items {
+    display: flex;
+    justify-content: space-between;
+}
+
+#dictionary-items-counter {
+    font-weight: 500;
+}
+
+#dictionary-items-counter span {
+    font-style: italic;
+}
+
 #context-dictionary-content {
     overflow: auto;
     scrollbar-gutter: stable;

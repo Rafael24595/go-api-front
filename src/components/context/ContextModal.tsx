@@ -43,6 +43,21 @@ const ROW_DEFINITION = {
     disabled: true 
 }
 
+const STATUS_VALUES = [
+    {
+        key: "None",
+        value: "none"
+    },
+    {
+        key: "True",
+        value: "true"
+    },
+    {
+        key: "False",
+        value: "false"
+    }
+];
+
 const TEMPLATE = `curl -X GET https://github.com/\${username}/\${uri.repository}/tree/\${global.branch} \\
 -H "\${header.header-key}: \${header.header-value}"`
 
@@ -115,6 +130,56 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         status: true,
         argument: toItem([])
     });
+
+    const onFilterStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        onFilterChange("status", e.target.value);
+    };
+
+    const onFilterCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        onFilterChange("category", e.target.value);
+    };
+
+    const onFilterKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onFilterChange("key", e.target.value);
+    };
+
+    const onFilterValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onFilterChange("value", e.target.value);
+    };
+
+    const clearFilter = () => {
+        setData({...data, filter: EMPTY_FILTER});
+    }
+
+    const filterContext = (item: ItemStatusCategoryKeyValue): boolean => {
+        if(data.filter.status != "" && data.filter.status != `${item.status}`) {
+            return false;
+        }
+        if(data.filter.category != "" && data.filter.category != item.category) {
+            return false;
+        }
+        if(data.filter.key != "") {
+            return matches(data.filter.key, item.key);
+            
+        }
+        if(data.filter.value != "") {
+            return matches(data.filter.value, item.value);
+        }
+        return true;
+    }
+
+    const matches = (pattern: string, value: string): boolean => {
+        let regexPattern = pattern.replace(/[-\/\\^$+?.()|[\]{}]/g, '\\$&');
+        regexPattern = regexPattern.replace(/\*/g, '.*');
+        const regex = new RegExp(`^${regexPattern}$`);
+        return regex.test(value);
+    }
+
+    const onFilterChange = (key: string, value: string) => {
+        const newFilter: Filter = {...data.filter, [key]: value};
+        setData({...data, filter: newFilter});
+        setFilter(newFilter);
+    };
 
     const onStatusChange = (e: React.ChangeEvent<HTMLInputElement>)  => {
         setData({...data, status: e.target.checked});
@@ -210,33 +275,43 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                     <input type="checkbox" onChange={onStatusChange} checked={data.status}/>
                     <p className="title">Dictionary:</p>
                 </div>
-                <div id="filter-container">
-                    <div className='filter-fragment'>
-                        <label htmlFor="filter-status">Status:</label>
-                        <input type="checkbox" name="filter-status"/>
-                    </div>
-                    <div className='filter-fragment'>
-                    <label htmlFor="filter-category">Category:</label>
-                        <select name="category">
-                            {ROW_DEFINITION.categories.map(c => (
-                                <option value={c.value}>{c.key}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className='filter-fragment'>
-                        <label htmlFor="filter-key">Key:</label>
-                        <input type="input" name="filter-key"/>
-                    </div>
-                    <div className='filter-fragment'>
-                        <label htmlFor="filter-value">Value:</label>
-                        <input type="input" name="filter-value"/>
-                    </div>
-                    <div className='filter-fragment'>
-                        <button type="button">Clean</button>
+                <div id="dictionary-items">
+                    <p id="dictionary-items-counter">
+                        Showing: {data.argument.filter(filterContext).length} <span>/</span> {data.argument.length} items
+                    </p>
+                    <div id="filter-container">
+                        <div className='filter-fragment'>
+                            <label htmlFor="filter-status">Status:</label>
+                            <select name="filter-status" onChange={onFilterStatusChange}>
+                                {STATUS_VALUES.map(s => (
+                                    <option value={s.value} selected={data.filter.status == s.value}>{s.key}</option>    
+                                ))}
+                            </select>
+                        </div>
+                        <div className='filter-fragment'>
+                        <label htmlFor="filter-category">Category:</label>
+                            <select name="category" onChange={onFilterCategoryChange}>
+                                <option value="">None</option>
+                                {ROW_DEFINITION.categories.map(c => (
+                                    <option value={c.value} selected={data.filter.category == c.value}>{c.key}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className='filter-fragment'>
+                            <label htmlFor="filter-key">Key:</label>
+                            <input type="input" name="filter-key" onChange={(onFilterKeyChange)} value={data.filter.key}/>
+                        </div>
+                        <div className='filter-fragment'>
+                            <label htmlFor="filter-value">Value:</label>
+                            <input type="input" name="filter-value" onChange={onFilterValueChange} value={data.filter.value}/>
+                        </div>
+                        <div className='filter-fragment'>
+                            <button type="button" onClick={clearFilter}>Clean</button>
+                        </div>
                     </div>
                 </div>
                 <div id="context-dictionary-content">
-                    {data.argument.map((item, i) => (
+                    {data.argument.filter(filterContext).map((item, i) => (
                         <StatusCategoryKeyValue
                             key={`context-param-${item.id}`}
                             order={i}
