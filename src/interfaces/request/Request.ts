@@ -1,6 +1,6 @@
 import { HttpMethod } from "../../constants/HttpMethod";
 import { Dict } from "../../types/Dict";
-import { StatusKeyValue } from "../StatusKeyValue";
+import { StatusValue } from "../StatusValue";
 
 type Status = 'draft' | 'final';
 
@@ -20,11 +20,11 @@ export interface Request {
 }
 
 export interface Queries {
-  queries: Dict<StatusKeyValue[]>
+  queries: Dict<StatusValue[]>
 }
 
 export interface Headers {
-  headers: Dict<StatusKeyValue[]>
+  headers: Dict<StatusValue[]>
 }
 
 export interface Cookies {
