@@ -25,14 +25,6 @@ interface Payload {
 }
 
 export function ContentContainer({request, response, onValueChange}: ContentContainerProps) {
-    const getCursor = () => {
-        return localStorage.getItem(AUTO_READ_URI_KEY) == "true";
-    }
-
-    const setCursor = (autoReadUri: boolean) => {
-        localStorage.setItem(AUTO_READ_URI_KEY, `${autoReadUri}`);
-    }
-
     const [data, setData] = useState<Payload>({
         autoReadUri: getCursor(),
         request: request,
@@ -145,4 +137,12 @@ export function ContentContainer({request, response, onValueChange}: ContentCont
             </form>
         </div>
     )
+}
+
+const getCursor = () => {
+    return localStorage.getItem(AUTO_READ_URI_KEY) == "true";
+}
+
+const setCursor = (autoReadUri: boolean) => {
+    localStorage.setItem(AUTO_READ_URI_KEY, `${autoReadUri}`);
 }

@@ -28,15 +28,6 @@ interface Payload {
 }
 
 export function AuthArguments({ argument, onValueChange }: AuthArgumentsProps) {
-    const getCursor = () => {
-        const storedValue = localStorage.getItem(CURSOR_KEY);
-        return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
-    }
-
-    const setCursor = (cursor: string) => {
-        localStorage.setItem(CURSOR_KEY, cursor);
-    }
-
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
         status: argument ? argument.status : true,
@@ -106,4 +97,13 @@ export function AuthArguments({ argument, onValueChange }: AuthArgumentsProps) {
             </div>
         </>
     )
+}
+
+const getCursor = () => {
+    const storedValue = localStorage.getItem(CURSOR_KEY);
+    return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
+}
+
+const setCursor = (cursor: string) => {
+    localStorage.setItem(CURSOR_KEY, cursor);
 }

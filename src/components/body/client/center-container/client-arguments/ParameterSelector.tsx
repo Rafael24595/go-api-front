@@ -5,11 +5,10 @@ import { AuthArguments } from './auth-arguments/AuthArguments';
 import { BodyArguments } from './body-arguments/BodyArguments';
 import { StatusKeyValue } from '../../../../../interfaces/StatusKeyValue';
 import { Auths, Body, Headers, Queries } from '../../../../../interfaces/request/Request';
-import { Dict } from '../../../../../types/Dict';
-import { detachStatusKeyValue } from '../../../../../services/Utils';
+import { detachStatusKeyValue, mergeStatusKeyValue } from '../../../../../services/Utils';
 import { ContextModal } from '../../../../context/ContextModal';
 
-import './ParameterSelector.css'
+import './ParameterSelector.css';
 
 const VIEW_QUERY = "query";
 const VIEW_HEADER = "header";
@@ -22,19 +21,6 @@ const DEFAULT_CURSOR = VIEW_QUERY;
 
 const CURSOR_KEY = "ParameterSelectorCursor";
 
-const mergeStatusKeyValue = (newValues: StatusKeyValue[]): Dict<StatusKeyValue[]> => {
-    const merge: Dict<StatusKeyValue[]> = {};
-    for (const value of newValues) {
-        const vector = merge[value.key];
-        if(!vector) {
-            merge[value.key] = [value]
-            continue;
-        }
-        vector.push(value)
-    }
-    return merge;
-}
-
 export interface ItemRequestParameters {
     query: Queries;
     header: Headers;
@@ -44,7 +30,7 @@ export interface ItemRequestParameters {
 
 interface ParameterSelectorProps {
     autoReadUri: boolean;
-    parameters: ItemRequestParameters
+    parameters: ItemRequestParameters;
     readUri: () => StatusKeyValue[];
     onReadUriChange: (uriProcess: boolean) => void;
     onValueChange: (parameters: ItemRequestParameters) => void;
@@ -61,15 +47,6 @@ interface Payload {
 }
 
 export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriChange, onValueChange }: ParameterSelectorProps) {
-    const getCursor = () => {
-        const storedValue = localStorage.getItem(CURSOR_KEY);
-        return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
-    }
-
-    const setCursor = (cursor: string) => {
-        localStorage.setItem(CURSOR_KEY, cursor);
-    }
-
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
         modalStatus: false,
@@ -176,7 +153,18 @@ export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriC
                     argument={data.body} 
                     onValueChange={bodyChange}/>}
             </div>
-            <ContextModal isOpen={data.modalStatus} onClose={() => setModalStatus(false)}/>
+            <ContextModal
+                isOpen={data.modalStatus} 
+                onClose={() => setModalStatus(false)}/>
         </>
     )
+}
+
+const getCursor = () => {
+    const storedValue = localStorage.getItem(CURSOR_KEY);
+    return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
+}
+
+const setCursor = (cursor: string) => {
+    localStorage.setItem(CURSOR_KEY, cursor);
 }

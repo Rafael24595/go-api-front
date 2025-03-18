@@ -27,15 +27,6 @@ interface Payload {
 }
 
 export function BodyArguments({ argument, onValueChange }: BodyArgumentsProps) {
-    const getCursor = () => {
-        const storedValue = localStorage.getItem(CURSOR_KEY);
-        return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
-    }
-    
-    const setCursor = (cursor: string) => {
-        localStorage.setItem(CURSOR_KEY, cursor);
-    } 
-
     const [data, setData] = useState<Payload>({
             cursor: getCursor(),
             status: argument.status, 
@@ -95,3 +86,12 @@ export function BodyArguments({ argument, onValueChange }: BodyArgumentsProps) {
         </>
     )
 }
+
+const getCursor = () => {
+    const storedValue = localStorage.getItem(CURSOR_KEY);
+    return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
+}
+
+const setCursor = (cursor: string) => {
+    localStorage.setItem(CURSOR_KEY, cursor);
+} 

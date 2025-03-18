@@ -35,15 +35,6 @@ interface Payload {
 }
 
 export function RightSidebar({ response }: RightSidebarProps) {
-    const getCursor = () => {
-        const storedValue = localStorage.getItem(CURSOR_KEY);
-        return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
-    }
-
-    const setCursor = (cursor: string) => {
-        localStorage.setItem(CURSOR_KEY, cursor);
-    }
-
     const makeData = (): Payload => {
         return {
             cursor: getCursor(),
@@ -98,4 +89,13 @@ export function RightSidebar({ response }: RightSidebarProps) {
             </div>
         </div>
     )
+}
+
+const getCursor = () => {
+    const storedValue = localStorage.getItem(CURSOR_KEY);
+    return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
+}
+
+const setCursor = (cursor: string) => {
+    localStorage.setItem(CURSOR_KEY, cursor);
 }
