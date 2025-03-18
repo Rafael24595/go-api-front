@@ -10,13 +10,13 @@ import { v4 as uuidv4 } from 'uuid';
 import './Client.css'
 
 interface Payload {
-    request: Request
+    request: Request;
     response?: Response;
 }
 
 export function Client() {
     const [data, setData] = useState<Payload>({
-        request: newRequest(),
+        request: newRequest("anonymous"),
         response: undefined
     });
 

@@ -52,7 +52,7 @@ export function HistoricColumn({ defineRequest, selectRequest }: HistoricColumnP
                 <button 
                     type="button"
                     className="column-option option-button border-bottom"
-                    onClick={() => defineRequest(newRequest())}>
+                    onClick={() => defineRequest(newRequest("anonymous"))}>
                     <span>Clean</span>
                 </button>
                 <div id="actions-container">
