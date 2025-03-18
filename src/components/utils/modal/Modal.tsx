@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import './Modal.css'
+import { ModalButton } from '../../../interfaces/ModalButton';
 
 interface ModalProps {
     title?: string
@@ -8,9 +9,10 @@ interface ModalProps {
     isOpen: boolean,
     onClose: () => void,
     children: ReactNode
+    buttons?: ModalButton[]
 }
 
-export function Modal({ title, height, width, isOpen, onClose, children }: ModalProps) {
+export function Modal({ title, height, width, isOpen, onClose, children, buttons }: ModalProps) {
     if (!isOpen) {
         return null;
     }
@@ -33,10 +35,22 @@ export function Modal({ title, height, width, isOpen, onClose, children }: Modal
             {children}
           </div>
           <div id="modal-buttons" className="border-top">
-            <button
-              onClick={onClose}>
-                Close
-            </button>
+            {buttons ? (
+              buttons.map(b => (
+                <button
+                  type="button"
+                  onClick={() => b.callback.func(b.callback.args)}>
+                    {b.title}
+                </button>  
+              ))
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}>
+                  Close
+              </button>
+            )}
+            
           </div>
         </div>
       </div>

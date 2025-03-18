@@ -1,7 +1,26 @@
+import { Context } from "../../interfaces/context/Context";
 import { Request } from "../../interfaces/request/Request";
 import { Response } from "../../interfaces/response/Response";
 import apiManager from "./ApiManager";
 import { ResponseExecuteAction } from "./ResponseExecuteAction";
+
+export const findContext = async (user: string): Promise<Context> => {
+  try {
+      const apiResponse = await apiManager.get(`/api/v1/context/${user}`);
+      return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const insertContext = async (user: string, context: Context): Promise<Context> => {
+  try {
+      const apiResponse = await apiManager.post(`/api/v1/context/${user}`, context);
+      return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const findAction = async (user: string, request: Request): Promise<ResponseExecuteAction> => {
   try {

@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal } from '../utils/modal/Modal';
 import { v4 as uuidv4 } from 'uuid';
 import { StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
 import { ItemStatusCategoryKeyValue, StatusCategoryKeyValue, toItem } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
+import { Context, newContext } from '../../interfaces/context/Context';
+import { detachStatusCategoryKeyValue, mergeStatusCategoryKeyValue } from '../../services/Utils';
+import { findContext, insertContext } from '../../services/api/ServiceStorage';
 
 import './ContextModal.css'
 
@@ -85,51 +88,29 @@ interface Payload {
     preview: string;
     showPreview: boolean;
     filter: Filter;
+    context: Context,
     status: boolean;
     argument: ItemStatusCategoryKeyValue[];
 }
 
 export function ContextModal({ isOpen, onClose }: ContextModalProps) {
-    const getStatus = () => {
-        return localStorage.getItem(STATUS_KEY) == "true";
-    }
-
-    const setStatus = (status: boolean) => {
-        localStorage.setItem(STATUS_KEY, `${status}`);
-    }
-
-    const getTemplate = () => {
-        return localStorage.getItem(CONTENT_KEY) || TEMPLATE;
-    }
-
-    const setTemplate = (template: string) => {
-        localStorage.setItem(CONTENT_KEY, template);
-    }
-
-    const getFilter = () => {
-        try {
-            const stored = localStorage.getItem(FILTER_KEY);
-            if(stored) {
-                return JSON.parse(stored);
-            }
-        } catch (error) {
-            console.log(error);
-        }
-        return EMPTY_FILTER;
-    }
-
-    const setFilter = (filter: Filter) => {
-        localStorage.setItem(FILTER_KEY, JSON.stringify(filter));
-    }
-
     const [data, setData] = useState<Payload>({
         template: getTemplate(),
         preview: getTemplate(),
         showPreview: getStatus(),
         filter: getFilter(),
+        context: newContext("anonymous"),
         status: true,
-        argument: toItem([])
+        argument: []
     });
+
+    useEffect(() => {
+        const loadContext = async () => {
+            const c = await findContext("anonymous");
+            setData(prevData => ({ ...prevData, context: c, status: c.status, argument: toItem(detachStatusCategoryKeyValue(c.dictionary)) }));
+        };
+        loadContext();
+    }, []);
 
     const onFilterStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         onFilterChange("status", e.target.value);
@@ -251,8 +232,38 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         setData({...data, template: template, argument: args, preview: newPreview});
     }
 
+    const submitContext = async () => {
+        const response = await insertContext("anonymous", makeContext());
+        setData({...data, context: response, status: response.status, argument: toItem(detachStatusCategoryKeyValue(response.dictionary))})
+    }
+
+    const makeContext = (): Context => {
+        return {
+            _id: data.context._id,
+            status: data.status,
+            timestamp: data.context.timestamp,
+            dictionary: mergeStatusCategoryKeyValue(data.argument),
+            owner: "anonymous",
+            modified: data.context.modified
+        };
+    }
+
     return (
         <Modal 
+            buttons={[
+                {
+                    title: "Save",
+                    callback: {
+                        func: submitContext
+                    }
+                },
+                {
+                    title: "Close",
+                    callback: {
+                        func: onClose
+                    }
+                }
+            ]}  
             title="Client Context"
             width="70%"
             height="80%"
@@ -338,4 +349,36 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                 </div>
         </Modal>
     )
+}
+
+const getStatus = () => {
+    return localStorage.getItem(STATUS_KEY) == "true";
+}
+
+const setStatus = (status: boolean) => {
+    localStorage.setItem(STATUS_KEY, `${status}`);
+}
+
+const getTemplate = () => {
+    return localStorage.getItem(CONTENT_KEY) || TEMPLATE;
+}
+
+const setTemplate = (template: string) => {
+    localStorage.setItem(CONTENT_KEY, template);
+}
+
+const getFilter = () => {
+    try {
+        const stored = localStorage.getItem(FILTER_KEY);
+        if(stored) {
+            return JSON.parse(stored);
+        }
+    } catch (error) {
+        console.log(error);
+    }
+    return EMPTY_FILTER;
+}
+
+const setFilter = (filter: Filter) => {
+    localStorage.setItem(FILTER_KEY, JSON.stringify(filter));
 }
