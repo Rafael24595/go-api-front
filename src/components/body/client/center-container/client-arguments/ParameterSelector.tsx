@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { QueryArguments } from './query-arguments/QueryArguments';
 import { HeaderArguments } from './header-arguments/HeaderArguments';
 import { AuthArguments } from './auth-arguments/AuthArguments';
@@ -7,6 +7,8 @@ import { StatusKeyValue } from '../../../../../interfaces/StatusKeyValue';
 import { Auths, Body, Headers, Queries } from '../../../../../interfaces/request/Request';
 import { detachStatusKeyValue, mergeStatusKeyValue } from '../../../../../services/Utils';
 import { ContextModal } from '../../../../context/ContextModal';
+import { v4 as uuidv4 } from 'uuid';
+import { Context } from '../../../../../interfaces/context/Context';
 
 import './ParameterSelector.css';
 
@@ -30,6 +32,7 @@ export interface ItemRequestParameters {
 
 interface ParameterSelectorProps {
     autoReadUri: boolean;
+    context: Context;
     parameters: ItemRequestParameters;
     readUri: () => StatusKeyValue[];
     onReadUriChange: (uriProcess: boolean) => void;
@@ -38,6 +41,7 @@ interface ParameterSelectorProps {
 
 interface Payload {
     cursor: string;
+    context: Context;
     modalStatus: boolean;
     autoReadUri: boolean;
     query: StatusKeyValue[];
@@ -46,9 +50,10 @@ interface Payload {
     body: Body;
 }
 
-export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriChange, onValueChange }: ParameterSelectorProps) {
+export function ParameterSelector({ autoReadUri, context, parameters, readUri, onReadUriChange, onValueChange }: ParameterSelectorProps) {
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
+        context: context,
         modalStatus: false,
         autoReadUri: autoReadUri,
         query: detachStatusKeyValue(parameters.query.queries),
@@ -57,6 +62,10 @@ export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriC
         body: parameters.body
     });
     
+    useEffect(() => {
+        setData({ ...data, context: context });
+    }, [context]);
+
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCursor(e.target.value);
         setData({...data, cursor: e.target.value});
@@ -154,7 +163,9 @@ export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriC
                     onValueChange={bodyChange}/>}
             </div>
             <ContextModal
-                isOpen={data.modalStatus} 
+                key={uuidv4()}
+                isOpen={data.modalStatus}
+                context={data.context}
                 onClose={() => setModalStatus(false)}/>
         </>
     )

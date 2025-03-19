@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MethodSelector } from "./method-selector/MethodSelector";
 import { ItemRequestParameters, ParameterSelector } from "./client-arguments/ParameterSelector";
 import { Request } from "../../../../interfaces/request/Request";
 import { executeFormAction } from "../../../../services/api/ServiceManager";
 import { Response } from "../../../../interfaces/response/Response";
-import { insertAction, pushHistoric } from "../../../../services/api/ServiceStorage";
+import { findContext, insertAction, pushHistoric } from "../../../../services/api/ServiceStorage";
 import { StatusKeyValue } from "../../../../interfaces/StatusKeyValue";
 import { detachStatusKeyValue } from "../../../../services/Utils";
 
 import './ContentContainer.css'
+import { Context, newContext } from "../../../../interfaces/context/Context";
 
 const AUTO_READ_URI_KEY = "AutoReadUriKey";
 
@@ -20,6 +21,7 @@ interface ContentContainerProps {
 
 interface Payload {
     autoReadUri: boolean;
+    context: Context;
     request: Request;
     response?: Response;
 }
@@ -27,9 +29,18 @@ interface Payload {
 export function ContentContainer({request, response, onValueChange}: ContentContainerProps) {
     const [data, setData] = useState<Payload>({
         autoReadUri: getCursor(),
+        context: newContext("anonymous"),
         request: request,
         response: response
     });
+
+    useEffect(() => {
+        const loadContext = async () => {
+            const context = await findContext("anonymous");
+            setData({ ...data, context: context });
+        };
+        loadContext();
+    }, []);
     
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newRequest = {...data.request, uri: e.target.value};
@@ -89,7 +100,7 @@ export function ContentContainer({request, response, onValueChange}: ContentCont
             data.request.name = `temp-${data.request.method}-${data.request.timestamp}`;
         }
 
-        const apiResponse = await executeFormAction(data.request);
+        const apiResponse = await executeFormAction(data.request, data.context);
 
         onValueChange(apiResponse.request, apiResponse.response);
         setData({ ...data, request: apiResponse.request, response: apiResponse.response });
@@ -126,6 +137,7 @@ export function ContentContainer({request, response, onValueChange}: ContentCont
                 <div id="client-content">
                     <ParameterSelector 
                         autoReadUri={data.autoReadUri} 
+                        context={data.context}
                         parameters={data.request} 
                         readUri={readUri}
                         onReadUriChange={onReadUriChange} 

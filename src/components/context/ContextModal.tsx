@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Modal } from '../utils/modal/Modal';
 import { v4 as uuidv4 } from 'uuid';
 import { StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
 import { ItemStatusCategoryKeyValue, StatusCategoryKeyValue, toItem } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
-import { Context, newContext } from '../../interfaces/context/Context';
+import { Context } from '../../interfaces/context/Context';
 import { detachStatusCategoryKeyValue, mergeStatusCategoryKeyValue } from '../../services/Utils';
-import { findContext, insertContext } from '../../services/api/ServiceStorage';
+import { insertContext } from '../../services/api/ServiceStorage';
 
 import './ContextModal.css'
 
@@ -73,6 +73,7 @@ const EMPTY_FILTER: Filter = {
 
 interface ContextModalProps {
     isOpen: boolean,
+    context: Context,
     onClose: () => void,
 }
 
@@ -93,25 +94,17 @@ interface Payload {
     argument: ItemStatusCategoryKeyValue[];
 }
 
-export function ContextModal({ isOpen, onClose }: ContextModalProps) {
+export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
     const [data, setData] = useState<Payload>({
         template: getTemplate(),
         preview: getTemplate(),
         showPreview: getStatus(),
         filter: getFilter(),
-        context: newContext("anonymous"),
-        status: true,
-        argument: []
+        context: context,
+        status: context.status,
+        argument: toItem(detachStatusCategoryKeyValue(context.dictionary))
     });
-
-    useEffect(() => {
-        const loadContext = async () => {
-            const c = await findContext("anonymous");
-            setData(prevData => ({ ...prevData, context: c, status: c.status, argument: toItem(detachStatusCategoryKeyValue(c.dictionary)) }));
-        };
-        loadContext();
-    }, []);
-
+    
     const onFilterStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         onFilterChange("status", e.target.value);
     };
@@ -234,7 +227,8 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
 
     const submitContext = async () => {
         const response = await insertContext("anonymous", makeContext());
-        setData({...data, context: response, status: response.status, argument: toItem(detachStatusCategoryKeyValue(response.dictionary))})
+        //TODO: Review
+        //setData({...data, context: response, status: response.status, argument: toItem(detachStatusCategoryKeyValue(response.dictionary))})
     }
 
     const makeContext = (): Context => {
