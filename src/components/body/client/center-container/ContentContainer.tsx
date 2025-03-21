@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { MethodSelector } from "./method-selector/MethodSelector";
 import { ItemRequestParameters, ParameterSelector } from "./client-arguments/ParameterSelector";
 import { Request } from "../../../../interfaces/request/Request";
 import { executeFormAction } from "../../../../services/api/ServiceManager";
 import { Response } from "../../../../interfaces/response/Response";
-import { findContext, insertAction, pushHistoric } from "../../../../services/api/ServiceStorage";
+import { insertAction, pushHistoric } from "../../../../services/api/ServiceStorage";
 import { StatusKeyValue } from "../../../../interfaces/StatusKeyValue";
 import { detachStatusKeyValue } from "../../../../services/Utils";
 
@@ -16,6 +16,7 @@ const AUTO_READ_URI_KEY = "AutoReadUriKey";
 interface ContentContainerProps {
     request: Request;
     response?: Response;
+    reloadRequestSidebar: () => void
     onValueChange: (request: Request, response: Response) => void
 }
 
@@ -26,22 +27,18 @@ interface Payload {
     response?: Response;
 }
 
-export function ContentContainer({request, response, onValueChange}: ContentContainerProps) {
+export function ContentContainer({request, response, reloadRequestSidebar, onValueChange}: ContentContainerProps) {
     const [data, setData] = useState<Payload>({
         autoReadUri: getCursor(),
         context: newContext("anonymous"),
         request: request,
         response: response
     });
-
-    useEffect(() => {
-        const loadContext = async () => {
-            const context = await findContext("anonymous");
-            setData({ ...data, context: context });
-        };
-        loadContext();
-    }, []);
     
+    const contextChange = (context: Context) => {
+        setData({ ...data, context });
+    };
+
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newRequest = {...data.request, uri: e.target.value};
         setData({ ...data, request: newRequest });
@@ -102,11 +99,11 @@ export function ContentContainer({request, response, onValueChange}: ContentCont
 
         const apiResponse = await executeFormAction(data.request, data.context);
 
-        onValueChange(apiResponse.request, apiResponse.response);
-        setData({ ...data, request: apiResponse.request, response: apiResponse.response });
+        onValueChange(data.request, apiResponse.response);
+        setData({ ...data, response: apiResponse.response });
 
         //TODO: Manage user session.
-        pushHistoric("anonymous", apiResponse.request, apiResponse.response)
+        pushHistoric("anonymous", data.request, apiResponse.response).then(reloadRequestSidebar)
     };
 
     const insertFormAction = async (e: { preventDefault: () => void; }) => {
@@ -121,7 +118,7 @@ export function ContentContainer({request, response, onValueChange}: ContentCont
         //TODO: Manage user session.
         const apiResponse = await insertAction("anonymous", data.request, data.response);
 
-        onValueChange(apiResponse.request, apiResponse.response);
+        onValueChange(data.request, apiResponse.response);
         //TODO: Manage user session.
         pushHistoric("anonymous", apiResponse.request, apiResponse.response)
     };
@@ -140,6 +137,7 @@ export function ContentContainer({request, response, onValueChange}: ContentCont
                         context={data.context}
                         parameters={data.request} 
                         readUri={readUri}
+                        onContextChange={contextChange}
                         onReadUriChange={onReadUriChange} 
                         onValueChange={parametersChange}/>
                 </div>

@@ -35,6 +35,7 @@ interface ParameterSelectorProps {
     context: Context;
     parameters: ItemRequestParameters;
     readUri: () => StatusKeyValue[];
+    onContextChange: (context: Context) => void
     onReadUriChange: (uriProcess: boolean) => void;
     onValueChange: (parameters: ItemRequestParameters) => void;
 }
@@ -50,7 +51,7 @@ interface Payload {
     body: Body;
 }
 
-export function ParameterSelector({ autoReadUri, context, parameters, readUri, onReadUriChange, onValueChange }: ParameterSelectorProps) {
+export function ParameterSelector({ autoReadUri, context, parameters, readUri, onContextChange, onReadUriChange, onValueChange }: ParameterSelectorProps) {
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
         context: context,
@@ -74,6 +75,11 @@ export function ParameterSelector({ autoReadUri, context, parameters, readUri, o
     const setModalStatus = (status: boolean) => {
         setData({...data, modalStatus: status});
     };
+
+    const onContextChangeStatus = (context: Context) => {
+        setData({...data, context });
+        onContextChange(context);
+    }
 
     const onReadUriChangeStatus = (uriProcess: boolean) => {
         let newTable = {...data, autoReadUri: uriProcess};
@@ -163,9 +169,9 @@ export function ParameterSelector({ autoReadUri, context, parameters, readUri, o
                     onValueChange={bodyChange}/>}
             </div>
             <ContextModal
-                key={uuidv4()}
                 isOpen={data.modalStatus}
                 context={data.context}
+                onValueChange={onContextChangeStatus}
                 onClose={() => setModalStatus(false)}/>
         </>
     )

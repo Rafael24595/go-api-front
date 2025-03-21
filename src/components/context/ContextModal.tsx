@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal } from '../utils/modal/Modal';
 import { v4 as uuidv4 } from 'uuid';
 import { StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
 import { ItemStatusCategoryKeyValue, StatusCategoryKeyValue, toItem } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
 import { Context } from '../../interfaces/context/Context';
 import { detachStatusCategoryKeyValue, mergeStatusCategoryKeyValue } from '../../services/Utils';
-import { insertContext } from '../../services/api/ServiceStorage';
+import { findContext, insertContext } from '../../services/api/ServiceStorage';
 
 import './ContextModal.css'
 
+const PREVIEW_CATEGORY_KEY = "ContextModalPreviewPreviewCategory";
 const STATUS_KEY = "ContextModalPreviewStatus";
 const CONTENT_KEY = "ContextModalPreviewContent";
 const FILTER_KEY = "ContextModalFilterContent";
@@ -65,15 +66,16 @@ const TEMPLATE = `curl -X GET https://github.com/\${username}/\${uri.repository}
 -H "\${header.header-key}: \${header.header-value}"`
 
 const EMPTY_FILTER: Filter = {
-    category: "",
+    status: "none",
+    category: "none",
     key: "",
-    status: "",
     value: ""
 };
 
 interface ContextModalProps {
     isOpen: boolean,
     context: Context,
+    onValueChange: (context: Context) => void
     onClose: () => void,
 }
 
@@ -85,6 +87,7 @@ interface Filter {
 }
 
 interface Payload {
+    categoryPreview: string,
     template: string;
     preview: string;
     showPreview: boolean;
@@ -94,8 +97,9 @@ interface Payload {
     argument: ItemStatusCategoryKeyValue[];
 }
 
-export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
+export function ContextModal({ isOpen, context, onValueChange, onClose }: ContextModalProps) {
     const [data, setData] = useState<Payload>({
+        categoryPreview: getCategoryPreview(),
         template: getTemplate(),
         preview: getTemplate(),
         showPreview: getStatus(),
@@ -105,6 +109,16 @@ export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
         argument: toItem(detachStatusCategoryKeyValue(context.dictionary))
     });
     
+    useEffect(() => {
+        const loadContext = async () => {
+            const context = await findContext("anonymous");
+            const newArgument = toItem(detachStatusCategoryKeyValue(context.dictionary));
+            setData({ ...data, context: context, status: context.status, argument: newArgument });
+            updatePreview(context.status, data.template, data.categoryPreview, newArgument);
+        };
+        loadContext();
+    }, []);
+
     const onFilterStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         onFilterChange("status", e.target.value);
     };
@@ -123,13 +137,14 @@ export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
 
     const clearFilter = () => {
         setData({...data, filter: EMPTY_FILTER});
+        setFilter(EMPTY_FILTER);
     }
 
     const filterContext = (item: ItemStatusCategoryKeyValue): boolean => {
-        if(data.filter.status != "" && data.filter.status != `${item.status}`) {
+        if(data.filter.status != "none" && data.filter.status != `${item.status}`) {
             return false;
         }
-        if(data.filter.category != "" && data.filter.category != item.category) {
+        if(data.filter.category != "none" && data.filter.category != item.category) {
             return false;
         }
         if(data.filter.key != "") {
@@ -156,7 +171,8 @@ export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
     };
 
     const onStatusChange = (e: React.ChangeEvent<HTMLInputElement>)  => {
-        setData({...data, status: e.target.checked});
+        onValueChange(makeContext(e.target.checked, data.argument));
+        updatePreview(e.target.checked, data.template, data.categoryPreview, data.argument);
     }
 
     const rowTrim = (order: number) => {
@@ -167,7 +183,8 @@ export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
         let newArgument = copyRows();
         newArgument.splice(order, 1);
 
-        updatePreview(data.template, newArgument);
+        updatePreview(data.status, data.template, data.categoryPreview, newArgument);
+        onValueChange(makeContext(data.status, newArgument));
     }
 
     const rowPush = (row: StrStatusCategoryKeyValue, focus: string, order?: number) => {
@@ -184,7 +201,8 @@ export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
                 focus: focus});
         }
         
-        updatePreview(data.template, newArgument);
+        updatePreview(data.status, data.template, data.categoryPreview, newArgument);
+        onValueChange(makeContext(data.status, newArgument));
     }
 
     const copyRows = (): ItemStatusCategoryKeyValue[] => {
@@ -196,17 +214,23 @@ export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
         setStatus(!data.showPreview);
     }
 
+    const onPreviewCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setCategoryPreviews(e.target.value);
+        updatePreview(data.status, data.template, e.target.value, data.argument);
+    }
+
     const previewClean = () => {
-        updatePreview("", data.argument);
+        updatePreview(data.status, "", "global", data.argument);
     }
 
     const updateTemplate = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        updatePreview(e.target.value, data.argument);
+        updatePreview(data.status, e.target.value, data.categoryPreview, data.argument);
     }
 
-    const updatePreview = (template: string, args: ItemStatusCategoryKeyValue[]) => {
+    const updatePreview = (status: boolean, template: string, category: string, args: ItemStatusCategoryKeyValue[]) => {
         setTemplate(template);
-        if(template == "") {
+        if(!status || template == "") {
+            setData({...data, status, template, categoryPreview: category, argument: args, preview: template});
             return;
         }
         
@@ -215,28 +239,28 @@ export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
             if(!arg.status) {
                 continue;
             }
-            if(arg.category == "global") {
+            if(arg.category == category) {
                 const pattern = new RegExp(`\\$\\{(?:${arg.category}\\.)?${arg.key}\\}`, "g");
                 newPreview = newPreview.replace(pattern, arg.value);
             } else {
                 newPreview = newPreview.replace(`\${${arg.category}.${arg.key}}`, arg.value);
             }
         }
-        setData({...data, template: template, argument: args, preview: newPreview});
+        setData({...data, status, template, categoryPreview: category, argument: args, preview: template});
     }
 
     const submitContext = async () => {
-        const response = await insertContext("anonymous", makeContext());
+        const response = await insertContext("anonymous", makeContext(data.status, data.argument));
         //TODO: Review
         //setData({...data, context: response, status: response.status, argument: toItem(detachStatusCategoryKeyValue(response.dictionary))})
     }
 
-    const makeContext = (): Context => {
+    const makeContext = (status: boolean, argument: ItemStatusCategoryKeyValue[]): Context => {
         return {
             _id: data.context._id,
-            status: data.status,
+            status: status,
             timestamp: data.context.timestamp,
-            dictionary: mergeStatusCategoryKeyValue(data.argument),
+            dictionary: mergeStatusCategoryKeyValue(argument),
             owner: "anonymous",
             modified: data.context.modified
         };
@@ -272,8 +296,20 @@ export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
                 </div>
                 {data.showPreview && (
                     <div id="preview-container">
-                        <pre className="preview-component">{ data.preview }</pre>
-                        <textarea className="preview-component" onChange={updateTemplate} value={data.template}/>
+                        <div id="preview-params">
+                            <div className="preview-select-param">
+                                <label htmlFor="test-category">Category:</label>
+                                <select name="test-category" onChange={onPreviewCategoryChange}>
+                                    {ROW_DEFINITION.categories.map(c => (
+                                        <option key={c.value} value={c.value} selected={data.filter.category == c.value}>{c.key}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div id="preview-areas">
+                            <pre className="preview-component">{ data.preview }</pre>
+                            <textarea className="preview-component" onChange={updateTemplate} value={data.template}/>
+                        </div>
                     </div>
                 )}
                 <div id="dictionary-title" className="border-bottom">
@@ -289,16 +325,16 @@ export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
                             <label htmlFor="filter-status">Status:</label>
                             <select name="filter-status" onChange={onFilterStatusChange}>
                                 {STATUS_VALUES.map(s => (
-                                    <option value={s.value} selected={data.filter.status == s.value}>{s.key}</option>    
+                                    <option key={s.value} value={s.value} selected={data.filter.status == s.value}>{s.key}</option>    
                                 ))}
                             </select>
                         </div>
                         <div className='filter-fragment'>
                         <label htmlFor="filter-category">Category:</label>
                             <select name="category" onChange={onFilterCategoryChange}>
-                                <option value="">None</option>
+                                <option value="none">None</option>
                                 {ROW_DEFINITION.categories.map(c => (
-                                    <option value={c.value} selected={data.filter.category == c.value}>{c.key}</option>
+                                    <option key={c.value} value={c.value} selected={data.filter.category == c.value}>{c.key}</option>
                                 ))}
                             </select>
                         </div>
@@ -344,6 +380,15 @@ export function ContextModal({ isOpen, context, onClose }: ContextModalProps) {
         </Modal>
     )
 }
+
+const getCategoryPreview = () => {
+    return localStorage.getItem(PREVIEW_CATEGORY_KEY) || "global";
+}
+
+const setCategoryPreviews = (category: string) => {
+    localStorage.setItem(PREVIEW_CATEGORY_KEY, category);
+}
+
 
 const getStatus = () => {
     return localStorage.getItem(STATUS_KEY) == "true";

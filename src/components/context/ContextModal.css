@@ -1,5 +1,6 @@
 #preview-container {
     display: flex;
+    flex-direction: column;
     padding: 10px;
 }
 
@@ -29,6 +30,26 @@
     font-style: italic;
     white-space: break-spaces;
     word-break: break-word;
+}
+
+#preview-params {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+    margin-right: 10px;
+}
+
+.preview-select-param label {
+    font-weight: 500;
+    margin-right: 5px;
+}
+
+#preview-areas {
+    display: flex;
+}
+
+#text-component {
+    resize: none;
 }
 
 #dictionary-title {
