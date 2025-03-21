@@ -1,17 +1,36 @@
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
 import { deleteAction, findAllHistoric } from '../../../../../services/api/ServiceStorage';
-import { useEffect, useState } from 'react';
+import { useEffect, useImperativeHandle, useState } from 'react';
 import { millisecondsToDate } from '../../../../../services/Tools';
 
 import './HistoricColumn.css';
 
 interface HistoricColumnProps {
+    ref: React.RefObject<HistoricColumnMethods | null>
     defineRequest: (request: Request) => void;
     selectRequest: (request: Request) => void;
 }
 
-export function HistoricColumn({ defineRequest, selectRequest }: HistoricColumnProps) {
+export type HistoricColumnMethods = {
+    fetchHistoric: () => void;
+};
+
+export function HistoricColumn({ ref, defineRequest, selectRequest }: HistoricColumnProps) {
     const [requests, setHistoric] = useState<Request[]>([]);
+    
+    useImperativeHandle(ref, () => ({
+        fetchHistoric
+    }));
+
+    useEffect(() => {
+        fetchHistoric();
+
+        const interval = setInterval(() => {
+            fetchHistoric();
+        }, 10000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const fetchHistoric = async () => {
         try {
@@ -31,17 +50,7 @@ export function HistoricColumn({ defineRequest, selectRequest }: HistoricColumnP
             console.error("Error fetching history:", error);
         }
     };
-
-    useEffect(() => {
-        fetchHistoric();
-
-        const interval = setInterval(() => {
-            fetchHistoric();
-        }, 10000);
-
-        return () => clearInterval(interval);
-    }, []);
-
+    
     const makeKey = (request: Request): string => {
         return `${request.timestamp}-${request.method}-${request.uri}`;
     }

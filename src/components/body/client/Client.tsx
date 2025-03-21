@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ContentContainer } from './center-container/ContentContainer'
-import { LeftSidebar } from './left-sidebar/LeftSidebar'
+import { LeftSidebar, LeftSidebarMethods } from './left-sidebar/LeftSidebar'
 import { RightSidebar } from './right-sidebar/RightSidebar'
 import { Response } from '../../../interfaces/response/Response';
 import { newRequest, Request } from '../../../interfaces/request/Request';
@@ -15,6 +15,8 @@ interface Payload {
 }
 
 export function Client() {
+    const leftSidebarRef = useRef<LeftSidebarMethods>(null);
+
     const [data, setData] = useState<Payload>({
         request: newRequest("anonymous"),
         response: undefined
@@ -35,6 +37,10 @@ export function Client() {
         setData(newData);
     }
 
+    const reloadRequestSidebar = () => {
+        leftSidebarRef.current?.reloadView();
+    }
+
     const keygen = () => {
         return `${uuidv4()}-${Date.now()}`;
     }
@@ -42,12 +48,14 @@ export function Client() {
     return (
         <>
             <LeftSidebar 
+                ref={leftSidebarRef}
                 defineRequest={defineRequest}
                 selectRequest={selectRequest}/>
             <ContentContainer 
                 key={keygen()} 
                 request={data.request}
                 response={data.response}
+                reloadRequestSidebar={reloadRequestSidebar}
                 onValueChange={responseChange}/>
             <RightSidebar response={data.response}/>
         </>

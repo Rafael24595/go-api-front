@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { HistoricColumn } from './historic-column/HistoricColumn';
+import { useImperativeHandle, useRef, useState } from 'react';
+import { HistoricColumn, HistoricColumnMethods } from './historic-column/HistoricColumn';
 import { StoredColumn } from './stored-column/StoredColumn';
 import { CollectionColumn } from './collection-column/CollectionColumn';
 import { Request } from '../../../../interfaces/request/Request';
@@ -17,18 +17,40 @@ const DEFAULT_CURSOR = VIEW_HISTORIC;
 const CURSOR_KEY = "LeftSidebarCursor";
 
 interface LeftSidebarProps {
+    ref: React.RefObject<LeftSidebarMethods | null>
     defineRequest: (request: Request) => Promise<void>;
     selectRequest: (request: Request) => Promise<void>;
 }
+
+export type LeftSidebarMethods = {
+    reloadView: () => void;
+  };
 
 interface Payload {
     cursor: string;
 }
 
-export function LeftSidebar({ defineRequest, selectRequest }: LeftSidebarProps) {
+export function LeftSidebar({ ref, defineRequest, selectRequest }: LeftSidebarProps) {
+    const historicColumRef = useRef<HistoricColumnMethods>(null);
+
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
     });
+
+    useImperativeHandle(ref, () => ({
+        reloadView
+    }));
+
+    const reloadView = () => {
+        switch (data.cursor) {
+            case VIEW_HISTORIC:
+                historicColumRef.current?.fetchHistoric();
+            break;
+            default:
+                //TODO: Implement all cases.
+            break;
+        }
+    }
         
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCursor(e.target.value);
@@ -56,6 +78,7 @@ export function LeftSidebar({ defineRequest, selectRequest }: LeftSidebarProps) 
             </div>
             <div id="request-form-options">
                 {data.cursor === VIEW_HISTORIC && <HistoricColumn 
+                    ref={historicColumRef}
                     defineRequest={defineRequest}
                     selectRequest={selectRequest}/>}
                 {data.cursor === VIEW_STORED && <StoredColumn
