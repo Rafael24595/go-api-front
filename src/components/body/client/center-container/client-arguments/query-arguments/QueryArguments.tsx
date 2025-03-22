@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { StatusKeyValue as StrStatusKeyValue } from '../../../../../../interfaces/StatusKeyValue';
-import { ItemStatusKeyValue, StatusKeyValue, toItem } from '../status-key-value/StatusKeyValue';
+import { fixOrder, ItemStatusKeyValue, StatusKeyValue, toItem } from '../status-key-value/StatusKeyValue';
 
 import './QueryArguments.css'
 
@@ -50,8 +50,9 @@ export function QueryArguments({ readUri, argument, autoReadUri, onReadUriChange
         let newArgument = copyRows();
         newArgument.splice(order, 1);
 
-        const newData = {...data, argument: newArgument};
+        newArgument = fixOrder(newArgument);
 
+        const newData = {...data, argument: newArgument};
         setData(newData);
         onValueChange(newArgument);
     }
@@ -69,6 +70,8 @@ export function QueryArguments({ readUri, argument, autoReadUri, onReadUriChange
                 id: uuidv4(), 
                 focus: focus});
         }
+
+        newArgument = fixOrder(newArgument);
 
         const newData = {...data, argument: newArgument};
         setData(newData);
@@ -100,6 +103,7 @@ export function QueryArguments({ readUri, argument, autoReadUri, onReadUriChange
                         order={i}
                         focus={item.focus}
                         value={{
+                            order: item.order,
                             status: item.status,
                             key: item.key,
                             value: item.value

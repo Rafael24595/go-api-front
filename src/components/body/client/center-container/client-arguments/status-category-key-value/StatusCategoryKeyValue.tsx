@@ -7,6 +7,7 @@ import '../status-key-value/StatusKeyValue.css'
 
 export interface ItemStatusCategoryKeyValue {
     id: string
+    order: number
     status: boolean
     category: string
     key: string
@@ -18,7 +19,14 @@ export const toItem = (rowsStr: StatusCategoryKeyValue[]): ItemStatusCategoryKey
     if(!rowsStr) {
         return [];
     }
-    return [...rowsStr].map(r => ({...r, id: uuidv4(), focus: ""}));
+    return fixOrder([...rowsStr].sort((a, b) => a.order - b.order).map(r => ({...r, id: uuidv4(), focus: ""})));
+}
+
+export const fixOrder = (argument: ItemStatusCategoryKeyValue[]) => {
+    return argument.map((item, i) => {
+        item.order = i;
+        return item;
+    });
 }
 
 interface StatusCategoryKeyValueProps {
@@ -36,6 +44,7 @@ interface StatusCategoryKeyValueProps {
 }
 
 interface Payload {
+    order: number;
     status: boolean;
     category: string;
     key: string;
@@ -47,6 +56,7 @@ export function StatusCategoryKeyValue({order, focus, value, definition, rowPush
     const inputValue = useRef<HTMLInputElement>(null);
 
     const [row, setRow] = useState<Payload>({
+        order: order || 0,
         status: value ? value.status : false,
         category: value ? value.category : 
             definition.categories.length > 0 ? definition.categories[0].value : "",
@@ -69,7 +79,7 @@ export function StatusCategoryKeyValue({order, focus, value, definition, rowPush
             const category = definition.categories.length > 0 ? definition.categories[0].value : "";
             const key = e.target.name == "key" ? e.target.value : "";
             const value = e.target.name == "value" ? e.target.value : "";
-            rowPush({status: true, category: category, key: key, value: value},  e.target.name, order)    
+            rowPush({ order: 0, status: true, category: category, key: key, value: value },  e.target.name, order)    
             return;
         }
 
@@ -81,7 +91,7 @@ export function StatusCategoryKeyValue({order, focus, value, definition, rowPush
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         if(definition.disabled) {
             const category = e.target.name == "category" ? e.target.value : "";
-            rowPush({status: true, category: category, key: "", value: ""}, "key", order)    
+            rowPush({ order: 0, status: true, category: category, key: "", value: "" }, "key", order)    
             return;
         }
 
@@ -113,7 +123,7 @@ export function StatusCategoryKeyValue({order, focus, value, definition, rowPush
                 <input name="status" type="checkbox" onChange={handleChecked} disabled={definition.disabled} checked={row.status}/>
                 <select className="parameter-input secondary" name="category" onChange={handleCategoryChange}>
                     {definition.categories.map(c => (
-                        <option value={c.value} selected={c.value == row.category}>{c.key}</option>
+                        <option key={c.value} value={c.value} selected={c.value == row.category}>{c.key}</option>
                     ))}
                 </select>
                 <input className="parameter-input" ref={inputKey} name="key" type="text" onChange={handleChange} placeholder={definition.key} value={row.key}/>

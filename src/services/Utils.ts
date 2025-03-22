@@ -12,6 +12,7 @@ export function detachStatusKeyValue(dict: Dict<StatusValue[]>): StatusKeyValue[
     for (const [k, vs] of Object.entries(dict)) {
         for (const v of vs) {
             vector.push({
+                order: v.order,
                 status: v.status,
                 key: k,
                 value: v.value
@@ -43,6 +44,7 @@ export function detachStatusCategoryKeyValue(dict: Dict<Dict<StatusValue>>): Sta
     for (const [c, vs] of Object.entries(dict)) {
         for (const [k, v] of Object.entries(vs)) {
             vector.push({
+                order: v.order,
                 status: v.status,
                 category: c,
                 key: k,
@@ -53,7 +55,6 @@ export function detachStatusCategoryKeyValue(dict: Dict<Dict<StatusValue>>): Sta
     return vector;
 }
 
-
 export const mergeStatusCategoryKeyValue = (newValues: StatusCategoryKeyValue[]): Dict<Dict<StatusValue>> => {
     const merge: Dict<Dict<StatusValue>> = {};
     for (const value of newValues) {
@@ -63,4 +64,13 @@ export const mergeStatusCategoryKeyValue = (newValues: StatusCategoryKeyValue[])
         merge[value.category][value.key] = value;
     }
     return merge;
+}
+
+export async function generateHash(obj: any) {
+    const str = JSON.stringify(obj, Object.keys(obj).sort());
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }

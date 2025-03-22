@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { StatusKeyValue as StrStatusKeyValue } from '../../../../../../interfaces/StatusKeyValue';
-import { ItemStatusKeyValue, StatusKeyValue, toItem } from '../status-key-value/StatusKeyValue';
+import { fixOrder, ItemStatusKeyValue, StatusKeyValue, toItem } from '../status-key-value/StatusKeyValue';
 
 import './HeaderArguments.css'
 
@@ -28,6 +28,8 @@ export function HeaderArguments({ argument, onValueChange }: HeaderProps) {
         let newArgument = copyRows();
         newArgument.splice(order, 1);
 
+        newArgument = fixOrder(newArgument);
+        
         setData(newArgument)
         onValueChange(newArgument)
     }
@@ -46,6 +48,8 @@ export function HeaderArguments({ argument, onValueChange }: HeaderProps) {
                 focus: focus});
         }
 
+        newArgument = fixOrder(newArgument);
+
         setData(newArgument);
         onValueChange(newArgument)
     }
@@ -62,6 +66,7 @@ export function HeaderArguments({ argument, onValueChange }: HeaderProps) {
                     order={i}
                     focus={item.focus}
                     value={{
+                        order: item.order,
                         status: item.status,
                         key: item.key,
                         value: item.value

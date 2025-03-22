@@ -38,6 +38,7 @@ export function Modal({ title, height, width, isOpen, onClose, children, buttons
             {buttons ? (
               buttons.map(b => (
                 <button
+                  key={b.title}
                   type="button"
                   onClick={() => b.callback.func(b.callback.args)}>
                     {b.title}

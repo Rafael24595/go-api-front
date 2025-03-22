@@ -6,6 +6,7 @@ import './StatusKeyValue.css'
 
 export interface ItemStatusKeyValue {
     id: string
+    order: number
     status: boolean
     key: string
     value: string
@@ -16,7 +17,14 @@ export const toItem = (rowsStr: StatusKeyValue[]): ItemStatusKeyValue[] => {
     if(!rowsStr) {
         return [];
     }
-    return [...rowsStr].map(r => ({...r, id: uuidv4(), focus: ""}));
+    return [...rowsStr].sort((a, b) => a.order - b.order).map(r => ({...r, id: uuidv4(), focus: ""}));
+}
+
+export const fixOrder = (argument: ItemStatusKeyValue[]) => {
+    return argument.map((item, i) => {
+        item.order = i;
+        return item;
+    });
 }
 
 interface StatusKeyValueProps {
@@ -33,6 +41,7 @@ interface StatusKeyValueProps {
 }
 
 interface Payload {
+    order: number;
     status: boolean;
     key: string;
     value: string;
@@ -43,6 +52,7 @@ export function StatusKeyValue({order, focus, value, definition, rowPush, rowTri
     const inputValue = useRef<HTMLInputElement>(null);
 
     const [row, setRow] = useState<Payload>({
+        order: order || 0,
         status: value ? value.status : false,
         key: value ? value.key : "",
         value: value ? value.value : "",
@@ -62,7 +72,7 @@ export function StatusKeyValue({order, focus, value, definition, rowPush, rowTri
         if(definition.disabled) {
             const key = e.target.name == "key" ? e.target.value : "";
             const value = e.target.name == "value" ? e.target.value : "";
-            rowPush({status: true, key: key, value: value},  e.target.name, order)    
+            rowPush({ order: 0, status: true, key: key, value: value },  e.target.name, order)    
             return;
         }
 

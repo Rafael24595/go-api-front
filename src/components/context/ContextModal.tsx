@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Modal } from '../utils/modal/Modal';
 import { v4 as uuidv4 } from 'uuid';
 import { StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
-import { ItemStatusCategoryKeyValue, StatusCategoryKeyValue, toItem } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
+import { fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue, toItem } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
 import { Context } from '../../interfaces/context/Context';
 import { detachStatusCategoryKeyValue, mergeStatusCategoryKeyValue } from '../../services/Utils';
 import { findContext, insertContext } from '../../services/api/ServiceStorage';
@@ -230,7 +230,7 @@ export function ContextModal({ isOpen, context, onValueChange, onClose }: Contex
     const updatePreview = (status: boolean, template: string, category: string, args: ItemStatusCategoryKeyValue[]) => {
         setTemplate(template);
         if(!status || template == "") {
-            setData({...data, status, template, categoryPreview: category, argument: args, preview: template});
+            setData({...data, status, template, categoryPreview: category, argument: fixOrder(args), preview: template});
             return;
         }
         
@@ -246,7 +246,7 @@ export function ContextModal({ isOpen, context, onValueChange, onClose }: Contex
                 newPreview = newPreview.replace(`\${${arg.category}.${arg.key}}`, arg.value);
             }
         }
-        setData({...data, status, template, categoryPreview: category, argument: args, preview: template});
+        setData({...data, status, template, categoryPreview: category, argument: fixOrder(args), preview: newPreview});
     }
 
     const submitContext = async () => {
@@ -358,6 +358,7 @@ export function ContextModal({ isOpen, context, onValueChange, onClose }: Contex
                             order={i}
                             focus={item.focus}
                             value={{
+                                order: item.order,
                                 status: item.status,
                                 category: item.category,
                                 key: item.key,
@@ -388,7 +389,6 @@ const getCategoryPreview = () => {
 const setCategoryPreviews = (category: string) => {
     localStorage.setItem(PREVIEW_CATEGORY_KEY, category);
 }
-
 
 const getStatus = () => {
     return localStorage.getItem(STATUS_KEY) == "true";
