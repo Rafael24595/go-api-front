@@ -57,17 +57,25 @@ button:hover {
   display: none;
 }
 
-.radio-button-group label {
+.button-tag {
+  font-family: var(--default-font);
+  font-size: 1em;
+  font-weight: 500;
+  background-color: transparent;
+  border: none;
+}
+
+.radio-button-group label, .button-tag {
   padding: 5px 15px;
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
 }
 
-.radio-button-group label:hover {
+.radio-button-group label:hover, .button-tag:hover {
   background-color: #d6d5d5;
 }
 
-.radio-button-group input[type="radio"]:not(:checked) + label {
+.radio-button-group input[type="radio"]:not(:checked) + label, .button-tag {
   border-bottom: 1px solid transparent;
 }
 

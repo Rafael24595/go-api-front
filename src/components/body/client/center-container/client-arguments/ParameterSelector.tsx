@@ -7,7 +7,6 @@ import { StatusKeyValue } from '../../../../../interfaces/StatusKeyValue';
 import { Auths, Body, Headers, Queries } from '../../../../../interfaces/request/Request';
 import { detachStatusKeyValue, mergeStatusKeyValue } from '../../../../../services/Utils';
 import { ContextModal } from '../../../../context/ContextModal';
-import { v4 as uuidv4 } from 'uuid';
 import { Context } from '../../../../../interfaces/context/Context';
 
 import './ParameterSelector.css';
@@ -146,8 +145,8 @@ export function ParameterSelector({ autoReadUri, context, parameters, readUri, o
                             onChange={cursorChange}/>
                         <label htmlFor="tag-client-body" id="client-label-body">Body</label>
                     </div>
-                    <div id="contex-container">
-                        <button type="button" onClick={() => setModalStatus(true)}>Context</button>
+                    <div>
+                        <button type="button" className="button-tag" onClick={() => setModalStatus(true)}>Context</button>
                     </div>
                 </div>
             </div>
