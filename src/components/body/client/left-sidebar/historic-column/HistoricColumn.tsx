@@ -82,8 +82,8 @@ export function HistoricColumn({ ref, selected, defineRequest, selectRequest }: 
                                 <button 
                                     type="button" 
                                     className="remove-button show"
-                                    onClick={() => deleteHistoric(request)}
-                                    ></button>
+                                    onClick={() => deleteHistoric(request)}>
+                                </button>
                             </div>
                         ))
                     ) : (
