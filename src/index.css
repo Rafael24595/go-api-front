@@ -161,3 +161,25 @@ button:hover {
   text-align: center;
   font-weight: 500;
 }
+
+.button-modify {
+  display: flex;
+  align-items: center;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+
+.button-modified-status::after {
+  content: '🖪';
+  font-size: 1.35em;
+  margin-left: 3px;
+  margin-right: 3px;
+}
+
+.button-modified-status {
+  visibility: hidden;
+}
+
+.button-modified-status.visible {
+  visibility: visible;
+}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MethodSelector } from "./method-selector/MethodSelector";
 import { ItemRequestParameters, ParameterSelector } from "./client-arguments/ParameterSelector";
 import { Request } from "../../../../interfaces/request/Request";
@@ -6,10 +6,10 @@ import { executeFormAction } from "../../../../services/api/ServiceManager";
 import { Response } from "../../../../interfaces/response/Response";
 import { insertAction, pushHistoric } from "../../../../services/api/ServiceStorage";
 import { StatusKeyValue } from "../../../../interfaces/StatusKeyValue";
-import { detachStatusKeyValue } from "../../../../services/Utils";
+import { detachStatusKeyValue, generateHash } from "../../../../services/Utils";
+import { Context, newContext } from "../../../../interfaces/context/Context";
 
 import './ContentContainer.css'
-import { Context, newContext } from "../../../../interfaces/context/Context";
 
 const AUTO_READ_URI_KEY = "AutoReadUriKey";
 
@@ -22,18 +22,45 @@ interface ContentContainerProps {
 
 interface Payload {
     autoReadUri: boolean;
+    initialHash: string;
+    actualHash: string;
     context: Context;
+    backup: Request;
     request: Request;
     response?: Response;
 }
 
-export function ContentContainer({request, response, reloadRequestSidebar, onValueChange}: ContentContainerProps) {
+export function ContentContainer({ request, response, reloadRequestSidebar, onValueChange }: ContentContainerProps) {
     const [data, setData] = useState<Payload>({
         autoReadUri: getCursor(),
+        initialHash: "",
+        actualHash: "",
         context: newContext("anonymous"),
+        backup: request,
         request: request,
         response: response
     });
+
+    useEffect(() => {
+        if(data.actualHash == "") {
+            setHash("initialHash", data.backup);
+            setHash("actualHash", data.backup);
+        }
+        
+        if (data.request) {
+            setHash("actualHash", data.request);
+        }
+
+    }, [data.request]);
+
+    const setHash = async (key: string, request: Request) => {
+        console.log(request)
+        const newHash = await generateHash(request);
+        setData(prevData => ({
+            ...prevData,
+            [key]: newHash
+        }));
+    }
     
     const contextChange = (context: Context) => {
         setData({ ...data, context });
@@ -135,6 +162,8 @@ export function ContentContainer({request, response, reloadRequestSidebar, onVal
 
         data.request._id = apiResponse.request._id;
 
+        reloadRequestSidebar();
+
         onValueChange(data.request, apiResponse.response);
     };
 
@@ -157,7 +186,11 @@ export function ContentContainer({request, response, reloadRequestSidebar, onVal
                         onValueChange={parametersChange}/>
                 </div>
                 <div id="client-buttons" className="border-top">
-                    <button type="submit" onClick={insertFormAction}>Save</button>
+                    <button type="submit" className="button-modify" onClick={insertFormAction}>
+                        <span className={`button-modified-status ${ data.initialHash != data.actualHash && "visible" }`}></span>
+                        <span>Save</span>
+                        <span className="button-modified-status"></span>
+                    </button>
                 </div>
             </form>
         </div>
