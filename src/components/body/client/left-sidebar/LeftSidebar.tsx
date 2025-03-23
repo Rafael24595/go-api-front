@@ -1,6 +1,6 @@
 import { useImperativeHandle, useRef, useState } from 'react';
 import { HistoricColumn, HistoricColumnMethods } from './historic-column/HistoricColumn';
-import { StoredColumn } from './stored-column/StoredColumn';
+import { StoredColumn, StoredColumnMethods } from './stored-column/StoredColumn';
 import { CollectionColumn } from './collection-column/CollectionColumn';
 import { Request } from '../../../../interfaces/request/Request';
 
@@ -33,7 +33,8 @@ interface Payload {
 
 export function LeftSidebar({ ref, selected, defineRequest, selectRequest }: LeftSidebarProps) {
     const historicColumRef = useRef<HistoricColumnMethods>(null);
-console.log(selected)
+    const storedColumRef = useRef<StoredColumnMethods>(null);
+
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
     });
@@ -46,6 +47,9 @@ console.log(selected)
         switch (data.cursor) {
             case VIEW_HISTORIC:
                 historicColumRef.current?.fetchHistoric();
+            break;
+            case VIEW_STORED:
+                storedColumRef.current?.fetchStored();
             break;
             default:
                 //TODO: Implement all cases.
@@ -84,6 +88,7 @@ console.log(selected)
                     defineRequest={defineRequest}
                     selectRequest={selectRequest}/>}
                 {data.cursor === VIEW_STORED && <StoredColumn
+                    ref={storedColumRef}
                     selected={selected}
                     defineRequest={defineRequest}
                     selectRequest={selectRequest}/>}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useImperativeHandle, useState } from 'react';
 import { findAllAction } from '../../../../../services/api/ServiceStorage';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
@@ -6,13 +6,22 @@ import { millisecondsToDate } from '../../../../../services/Tools';
 import './StoredColumn.css'
 
 interface StoredColumnProps {
+    ref: React.RefObject<StoredColumnMethods | null>;
     selected: string;
     defineRequest: (request: Request) => void;
     selectRequest: (request: Request) => void;
 }
 
-export function StoredColumn({ selected, defineRequest, selectRequest }: StoredColumnProps) {
+export type StoredColumnMethods = {
+    fetchStored: () => void;
+};
+
+export function StoredColumn({ ref, selected, defineRequest, selectRequest }: StoredColumnProps) {
     const [requests, setStored] = useState<Request[]>([]);
+
+     useImperativeHandle(ref, () => ({
+        fetchStored
+    }));
     
     const fetchStored = async () => {
         try {
