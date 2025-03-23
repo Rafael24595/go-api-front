@@ -7,7 +7,7 @@ import '../../status-key-value/StatusKeyValue.css';
 export const AUTH_CODE_BEARER = "BEARER";
 interface BearerDataProps {
     value?: Auth
-    onValueChange: (auth: Auth) => void;
+    onValueChange: (code:string, auth: Auth | undefined) => void;
 }
 
 interface Payload {
@@ -26,22 +26,26 @@ export function BearerData({value, onValueChange}: BearerDataProps) {
     const handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newData = { ...data, status: e.target.checked };
         setData(newData);
-        onValueChange(makeAuth(newData));
+        onValueChange(AUTH_CODE_BEARER, makeAuth(newData));
     };
 
     const inputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newData = {...data,  [e.target.name]: e.target.value };
         setData(newData);
-        onValueChange(makeAuth(newData));
+        onValueChange(AUTH_CODE_BEARER, makeAuth(newData));
     };
 
     const textareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         let newData = {...data,  [e.target.name]: e.target.value };
         setData(newData);
-        onValueChange(makeAuth(newData));
+        onValueChange(AUTH_CODE_BEARER, makeAuth(newData));
     };
 
-    const makeAuth = (payload: Payload): Auth => {
+    const makeAuth = (payload: Payload): Auth | undefined => {
+        if(!payload.status && payload.bearer == "" && payload.token == "") {
+            return undefined;
+        }
+
         return {
             code: AUTH_CODE_BEARER,
             status: payload.status,

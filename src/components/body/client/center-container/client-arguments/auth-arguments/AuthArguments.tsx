@@ -46,13 +46,19 @@ export function AuthArguments({ argument, onValueChange }: AuthArgumentsProps) {
         onValueChange(makeAuth(newData));
     };
 
-    const authChange = (auth: Auth) => {
+    const authChange = (code: string, auth: Auth | undefined) => {
         let newData = {...data};
-        if(auth.code == AUTH_CODE_BASIC) {
+        if(auth != undefined) {
+            auth.code = code;
+        }
+
+        if(code == AUTH_CODE_BASIC) {
             newData.basic = auth;
-        } else if(auth.code == AUTH_CODE_BEARER) {
+        } 
+        if(code == AUTH_CODE_BEARER) {
             newData.bearer = auth;
         }
+
         setData(newData);
         onValueChange(makeAuth(newData));
     }

@@ -8,7 +8,7 @@ export const AUTH_CODE_BASIC = "BASIC";
 
 interface BasicProps {
     value?: Auth
-    onValueChange: (auth: Auth) => void;
+    onValueChange: (code: string, auth: Auth | undefined) => void;
 }
 
 interface Payload {
@@ -27,16 +27,20 @@ export function BasicData({value, onValueChange}: BasicProps) {
     const handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newData = { ...data, status: e.target.checked };
         setData(newData);
-        onValueChange(makeAuth(newData));
+        onValueChange(AUTH_CODE_BASIC, makeAuth(newData));
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newData = {...data,  [e.target.name]: e.target.value };
         setData(newData);
-        onValueChange(makeAuth(newData));
+        onValueChange(AUTH_CODE_BASIC, makeAuth(newData));
     };
 
-    const makeAuth = (payload: Payload): Auth => {
+    const makeAuth = (payload: Payload): Auth | undefined => {
+        if(!payload.status && payload.username == "" && payload.password == "") {
+            return undefined;
+        }
+        
         return {
             code: AUTH_CODE_BASIC,
             status: payload.status,
