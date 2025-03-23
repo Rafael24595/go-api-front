@@ -24,7 +24,7 @@ export function CookieColumn({cookie}: CookieColumnProps) {
                             <th>Value</th>
                         </tr>
                         {data.cookie.map((cookie) => (
-                            <tr>
+                            <tr key={ cookie.code }>
                                 <td>
                                     { cookie.code }
                                 </td>

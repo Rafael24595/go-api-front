@@ -24,7 +24,7 @@ export function HeaderColumn({header}: HeaderColumnProps) {
                             <th>Value</th>
                         </tr>
                             {data.header.map((header) => (
-                                <tr>
+                                <tr key={header.key}>
                                     <td>
                                         { header.key }
                                     </td>
