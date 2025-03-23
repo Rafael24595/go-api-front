@@ -35,7 +35,7 @@ export function PayloadColumn({body}: PayloadColumnProps) {
     const data: Payload = {
         status: true,
         contentType: body ? body.content_type : DEFAULT_VIEW,
-        payload: body ? atob(body.bytes) : ""
+        payload: body ? body.payload : ""
     }
 
     return (

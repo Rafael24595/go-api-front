@@ -30,7 +30,7 @@ export function BodyArguments({ argument, onValueChange }: BodyArgumentsProps) {
     const [data, setData] = useState<Payload>({
             cursor: getCursor(),
             status: argument.status, 
-            content: argument.contentType,
+            content: argument.content_type,
             payload: argument.payload,
     });
     
@@ -46,6 +46,7 @@ export function BodyArguments({ argument, onValueChange }: BodyArgumentsProps) {
     };
 
     const payloadChange = (content: string, payload: string) => {
+        content = payload == "" ? "" : content;
         let newData = {...data, content: content, payload: payload};
         setData(newData);
         onValueChange(makeBody(newData));
@@ -54,7 +55,7 @@ export function BodyArguments({ argument, onValueChange }: BodyArgumentsProps) {
     const makeBody = (payload: Payload): Body => {
         return {
             status: payload.status,
-            contentType: payload.content,
+            content_type: payload.content,
             payload: payload.payload
         };
     }

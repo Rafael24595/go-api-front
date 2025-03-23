@@ -16,5 +16,5 @@ export interface Response {
 export interface Body {
     status: boolean;
     content_type: string;
-    bytes: string;
+    payload: string;
   }

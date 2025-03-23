@@ -47,7 +47,7 @@ export interface Cookie {
 
 export interface Body {
   status: boolean
-  contentType: string
+  content_type: string
   payload: string
 }
 
@@ -72,7 +72,7 @@ export function newRequest(owner: string, name?: string): Request {
     query: { queries: {} },
     header: { headers: {} },
     auth: { status: true, auths: {} },
-    body: { status: true, contentType: "", payload: "" },
+    body: { status: true, content_type: "", payload: "" },
     cookie: { cookies: {} },
     owner: owner,
     modified: 0,
