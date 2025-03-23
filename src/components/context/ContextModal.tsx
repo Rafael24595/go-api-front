@@ -115,6 +115,7 @@ export function ContextModal({ isOpen, context, onValueChange, onClose }: Contex
             const newArgument = toItem(detachStatusCategoryKeyValue(context.dictionary));
             setData({ ...data, context: context, status: context.status, argument: newArgument });
             updatePreview(context.status, data.template, data.categoryPreview, newArgument);
+            onValueChange(makeContext(context.status, newArgument));
         };
         loadContext();
     }, []);
