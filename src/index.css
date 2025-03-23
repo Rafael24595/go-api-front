@@ -145,6 +145,14 @@ button:hover {
 
 /* ----------------------- */
 
+/* Move to custom css file */
+
+.request-selected {
+  font-weight: 500;
+}
+
+/* ----------------------- */
+
 .title {
   font-weight: bold;
 }

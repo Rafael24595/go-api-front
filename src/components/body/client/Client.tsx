@@ -49,6 +49,7 @@ export function Client() {
         <>
             <LeftSidebar 
                 ref={leftSidebarRef}
+                selected={data.request._id || ""}
                 defineRequest={defineRequest}
                 selectRequest={selectRequest}/>
             <ContentContainer 

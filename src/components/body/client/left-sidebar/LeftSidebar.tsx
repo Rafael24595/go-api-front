@@ -17,7 +17,8 @@ const DEFAULT_CURSOR = VIEW_HISTORIC;
 const CURSOR_KEY = "LeftSidebarCursor";
 
 interface LeftSidebarProps {
-    ref: React.RefObject<LeftSidebarMethods | null>
+    ref: React.RefObject<LeftSidebarMethods | null>;
+    selected: string;
     defineRequest: (request: Request) => Promise<void>;
     selectRequest: (request: Request) => Promise<void>;
 }
@@ -30,9 +31,9 @@ interface Payload {
     cursor: string;
 }
 
-export function LeftSidebar({ ref, defineRequest, selectRequest }: LeftSidebarProps) {
+export function LeftSidebar({ ref, selected, defineRequest, selectRequest }: LeftSidebarProps) {
     const historicColumRef = useRef<HistoricColumnMethods>(null);
-
+console.log(selected)
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
     });
@@ -79,9 +80,11 @@ export function LeftSidebar({ ref, defineRequest, selectRequest }: LeftSidebarPr
             <div id="request-form-options">
                 {data.cursor === VIEW_HISTORIC && <HistoricColumn 
                     ref={historicColumRef}
+                    selected={selected}
                     defineRequest={defineRequest}
                     selectRequest={selectRequest}/>}
                 {data.cursor === VIEW_STORED && <StoredColumn
+                    selected={selected}
                     defineRequest={defineRequest}
                     selectRequest={selectRequest}/>}
                 {data.cursor === VIEW_COLLECTION && <CollectionColumn/>}

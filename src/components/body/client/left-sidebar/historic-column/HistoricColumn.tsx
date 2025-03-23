@@ -6,7 +6,8 @@ import { millisecondsToDate } from '../../../../../services/Tools';
 import './HistoricColumn.css';
 
 interface HistoricColumnProps {
-    ref: React.RefObject<HistoricColumnMethods | null>
+    ref: React.RefObject<HistoricColumnMethods | null>;
+    selected: string;
     defineRequest: (request: Request) => void;
     selectRequest: (request: Request) => void;
 }
@@ -15,7 +16,7 @@ export type HistoricColumnMethods = {
     fetchHistoric: () => void;
 };
 
-export function HistoricColumn({ ref, defineRequest, selectRequest }: HistoricColumnProps) {
+export function HistoricColumn({ ref, selected, defineRequest, selectRequest }: HistoricColumnProps) {
     const [requests, setHistoric] = useState<Request[]>([]);
     
     useImperativeHandle(ref, () => ({
@@ -67,7 +68,7 @@ export function HistoricColumn({ ref, defineRequest, selectRequest }: HistoricCo
                 <div id="actions-container">
                     {requests.length > 0 ? (
                         requests.map((request) => (
-                            <div key={ makeKey(request) } className="request-preview">
+                            <div key={ makeKey(request) } className={`request-preview ${ request._id == selected && "request-selected"}`}>
                                 <a className="request-link" title={ request.uri }
                                     onClick={() => selectRequest(request)}>
                                     <div className="request-sign">

@@ -53,17 +53,20 @@ export function ContentContainer({request, response, reloadRequestSidebar, onVal
         const url = new URL(data.request.uri);
         const queryParams = new URLSearchParams(url.search);
         const newQueries = { ...data.request.query.queries };
+        let counter = 0;
         for (const [key, value] of queryParams.entries()) {
             const exists = newQueries[key];
             if(exists == undefined) {
                 newQueries[key] = [];
             }
             const item: StatusKeyValue = {
+                order: counter,
                 status: true,
                 key: key,
                 value: value
             };
             newQueries[key].push(item);
+            counter++;
         }
 
         url.search = "";
@@ -97,13 +100,19 @@ export function ContentContainer({request, response, reloadRequestSidebar, onVal
             data.request.name = `temp-${data.request.method}-${data.request.timestamp}`;
         }
 
-        const apiResponse = await executeFormAction(data.request, data.context);
+        let apiResponse = await executeFormAction(data.request, data.context);
 
         onValueChange(data.request, apiResponse.response);
         setData({ ...data, response: apiResponse.response });
 
         //TODO: Manage user session.
-        pushHistoric("anonymous", data.request, apiResponse.response).then(reloadRequestSidebar)
+        apiResponse = await pushHistoric("anonymous", data.request, apiResponse.response);
+
+        data.request._id = apiResponse.request._id;
+
+        reloadRequestSidebar();
+
+        onValueChange(data.request, apiResponse.response);
     };
 
     const insertFormAction = async (e: { preventDefault: () => void; }) => {
@@ -116,11 +125,17 @@ export function ContentContainer({request, response, reloadRequestSidebar, onVal
         data.request.name = prompt("Insert a name: ") || `action-${data.request.method}-${data.request.timestamp}`;
 
         //TODO: Manage user session.
-        const apiResponse = await insertAction("anonymous", data.request, data.response);
+        let apiResponse = await insertAction("anonymous", data.request, data.response);
+
+        data.request._id = apiResponse.request._id;
 
         onValueChange(data.request, apiResponse.response);
         //TODO: Manage user session.
-        pushHistoric("anonymous", apiResponse.request, apiResponse.response)
+        apiResponse = await pushHistoric("anonymous", apiResponse.request, apiResponse.response);
+
+        data.request._id = apiResponse.request._id;
+
+        onValueChange(data.request, apiResponse.response);
     };
 
     return (

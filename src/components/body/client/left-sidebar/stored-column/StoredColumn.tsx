@@ -6,11 +6,12 @@ import { millisecondsToDate } from '../../../../../services/Tools';
 import './StoredColumn.css'
 
 interface StoredColumnProps {
+    selected: string;
     defineRequest: (request: Request) => void;
     selectRequest: (request: Request) => void;
 }
 
-export function StoredColumn({ defineRequest, selectRequest }: StoredColumnProps) {
+export function StoredColumn({ selected, defineRequest, selectRequest }: StoredColumnProps) {
     const [requests, setStored] = useState<Request[]>([]);
     
     const fetchStored = async () => {
@@ -49,7 +50,7 @@ export function StoredColumn({ defineRequest, selectRequest }: StoredColumnProps
                     <div id="actions-container">
                         {requests.length > 0 ? (
                             requests.map((request) => (
-                                <div key={ makeKey(request) } className="request-preview">
+                                <div key={ makeKey(request) } className={`request-preview ${ request._id == selected && "request-selected"}`}>
                                     <a className="request-link" title={ request.uri }
                                         onClick={() => selectRequest(request)}>
                                         <div className="request-sign">
