@@ -54,7 +54,6 @@ export function ContentContainer({ request, response, reloadRequestSidebar, onVa
     }, [data.request]);
 
     const setHash = async (key: string, request: Request) => {
-        console.log(request)
         const newHash = await generateHash(request);
         setData(prevData => ({
             ...prevData,
@@ -149,7 +148,14 @@ export function ContentContainer({ request, response, reloadRequestSidebar, onVa
             data.request.timestamp = Date.now();
         }
 
-        data.request.name = prompt("Insert a name: ") || `action-${data.request.method}-${data.request.timestamp}`;
+        if(data.request.status == "draft") {
+            const newName = prompt("Insert a name: ");
+            if(newName == null) {
+                return;
+            }
+    
+            data.request.name = newName;
+        }
 
         //TODO: Manage user session.
         let apiResponse = await insertAction("anonymous", data.request, data.response);
@@ -160,11 +166,9 @@ export function ContentContainer({ request, response, reloadRequestSidebar, onVa
         //TODO: Manage user session.
         apiResponse = await pushHistoric("anonymous", apiResponse.request, apiResponse.response);
 
-        data.request._id = apiResponse.request._id;
-
         reloadRequestSidebar();
 
-        onValueChange(data.request, apiResponse.response);
+        onValueChange(data.request, data.response || apiResponse.response);
     };
 
     return (
