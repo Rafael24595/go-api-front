@@ -22,15 +22,21 @@ export function detachStatusKeyValue(dict: Dict<StatusValue[]>): StatusKeyValue[
     return vector;
 }
 
-export const mergeStatusKeyValue = (newValues: StatusKeyValue[]): Dict<StatusKeyValue[]> => {
-    const merge: Dict<StatusKeyValue[]> = {};
+export const mergeStatusKeyValue = (newValues: StatusKeyValue[]): Dict<StatusValue[]> => {
+    const merge: Dict<StatusValue[]> = {};
     for (const value of newValues) {
+        const fixValue: StatusValue = {
+            order: value.order,
+            status: value.status,
+            value: value.value,
+        };
+        
         const vector = merge[value.key];
         if(!vector) {
-            merge[value.key] = [value]
+            merge[value.key] = [fixValue]
             continue;
         }
-        vector.push(value)
+        vector.push(fixValue)
     }
     return merge;
 }
