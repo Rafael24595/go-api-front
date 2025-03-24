@@ -34,13 +34,15 @@ interface ParameterSelectorProps {
     context: Context;
     parameters: ItemRequestParameters;
     readUri: () => StatusKeyValue[];
-    onContextChange: (context: Context) => void
+    onContextChange: (context: Context) => void;
     onReadUriChange: (uriProcess: boolean) => void;
     onValueChange: (parameters: ItemRequestParameters) => void;
 }
 
 interface Payload {
     cursor: string;
+    initialHash: string;
+    actualHash: string;
     context: Context;
     modalStatus: boolean;
     autoReadUri: boolean;
@@ -53,6 +55,8 @@ interface Payload {
 export function ParameterSelector({ autoReadUri, context, parameters, readUri, onContextChange, onReadUriChange, onValueChange }: ParameterSelectorProps) {
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
+        initialHash: "",
+        actualHash: "",
         context: context,
         modalStatus: false,
         autoReadUri: autoReadUri,
@@ -74,6 +78,13 @@ export function ParameterSelector({ autoReadUri, context, parameters, readUri, o
     const setModalStatus = (status: boolean) => {
         setData({...data, modalStatus: status});
     };
+
+    const onHashChange = (key: string, hash: string)  => {
+        setData(prevData => ({
+            ...prevData,
+            [key]: hash
+        }));
+    }
 
     const onContextChangeStatus = (context: Context) => {
         setData({...data, context });
@@ -146,7 +157,10 @@ export function ParameterSelector({ autoReadUri, context, parameters, readUri, o
                         <label htmlFor="tag-client-body" id="client-label-body">Body</label>
                     </div>
                     <div>
-                        <button type="button" className="button-tag" onClick={() => setModalStatus(true)}>Context</button>
+                        <button type="button" className="button-tag" onClick={() => setModalStatus(true)}>
+                            <span className={`button-modified-status small display ${ data.initialHash != data.actualHash && "visible" }`}></span>
+                            Context
+                        </button>
                     </div>
                 </div>
             </div>
@@ -170,6 +184,7 @@ export function ParameterSelector({ autoReadUri, context, parameters, readUri, o
             <ContextModal
                 isOpen={data.modalStatus}
                 context={data.context}
+                onHashChange={onHashChange}
                 onValueChange={onContextChangeStatus}
                 onClose={() => setModalStatus(false)}/>
         </>

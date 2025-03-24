@@ -3,7 +3,7 @@ import './Modal.css'
 import { ModalButton } from '../../../interfaces/ModalButton';
 
 interface ModalProps {
-    title?: string
+    title?: string | ReactNode
     width?: string
     height?: string
     isOpen: boolean,
@@ -28,7 +28,7 @@ export function Modal({ title, height, width, isOpen, onClose, children, buttons
         <div id="modal-container" style={{ height: height ? height : "auto", width: width ? width : "" }}>
           {title && (
             <div id="modal-title" className="border-bottom">
-              <h3>{ title }:</h3>
+              <h3>{ title }</h3>
           </div>
           )}
           <div id="modal-content">

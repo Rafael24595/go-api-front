@@ -1,3 +1,9 @@
+#context-title-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 #preview-container {
     display: flex;
     flex-direction: column;

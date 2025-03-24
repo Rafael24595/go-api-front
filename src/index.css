@@ -169,17 +169,29 @@ button:hover {
   padding-left: 5px;
 }
 
-.button-modified-status::after {
-  content: '🖪';
-  font-size: 1.35em;
+.button-modified-status.small::after {
+  font-size: inherit;
   margin-left: 3px;
   margin-right: 3px;
+}
+
+.button-modified-status::after {
+  content: '🖪';
+  font-size: 1.50em;
 }
 
 .button-modified-status {
   visibility: hidden;
 }
 
+.button-modified-status.display {
+  display: none;
+}
+
 .button-modified-status.visible {
   visibility: visible;
+}
+
+.button-modified-status.display.visible {
+  display: initial;
 }

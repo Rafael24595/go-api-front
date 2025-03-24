@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
 import { fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue, toItem } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
 import { Context } from '../../interfaces/context/Context';
-import { detachStatusCategoryKeyValue, mergeStatusCategoryKeyValue } from '../../services/Utils';
+import { detachStatusCategoryKeyValue, generateHash, mergeStatusCategoryKeyValue } from '../../services/Utils';
 import { findContext, insertContext } from '../../services/api/ServiceStorage';
 
 import './ContextModal.css'
@@ -75,6 +75,7 @@ const EMPTY_FILTER: Filter = {
 interface ContextModalProps {
     isOpen: boolean,
     context: Context,
+    onHashChange: (key: string, hash: string) => void
     onValueChange: (context: Context) => void
     onClose: () => void,
 }
@@ -87,24 +88,30 @@ interface Filter {
 }
 
 interface Payload {
-    categoryPreview: string,
+    initialHash: string;
+    actualHash: string;
+    categoryPreview: string;
     template: string;
     preview: string;
     showPreview: boolean;
     filter: Filter;
-    context: Context,
+    context: Context;
+    backup: Context;
     status: boolean;
     argument: ItemStatusCategoryKeyValue[];
 }
 
-export function ContextModal({ isOpen, context, onValueChange, onClose }: ContextModalProps) {
+export function ContextModal({ isOpen, context, onHashChange, onValueChange, onClose }: ContextModalProps) {
     const [data, setData] = useState<Payload>({
+        initialHash: "",
+        actualHash: "",
         categoryPreview: getCategoryPreview(),
         template: getTemplate(),
         preview: getTemplate(),
         showPreview: getStatus(),
         filter: getFilter(),
         context: context,
+        backup: context,
         status: context.status,
         argument: toItem(detachStatusCategoryKeyValue(context.dictionary))
     });
@@ -113,12 +120,39 @@ export function ContextModal({ isOpen, context, onValueChange, onClose }: Contex
         const loadContext = async () => {
             const context = await findContext("anonymous");
             const newArgument = toItem(detachStatusCategoryKeyValue(context.dictionary));
-            setData({ ...data, context: context, status: context.status, argument: newArgument });
+            const fixContext = makeContext(context.status, newArgument);
+            setData({ ...data, context: fixContext, backup: fixContext, status: context.status, argument: newArgument });
             updatePreview(context.status, data.template, data.categoryPreview, newArgument);
-            onValueChange(makeContext(context.status, newArgument));
+            onValueChange(fixContext);
         };
         loadContext();
     }, []);
+
+    useEffect(() => {
+        if(data.initialHash == "") {
+            setUpdateHash("initialHash", data.backup);
+            setUpdateHash("actualHash", data.backup);
+        }
+        
+        if (data.context) {
+            setUpdateHash("actualHash", data.context);
+        }
+
+    }, [data.context]);
+
+    const setUpdateHash = async (key: string, context: Context) => {
+        const newHash = await setHash(key, context);
+        onHashChange(key, newHash);
+    }
+
+    const setHash = async (key: string, context: Context) => {
+        const newHash = await generateHash(context);
+        setData(prevData => ({
+            ...prevData,
+            [key]: newHash
+        }));
+        return newHash;
+    }
 
     const onFilterStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         onFilterChange("status", e.target.value);
@@ -230,8 +264,22 @@ export function ContextModal({ isOpen, context, onValueChange, onClose }: Contex
 
     const updatePreview = (status: boolean, template: string, category: string, args: ItemStatusCategoryKeyValue[]) => {
         setTemplate(template);
+
+        const argument = fixOrder(args);
+        const newData = { 
+            status, 
+            template, 
+            categoryPreview: category, 
+            argument: argument, 
+            preview: template,
+            context: makeContext(status, argument)
+        };
+
         if(!status || template == "") {
-            setData({...data, status, template, categoryPreview: category, argument: fixOrder(args), preview: template});
+            setData(prevData => ({
+                ...prevData,
+                ...newData
+            }));
             return;
         }
         
@@ -247,11 +295,19 @@ export function ContextModal({ isOpen, context, onValueChange, onClose }: Contex
                 newPreview = newPreview.replace(`\${${arg.category}.${arg.key}}`, arg.value);
             }
         }
-        setData({...data, status, template, categoryPreview: category, argument: fixOrder(args), preview: newPreview});
+
+        newData.preview = newPreview;
+
+        setData(prevData => ({
+            ...prevData,
+            ...newData
+        }));
     }
 
     const submitContext = async () => {
-        const response = await insertContext("anonymous", makeContext(data.status, data.argument));
+        const newContext = makeContext(data.status, data.argument);
+        const response = await insertContext("anonymous", newContext);
+        setData({ ...data, initialHash: "", actualHash: "", context: newContext, backup: context });
         //TODO: Review
         //setData({...data, context: response, status: response.status, argument: toItem(detachStatusCategoryKeyValue(response.dictionary))})
     }
@@ -283,7 +339,12 @@ export function ContextModal({ isOpen, context, onValueChange, onClose }: Contex
                     }
                 }
             ]}  
-            title="Client Context"
+            title={
+                <span id="context-title-container">
+                    <span>Client Context</span>
+                    <span className={`button-modified-status ${ data.initialHash != data.actualHash && "visible" }`}></span>
+                </span>
+            }
             width="70%"
             height="80%"
             isOpen={isOpen} 
