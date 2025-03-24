@@ -42,7 +42,7 @@ export function ContentContainer({ request, response, reloadRequestSidebar, onVa
     });
 
     useEffect(() => {
-        if(data.actualHash == "") {
+        if(data.initialHash == "") {
             setHash("initialHash", data.backup);
             setHash("actualHash", data.backup);
         }
@@ -160,15 +160,16 @@ export function ContentContainer({ request, response, reloadRequestSidebar, onVa
         //TODO: Manage user session.
         let apiResponse = await insertAction("anonymous", data.request, data.response);
 
-        data.request._id = apiResponse.request._id;
+        const newRequest = {...data.request, _id: apiResponse.request._id};
+        setData({ ...data, initialHash: "", actualHash: "", request: newRequest, backup: newRequest });
 
-        onValueChange(data.request, apiResponse.response);
+        onValueChange(newRequest, apiResponse.response);
         //TODO: Manage user session.
         apiResponse = await pushHistoric("anonymous", apiResponse.request, apiResponse.response);
 
         reloadRequestSidebar();
 
-        onValueChange(data.request, data.response || apiResponse.response);
+        onValueChange(newRequest, data.response || apiResponse.response);
     };
 
     return (
@@ -190,11 +191,9 @@ export function ContentContainer({ request, response, reloadRequestSidebar, onVa
                         onValueChange={parametersChange}/>
                 </div>
                 <div id="client-buttons" className="border-top">
-                    <button type="submit" className="button-modify" onClick={insertFormAction}>
-                        <span className={`button-modified-status ${ data.initialHash != data.actualHash && "visible" }`}></span>
-                        <span>Save</span>
-                        <span className="button-modified-status"></span>
-                    </button>
+                    <span className="button-modified-status"></span>
+                    <button type="submit" onClick={insertFormAction}>Save</button>
+                    <span className={`button-modified-status ${ data.initialHash != data.actualHash && "visible" }`}></span>
                 </div>
             </form>
         </div>
