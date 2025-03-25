@@ -1,8 +1,9 @@
 import { JsonView } from './json-view/JsonView';
 import { TextView } from './text-view/TextView';
-import { Body } from '../../../../../interfaces/response/Response';
 import { HtmlView } from './html-view/HtmlView';
-import './PayloadColumn.css'
+import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
+
+import './PayloadColumn.css';
 
 const VIEW_TEXT = "text";
 const VIEW_JSON = "json";
@@ -21,33 +22,19 @@ function ViewParse(view: string): string {
     }
 }
 
-interface PayloadColumnProps {
-    body?: Body
-}
-
-interface Payload {
-    status: boolean
-    contentType: string
-    payload: string
-}
-
-export function PayloadColumn({body}: PayloadColumnProps) {
-    const data: Payload = {
-        status: true,
-        contentType: body ? body.content_type : DEFAULT_VIEW,
-        payload: body ? body.payload : ""
-    }
+export function PayloadColumn() {
+    const { response } = useStoreRequest();
 
     return (
         <>
             <div id="response-payload-bytes">
                 <div id="response-content-types">
-                    <span>{ ViewParse(data.contentType) }</span>
+                    <span>{ ViewParse(response.body.content_type) }</span>
                 </div>
                 <div id="response-content-bytes">
-                    {data.contentType === VIEW_TEXT && <TextView value={data.payload}/>}
-                    {data.contentType === VIEW_JSON && <JsonView value={data.payload}/>}
-                    {data.contentType === VIEW_HTML && <HtmlView value={data.payload}/>}
+                    {response.body.content_type === VIEW_TEXT && <TextView value={response.body.payload}/>}
+                    {response.body.content_type === VIEW_JSON && <JsonView value={response.body.payload}/>}
+                    {response.body.content_type === VIEW_HTML && <HtmlView value={response.body.payload}/>}
                 </div>
             </div>
         </>

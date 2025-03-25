@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { fixOrder, ItemStatusKeyValue, StatusKeyValue as StrStatusKeyValue, toItem } from '../../../../../../interfaces/StatusKeyValue';
+import { fixOrder, ItemStatusKeyValue, StatusKeyValue as StrStatusKeyValue } from '../../../../../../interfaces/StatusKeyValue';
 import { StatusKeyValue } from '../status-key-value/StatusKeyValue';
+import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
 
 import './HeaderArguments.css'
 
@@ -11,14 +12,14 @@ const ROW_DEFINITION = {
     disabled: true 
 }
 
-interface HeaderProps {
-    argument: StrStatusKeyValue[]
-    onValueChange: (rows: StrStatusKeyValue[]) => void;
-}
+export function HeaderArguments() {
+    const { request, updateHeader } = useStoreRequest();
 
+    const [data, setData] = useState<ItemStatusKeyValue[]>(request.header);
 
-export function HeaderArguments({ argument, onValueChange }: HeaderProps) {
-    const [data, setData] = useState<ItemStatusKeyValue[]>(toItem(argument));
+    useEffect(() => {
+        setData(request.header);
+    }, [request.header]);
 
     const rowTrim = (order: number) => {
         if(order < 0 || data.length < order ) {
@@ -30,8 +31,8 @@ export function HeaderArguments({ argument, onValueChange }: HeaderProps) {
 
         newArgument = fixOrder(newArgument);
         
-        setData(newArgument)
-        onValueChange(newArgument)
+        setData(newArgument);
+        updateHeader(newArgument);
     }
 
     const rowPush = (row: StrStatusKeyValue, focus: string, order?: number) => {
@@ -51,7 +52,7 @@ export function HeaderArguments({ argument, onValueChange }: HeaderProps) {
         newArgument = fixOrder(newArgument);
 
         setData(newArgument);
-        onValueChange(newArgument)
+        updateHeader(newArgument);
     }
 
     const copyRows = (): ItemStatusKeyValue[] => {

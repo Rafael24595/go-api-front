@@ -1,203 +1,93 @@
-import { useEffect, useState } from "react";
 import { MethodSelector } from "./method-selector/MethodSelector";
-import { ItemRequestParameters, ParameterSelector } from "./client-arguments/ParameterSelector";
-import { Request } from "../../../../interfaces/request/Request";
+import { ParameterSelector } from "./client-arguments/ParameterSelector";
 import { executeFormAction } from "../../../../services/api/ServiceManager";
-import { Response } from "../../../../interfaces/response/Response";
 import { insertAction, pushHistoric } from "../../../../services/api/ServiceStorage";
-import { StatusKeyValue } from "../../../../interfaces/StatusKeyValue";
-import { detachStatusKeyValue, generateHash } from "../../../../services/Utils";
 import { useStoreContext } from "../../../../store/StoreProviderContext";
 
 import './ContentContainer.css'
+import { useStoreRequest } from "../../../../store/StoreProviderRequest";
 
-const AUTO_READ_URI_KEY = "AutoReadUriKey";
 
 interface ContentContainerProps {
-    request: Request;
-    response?: Response;
     reloadRequestSidebar: () => void
-    onValueChange: (request: Request, response: Response) => void
 }
 
-interface Payload {
-    autoReadUri: boolean;
-    initialHash: string;
-    actualHash: string;
-    backup: Request;
-    request: Request;
-    response?: Response;
-}
-
-export function ContentContainer({ request, response, reloadRequestSidebar, onValueChange }: ContentContainerProps) {
-    const [data, setData] = useState<Payload>({
-        autoReadUri: getCursor(),
-        initialHash: "",
-        actualHash: "",
-        backup: request,
-        request: request,
-        response: response
-    });
-
+export function ContentContainer({ reloadRequestSidebar }: ContentContainerProps) {
     const { getContext } = useStoreContext();
-
-    useEffect(() => {
-        if(data.initialHash == "") {
-            setHash("initialHash", data.backup);
-            setHash("actualHash", data.backup);
-        }
-        
-        if (data.request) {
-            setHash("actualHash", data.request);
-        }
-
-    }, [data.request]);
-
-    const setHash = async (key: string, request: Request) => {
-        const newHash = await generateHash(request);
-        setData(prevData => ({
-            ...prevData,
-            [key]: newHash
-        }));
-    }
+    const { initialHash, actualHash, request, getRequest, getResponse, defineRequest, updateRequest, updateName, updateUri } = useStoreRequest();
 
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let newRequest = {...data.request, uri: e.target.value};
-        setData({ ...data, request: newRequest });
+        updateUri(e.target.value);
     };
-
-    const methodChange = (method: string) => {
-        let newRequest = {...data.request, method: method};
-        setData({ ...data, request: newRequest });
-    };
-
-    const readUri = (): StatusKeyValue[] => {
-        const url = new URL(data.request.uri);
-        const queryParams = new URLSearchParams(url.search);
-        const newQueries = { ...data.request.query.queries };
-        let counter = 0;
-        for (const [key, value] of queryParams.entries()) {
-            const exists = newQueries[key];
-            if(exists == undefined) {
-                newQueries[key] = [];
-            }
-            const item: StatusKeyValue = {
-                order: counter,
-                status: true,
-                key: key,
-                value: value
-            };
-            newQueries[key].push(item);
-            counter++;
-        }
-
-        url.search = "";
-
-        let newQuery = {...data.request.query, queries: newQueries };
-        let newRequest = {...data.request, uri: url.toString(), query: newQuery};
-        setData({ ...data, request: newRequest });
-
-        return detachStatusKeyValue(newQueries);
-    }
-
-    const onReadUriChange = (autoReadUri: boolean) => {
-        console.log("Auto processing uri query parameters status: " + autoReadUri);
-        setCursor(autoReadUri);
-        setData({ ...data, autoReadUri: autoReadUri });
-    }
-
-    const parametersChange = (parameters: ItemRequestParameters) => {
-        let newRequest = { ...data.request, ...parameters };
-        setData({ ...data, request: newRequest });
-    }
 
     const executeAction = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
 
-        if(data.request.timestamp == 0) {
-            data.request.timestamp = Date.now();
+        const req = getRequest();
+
+        if(req.name == "") {
+            const name = `temp-${req.method}-${req.timestamp}`;
+            req.name = name;
+            updateName(name);
         }
 
-        if(data.request.name == "") {
-            data.request.name = `temp-${data.request.method}-${data.request.timestamp}`;
-        }
+        let apiResponse = await executeFormAction(req, getContext());
 
-        let apiResponse = await executeFormAction(data.request, getContext());
-
-        onValueChange(data.request, apiResponse.response);
-        setData({ ...data, response: apiResponse.response });
+        updateRequest(req, apiResponse.response);
 
         //TODO: Manage user session.
-        apiResponse = await pushHistoric("anonymous", data.request, apiResponse.response);
+        apiResponse = await pushHistoric("anonymous", req, apiResponse.response);
 
-        data.request._id = apiResponse.request._id;
+        req._id = apiResponse.request._id;
+        updateRequest(req, apiResponse.response);
 
         reloadRequestSidebar();
-
-        onValueChange(data.request, apiResponse.response);
     };
 
     const insertFormAction = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
 
-        if(data.request.timestamp == 0) {
-            data.request.timestamp = Date.now();
-        }
+        const req = getRequest();
+        const res = getResponse();
 
-        if(data.request.status == "draft") {
-            const newName = prompt("Insert a name: ");
-            if(newName == null) {
+        if(req.status == "draft") {
+            const name = prompt("Insert a name: ");
+            if(name == null) {
                 return;
-            }
-    
-            data.request.name = newName;
+            }            
+            req.name = name;
+            updateName(name);
         }
 
         //TODO: Manage user session.
-        let apiResponse = await insertAction("anonymous", data.request, data.response);
+        let apiResponse = await insertAction("anonymous", req, res);
 
-        const newRequest = {...data.request, _id: apiResponse.request._id};
-        setData({ ...data, initialHash: "", actualHash: "", request: newRequest, backup: newRequest });
+        req._id = apiResponse.request._id;
+        defineRequest(req, res)
 
-        onValueChange(newRequest, apiResponse.response);
         //TODO: Manage user session.
         apiResponse = await pushHistoric("anonymous", apiResponse.request, apiResponse.response);
 
         reloadRequestSidebar();
-
-        onValueChange(newRequest, data.response || apiResponse.response);
     };
 
     return (
         <div id='content-container'>
             <form id="client-form" onSubmit={executeAction}>
                 <div id="client-bar">
-                    <MethodSelector selected={data.request.method} onMethodChange={methodChange}/>
-                    <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={urlChange} value={data.request.uri}/>
+                    <MethodSelector/>
+                    <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={urlChange} value={request.uri}/>
                     <button type="submit" id="client-button-send" className="client-bar-component section-header-element">Send</button>
                 </div>
                 <div id="client-content">
-                    <ParameterSelector 
-                        autoReadUri={data.autoReadUri} 
-                        parameters={data.request} 
-                        readUri={readUri}
-                        onReadUriChange={onReadUriChange} 
-                        onValueChange={parametersChange}/>
+                    <ParameterSelector/>
                 </div>
                 <div id="client-buttons" className="border-top">
                     <span className="button-modified-status"></span>
                     <button type="submit" onClick={insertFormAction}>Save</button>
-                    <span className={`button-modified-status ${ data.initialHash != data.actualHash && "visible" }`}></span>
+                    <span className={`button-modified-status ${ initialHash != actualHash && "visible" }`}></span>
                 </div>
             </form>
         </div>
     )
-}
-
-const getCursor = () => {
-    return localStorage.getItem(AUTO_READ_URI_KEY) == "true";
-}
-
-const setCursor = (autoReadUri: boolean) => {
-    localStorage.setItem(AUTO_READ_URI_KEY, `${autoReadUri}`);
 }

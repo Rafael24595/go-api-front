@@ -3,9 +3,7 @@ import { QueryArguments } from './query-arguments/QueryArguments';
 import { HeaderArguments } from './header-arguments/HeaderArguments';
 import { AuthArguments } from './auth-arguments/AuthArguments';
 import { BodyArguments } from './body-arguments/BodyArguments';
-import { StatusKeyValue } from '../../../../../interfaces/StatusKeyValue';
 import { Auths, Body, Headers, Queries } from '../../../../../interfaces/request/Request';
-import { detachStatusKeyValue, mergeStatusKeyValue } from '../../../../../services/Utils';
 import { ContextModal } from '../../../../context/ContextModal';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
 
@@ -29,33 +27,15 @@ export interface ItemRequestParameters {
     auth: Auths;
 }
 
-interface ParameterSelectorProps {
-    autoReadUri: boolean;
-    parameters: ItemRequestParameters;
-    readUri: () => StatusKeyValue[];
-    onReadUriChange: (uriProcess: boolean) => void;
-    onValueChange: (parameters: ItemRequestParameters) => void;
-}
-
 interface Payload {
     cursor: string;
     modalStatus: boolean;
-    autoReadUri: boolean;
-    query: StatusKeyValue[];
-    header: StatusKeyValue[];
-    auth: Auths;
-    body: Body;
 }
 
-export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriChange, onValueChange }: ParameterSelectorProps) {
+export function ParameterSelector() {
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
         modalStatus: false,
-        autoReadUri: autoReadUri,
-        query: detachStatusKeyValue(parameters.query.queries),
-        header: detachStatusKeyValue(parameters.header.headers),
-        auth: parameters.auth,
-        body: parameters.body
     });
 
     const { initialHash, actualHash } = useStoreContext();
@@ -68,45 +48,6 @@ export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriC
     const setModalStatus = (status: boolean) => {
         setData({...data, modalStatus: status});
     };
-
-    const onReadUriChangeStatus = (uriProcess: boolean) => {
-        let newTable = {...data, autoReadUri: uriProcess};
-        setData(newTable);
-        onReadUriChange(uriProcess);
-    }
-
-    const queryChange = (rows: StatusKeyValue[]) => {
-        let newTable = {...data, query: rows};
-        setData(newTable);
-        onValueChange(makeRequestParameters(newTable));
-    }
-
-    const headerChange = (rows: StatusKeyValue[]) => {
-        let newTable = {...data, header: rows};
-        setData(newTable);
-        onValueChange(makeRequestParameters(newTable));
-    }
-
-    const authChange = (auth: Auths) => {
-        let newTable = {...data, auth: auth};
-        setData(newTable);
-        onValueChange(makeRequestParameters(newTable));
-    }
-
-    const bodyChange = (body: Body) => {
-        let newTable = {...data, body: body};
-        setData(newTable);
-        onValueChange(makeRequestParameters(newTable));
-    }
-
-    const makeRequestParameters = (payload: Payload): ItemRequestParameters => {
-        return {
-            query: { queries: mergeStatusKeyValue(payload.query) },
-            header: { headers: mergeStatusKeyValue(payload.header) },
-            auth: payload.auth,
-            body: payload.body
-        }
-    }
 
     return (
         <>
@@ -143,21 +84,10 @@ export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriC
                 </div>
             </div>
             <div id="client-argument-content">
-                {data.cursor === VIEW_QUERY && <QueryArguments 
-                    autoReadUri={data.autoReadUri} 
-                    argument={data.query} 
-                    readUri={readUri}
-                    onReadUriChange={onReadUriChangeStatus} 
-                    onValueChange={queryChange}/>}
-                {data.cursor === VIEW_HEADER && <HeaderArguments 
-                    argument={data.header} 
-                    onValueChange={headerChange}/>}
-                {data.cursor === VIEW_AUTH && <AuthArguments 
-                    argument={data.auth} 
-                    onValueChange={authChange}/>}
-                {data.cursor === VIEW_BODY && <BodyArguments 
-                    argument={data.body} 
-                    onValueChange={bodyChange}/>}
+                {data.cursor === VIEW_QUERY && <QueryArguments/>}
+                {data.cursor === VIEW_HEADER && <HeaderArguments/>}
+                {data.cursor === VIEW_AUTH && <AuthArguments/>}
+                {data.cursor === VIEW_BODY && <BodyArguments/>}
             </div>
             <ContextModal
                 isOpen={data.modalStatus}

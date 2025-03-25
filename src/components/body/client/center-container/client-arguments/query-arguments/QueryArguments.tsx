@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { fixOrder, ItemStatusKeyValue, StatusKeyValue as StrStatusKeyValue, toItem } from '../../../../../../interfaces/StatusKeyValue';
+import { cleanCopy, fixOrder, ItemStatusKeyValue, StatusKeyValue as StrStatusKeyValue } from '../../../../../../interfaces/StatusKeyValue';
 import { StatusKeyValue } from '../status-key-value/StatusKeyValue';
 
 import './QueryArguments.css'
+import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
 
 const ROW_DEFINITION = { 
     key: "Parameter", 
@@ -11,55 +12,36 @@ const ROW_DEFINITION = {
     disabled: true 
 }
 
-interface QueryProps {
-    autoReadUri: boolean,
-    argument: StrStatusKeyValue[]
-    readUri: () => StrStatusKeyValue[];
-    onReadUriChange: (uriProcess: boolean) => void;
-    onValueChange: (rows: StrStatusKeyValue[]) => void;
-}
+export function QueryArguments() {
+    const { request, updateQuery, processUri } = useStoreRequest();
 
-interface Payload {
-    autoReadUri: boolean,
-    argument: ItemStatusKeyValue[]
-}
+    const [data, setData] = useState<ItemStatusKeyValue[]>(request.query);
 
-export function QueryArguments({ readUri, argument, autoReadUri, onReadUriChange, onValueChange }: QueryProps) {
-    const [data, setData] = useState<Payload>({
-        autoReadUri: autoReadUri,
-        argument: toItem(argument)
-    });
+    useEffect(() => {
+        setData(request.query);
+    }, [request.query]);
 
     const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let newData = {...data, autoReadUri: e.target.checked};
-        setData(newData);
-        onReadUriChange(newData.autoReadUri);
+        //TODO:
     };
 
-    const executeReadUri = () => {
-        const queries = readUri();
-        const newData = {...data, argument: toItem(queries)};
-        setData(newData);
-    }
-
     const rowTrim = (order: number) => {
-        if(order < 0 || data.argument.length < order ) {
+        if(order < 0 || data.length < order ) {
             return;
         }
 
-        let newArgument = copyRows();
+        let newArgument = cleanCopy(data);
         newArgument.splice(order, 1);
-
+        
         newArgument = fixOrder(newArgument);
 
-        const newData = {...data, argument: newArgument};
-        setData(newData);
-        onValueChange(newArgument);
+        setData(newArgument);
+        updateQuery(newArgument);
     }
 
     const rowPush = (row: StrStatusKeyValue, focus: string, order?: number) => {
-        let newArgument = copyRows();
-        if(order != undefined && 0 <= order && data.argument.length >= order) {
+        let newArgument = cleanCopy(data);
+        if(order != undefined && 0 <= order && data.length >= order) {
             newArgument[order] = {
                 ...row, 
                 id: newArgument[order].id, 
@@ -73,13 +55,8 @@ export function QueryArguments({ readUri, argument, autoReadUri, onReadUriChange
 
         newArgument = fixOrder(newArgument);
 
-        const newData = {...data, argument: newArgument};
-        setData(newData);
-        onValueChange(newArgument);
-    }
-
-    const copyRows = (): ItemStatusKeyValue[] => {
-        return [...data.argument].map(r => ({...r, focus: ""}));
+        setData(newArgument);
+        updateQuery(newArgument);
     }
 
     return (
@@ -91,13 +68,13 @@ export function QueryArguments({ readUri, argument, autoReadUri, onReadUriChange
                         name="status" 
                         id="process-uri" 
                         type="checkbox" 
-                        checked={data.autoReadUri}
+                        checked={false}
                         onChange={statusChange}/>
                 </div>
-                <button type="button" onClick={executeReadUri}>Process</button>
+                <button type="button" onClick={processUri}>Process</button>
             </div>
             <div id="client-argument-content">
-                {data.argument.map((item, i) => (
+                {data.map((item, i) => (
                     <StatusKeyValue
                         key={`query-param-${item.id}`}
                         order={i}

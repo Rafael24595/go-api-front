@@ -4,25 +4,23 @@ import { newRequest, Request } from '../../../../../interfaces/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
 
 import './StoredColumn.css'
+import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 
 interface StoredColumnProps {
     ref: React.RefObject<StoredColumnMethods | null>;
-    selected: string;
-    defineRequest: (request: Request) => void;
-    selectRequest: (request: Request) => void;
 }
 
 export type StoredColumnMethods = {
     fetchStored: () => void;
 };
 
-export function StoredColumn({ ref, selected, defineRequest, selectRequest }: StoredColumnProps) {
+export function StoredColumn({ ref }: StoredColumnProps) {
+    const { request, defineRequest, fetchRequest } = useStoreRequest();
     const [requests, setStored] = useState<Request[]>([]);
 
      useImperativeHandle(ref, () => ({
         fetchStored
     }));
-    
     
     useEffect(() => {
         fetchStored();
@@ -68,22 +66,22 @@ export function StoredColumn({ ref, selected, defineRequest, selectRequest }: St
                     </button>
                     <div id="actions-container">
                         {requests.length > 0 ? (
-                            requests.map((request) => (
-                                <div key={ makeKey(request) } className={`request-preview ${ request._id == selected && "request-selected"}`}>
-                                    <a className="request-link" title={ request.uri }
-                                        onClick={() => selectRequest(request)}>
+                            requests.map((cursor) => (
+                                <div key={ makeKey(cursor) } className={`request-preview ${ cursor._id == request._id && "request-selected"}`}>
+                                    <a className="request-link" title={ cursor.uri }
+                                        onClick={() => fetchRequest(cursor)}>
                                         <div className="request-sign">
-                                            <span className="request-sign-method">{ request.method }</span>
-                                            <span className="request-sign-url">{ request.name }</span>
+                                            <span className="request-sign-method">{ cursor.method }</span>
+                                            <span className="request-sign-url">{ cursor.name }</span>
                                         </div>
                                         <div>
-                                            <span className="request-sign-timestamp">{ millisecondsToDate(request.timestamp) }</span>
+                                            <span className="request-sign-timestamp">{ millisecondsToDate(cursor.timestamp) }</span>
                                         </div>
                                     </a>
                                     <button 
                                         type="button" 
                                         className="remove-button show"
-                                        onClick={() => deleteStored(request)}>
+                                        onClick={() => deleteStored(cursor)}>
                                     </button>
                                 </div>
                             ))

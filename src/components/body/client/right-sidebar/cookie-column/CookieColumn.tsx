@@ -1,29 +1,21 @@
-import { Cookie, cookieToString } from '../../../../../interfaces/request/Request'
+import { cookieToString } from '../../../../../interfaces/request/Request'
+import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
+
 import './CookieColumn.css'
 
-interface CookieColumnProps {
-    cookie?: Cookie[]
-}
-
-interface Payload {
-    cookie: Cookie[]
-}
-
-export function CookieColumn({cookie}: CookieColumnProps) {
-    const data: Payload = {
-        cookie: cookie ? cookie : []
-    };
+export function CookieColumn() {
+    const { response } = useStoreRequest();
 
     return (
         <>
-            {data.cookie.length > 0 ? (
+            {response.cookies.length > 0 ? (
                 <table className="table-styled table-fix">
                     <tbody>
                         <tr>
                             <th>Name</th>
                             <th>Value</th>
                         </tr>
-                        {data.cookie.map((cookie) => (
+                        {response.cookies.map((cookie) => (
                             <tr key={ cookie.code }>
                                 <td>
                                     { cookie.code }

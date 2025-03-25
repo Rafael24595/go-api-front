@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export interface StatusCategoryKeyValue {
     order: number
     status: boolean
@@ -28,11 +30,10 @@ export const toItem = (rowsStr: StatusCategoryKeyValue[]): ItemStatusCategoryKey
 export const fixOrder = (argument: ItemStatusCategoryKeyValue[]) => {
     return argument.map((item, i) => {
         item.order = i;
-        item.id = makeKey(item);
         return item;
     });
 }
 
 const makeKey = (argument: ItemStatusCategoryKeyValue | StatusCategoryKeyValue) => {
-    return `${argument.category}-${argument.order}`;
+    return `${argument.category}-${argument.order}-${uuidv4()}`;
 }

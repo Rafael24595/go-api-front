@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AUTH_CODE_BASIC, BasicData } from './basic-data/BasicData';
 import { AUTH_CODE_BEARER, BearerData } from './bearer-data/BearerData';
 import { Auth, Auths } from '../../../../../../interfaces/request/Request';
 import { Dict } from '../../../../../../types/Dict';
 
 import './AuthArguments.css'
+import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
 
 const VIEW_BASIC = "basic";
 const VIEW_BEARER = "bearer";
@@ -15,11 +16,6 @@ const DEFAULT_CURSOR = VIEW_BASIC;
 
 const CURSOR_KEY = "AuthArgumentsCursor";
 
-interface AuthArgumentsProps {
-    argument: Auths
-    onValueChange: (auth: Auths) => void;
-}
-
 interface Payload {
     cursor: string;
     status: boolean;
@@ -27,13 +23,24 @@ interface Payload {
     bearer: Auth | undefined;
 }
 
-export function AuthArguments({ argument, onValueChange }: AuthArgumentsProps) {
+export function AuthArguments() {
+    const { request, updateAuth } = useStoreRequest();
+
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
-        status: argument ? argument.status : true,
-        basic: argument?.auths[AUTH_CODE_BASIC],
-        bearer: argument?.auths[AUTH_CODE_BEARER]
+        status: request.auth.status,
+        basic: request.auth.auths[AUTH_CODE_BASIC],
+        bearer: request.auth.auths[AUTH_CODE_BEARER]
     });
+
+    useEffect(() => {
+        setData(prevData => ({
+            ...prevData,
+            status: request.auth.status,
+            basic: request.auth.auths[AUTH_CODE_BASIC],
+            bearer: request.auth.auths[AUTH_CODE_BEARER]
+        }));
+    }, [request.auth]);
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCursor(e.target.value);
@@ -43,7 +50,7 @@ export function AuthArguments({ argument, onValueChange }: AuthArgumentsProps) {
     const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newData = {...data, status: e.target.checked};
         setData(newData);
-        onValueChange(makeAuth(newData));
+        updateAuth(makeAuth(newData));
     };
 
     const authChange = (code: string, auth: Auth | undefined) => {
@@ -60,7 +67,7 @@ export function AuthArguments({ argument, onValueChange }: AuthArgumentsProps) {
         }
 
         setData(newData);
-        onValueChange(makeAuth(newData));
+        updateAuth(makeAuth(newData));
     }
 
     const makeAuth = (payload: Payload): Auths => {

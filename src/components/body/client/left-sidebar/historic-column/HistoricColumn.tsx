@@ -4,19 +4,18 @@ import { useEffect, useImperativeHandle, useState } from 'react';
 import { millisecondsToDate } from '../../../../../services/Tools';
 
 import './HistoricColumn.css';
+import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 
 interface HistoricColumnProps {
     ref: React.RefObject<HistoricColumnMethods | null>;
-    selected: string;
-    defineRequest: (request: Request) => void;
-    selectRequest: (request: Request) => void;
 }
 
 export type HistoricColumnMethods = {
     fetchHistoric: () => void;
 };
 
-export function HistoricColumn({ ref, selected, defineRequest, selectRequest }: HistoricColumnProps) {
+export function HistoricColumn({ ref }: HistoricColumnProps) {
+    const { request, defineRequest, fetchRequest } = useStoreRequest();
     const [requests, setHistoric] = useState<Request[]>([]);
     
     useImperativeHandle(ref, () => ({
@@ -32,6 +31,10 @@ export function HistoricColumn({ ref, selected, defineRequest, selectRequest }: 
 
         return () => clearInterval(interval);
     }, []);
+
+    const resetRequest = () => {
+        defineRequest(newRequest("anonymous"));
+    };
 
     const fetchHistoric = async () => {
         try {
@@ -62,27 +65,27 @@ export function HistoricColumn({ ref, selected, defineRequest, selectRequest }: 
                 <button 
                     type="button"
                     className="column-option option-button border-bottom"
-                    onClick={() => defineRequest(newRequest("anonymous"))}>
+                    onClick={resetRequest}>
                     <span>Clean</span>
                 </button>
                 <div id="actions-container">
                     {requests.length > 0 ? (
-                        requests.map((request) => (
-                            <div key={ makeKey(request) } className={`request-preview ${ request._id == selected && "request-selected"}`}>
-                                <a className="request-link" title={ request.uri }
-                                    onClick={() => selectRequest(request)}>
+                        requests.map((cursor) => (
+                            <div key={ makeKey(cursor) } className={`request-preview ${ cursor._id == request._id && "request-selected"}`}>
+                                <a className="request-link" title={ cursor.uri }
+                                    onClick={() => fetchRequest(cursor)}>
                                     <div className="request-sign">
-                                        <span className="request-sign-method">{ request.method }</span>
-                                        <span className="request-sign-url">{ request.uri }</span>
+                                        <span className="request-sign-method">{ cursor.method }</span>
+                                        <span className="request-sign-url">{ cursor.uri }</span>
                                     </div>
                                     <div>
-                                        <span className="request-sign-timestamp">{ millisecondsToDate(request.timestamp) }</span>
+                                        <span className="request-sign-timestamp">{ millisecondsToDate(cursor.timestamp) }</span>
                                     </div>
                                 </a>
                                 <button 
                                     type="button" 
                                     className="remove-button show"
-                                    onClick={() => deleteHistoric(request)}>
+                                    onClick={() => deleteHistoric(cursor)}>
                                 </button>
                             </div>
                         ))

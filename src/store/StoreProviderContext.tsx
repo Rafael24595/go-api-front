@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { Context, fromContext, ItemContext, newItemContext } from "../interfaces/context/Context";
+import { Context, fromContext, ItemContext, newItemContext, toContext } from "../interfaces/context/Context";
 import { findContext } from "../services/api/ServiceStorage";
-import { generateHash, mergeStatusCategoryKeyValueAsItem } from "../services/Utils";
+import { generateHash } from "../services/Utils";
 
 interface StoreContextType {
   initialHash: string;
   actualHash: string;
-  context: ItemContext;
   backup: ItemContext;
+  context: ItemContext;
   getContext: () => Context;
   defineContext: (value: ItemContext) => void;
   updateContext: (value: ItemContext) => void;
@@ -24,7 +24,7 @@ interface Payload {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [context, setContextData] = useState<Payload>({
+  const [data, setData] = useState<Payload>({
     initialHash: "",
     actualHash: "",
     backup: newItemContext("anonymous"),
@@ -36,7 +36,7 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     const loadContext = async () => {
       const context = await findContext("anonymous");
       const item = fromContext(context);
-      setContextData(prevData => ({
+      setData(prevData => ({
         ...prevData,
         backup: item,
         context: item,
@@ -47,24 +47,24 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   }, []);
 
   useEffect(() => {
-    if (context.loading) {
+    if (data.loading) {
       return;
     }
 
-    if (context.initialHash == "") {
-      setHash("initialHash", context.backup);
-      setHash("actualHash", context.backup);
+    if (data.initialHash == "") {
+      setHash("initialHash", data.backup);
+      setHash("actualHash", data.backup);
     }
 
-    if (context.context) {
-      setHash("actualHash", context.context);
+    if (data.context) {
+      setHash("actualHash", data.context);
     }
 
-  }, [context.context]);
+  }, [data.context]);
 
   const setHash = async (key: string, context: ItemContext) => {
     const newHash = await generateHash(context);
-    setContextData(prevData => ({
+    setData(prevData => ({
       ...prevData,
       [key]: newHash
     }));
@@ -72,34 +72,28 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const getContext = (): Context => {
-    return {
-      _id: context.context._id,
-      status: context.context.status,
-      timestamp: context.context.timestamp,
-      dictionary: mergeStatusCategoryKeyValueAsItem(context.context.dictionary),
-      owner: context.context.owner,
-      modified: context.context.modified
-    }
+    return toContext(data.context);
   }
 
   const defineContext = (context: ItemContext) => {
-    setContextData(prevData => ({
+    setData(prevData => ({
       ...prevData,
       initialHash: "",
       actualHash: "",
+      backup: context,
       context
     }));
   }
 
   const updateContext = (context: ItemContext) => {
-    setContextData(prevData => ({
+    setData(prevData => ({
       ...prevData,
       context
     }));
   }
 
   return (
-    <StoreContext.Provider value={{ ...context, getContext, defineContext, updateContext }}>
+    <StoreContext.Provider value={{ ...data, getContext, defineContext, updateContext }}>
       {children}
     </StoreContext.Provider>
   );

@@ -1,24 +1,21 @@
 import { useState } from 'react';
 import { HttpMethod } from '../../../../../constants/HttpMethod';
+import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 
 import './MethodSelector.css'
 
-interface MethodSelectorProps {
-    selected: string;
-    onMethodChange: (method: string) => void;
-}
-
-export function MethodSelector ({selected, onMethodChange }: MethodSelectorProps) {
+export function MethodSelector () {
+    const {request, updateMethod } = useStoreRequest();
     const methods = Object.values(HttpMethod);
-    const [selectedMethod, setSelectedMethod] = useState(selected);
+    const [selected, setSelectedMethod] = useState(request.method);
 
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedMethod(e.target.value);
-        onMethodChange(e.target.value)
+        updateMethod(e.target.value)
     };
 
     return (
-        <select id="method" className="client-bar-component section-header-element" name="method" value={selectedMethod} onChange={handleChange}>
+        <select id="method" className="client-bar-component section-header-element" name="method" value={selected} onChange={handleChange}>
             {methods.map((method, index) => (
                 <option key={index} value={method}>
                     {method}

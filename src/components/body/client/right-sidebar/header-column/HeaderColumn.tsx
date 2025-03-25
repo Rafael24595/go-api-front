@@ -1,29 +1,20 @@
-import { StatusKeyValue } from '../../../../../interfaces/StatusKeyValue';
+import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
+
 import './HeaderColumn.css'
 
-interface HeaderColumnProps {
-    header?: StatusKeyValue[]
-}
-
-interface Payload {
-    header: StatusKeyValue[]
-}
-
-export function HeaderColumn({header}: HeaderColumnProps) {
-    const data: Payload = {
-        header: header ? header : []
-    }
+export function HeaderColumn() {
+    const { response } = useStoreRequest();
 
     return (
         <>
-            {data.header.length > 0 ? (
+            {response.headers.length > 0 ? (
                 <table className="table-styled table-fix">
                     <tbody>
                         <tr>
                             <th>Name</th>
                             <th>Value</th>
                         </tr>
-                            {data.header.map((header) => (
+                            {response.headers.map((header) => (
                                 <tr key={header.key}>
                                     <td>
                                         { header.key }

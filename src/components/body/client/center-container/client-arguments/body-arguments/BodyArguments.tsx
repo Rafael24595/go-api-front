@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import './BodyArguments.css'
 import { TextData } from './text/TextData';
 import { Body } from '../../../../../../interfaces/request/Request';
 import { JsonData } from './json/JsonData';
+import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
 
 const VIEW_TEXT = "text";
 const VIEW_JSON = "json";
@@ -14,11 +15,6 @@ const DEFAULT_CURSOR = VIEW_TEXT;
 
 const CURSOR_KEY = "BodyArgumentsCursor";
 
-interface BodyArgumentsProps {
-    argument: Body
-    onValueChange: (body: Body) => void;
-}
-
 interface Payload {
     cursor: string;
     status: boolean;
@@ -26,13 +22,24 @@ interface Payload {
     payload: string;
 }
 
-export function BodyArguments({ argument, onValueChange }: BodyArgumentsProps) {
+export function BodyArguments() {
+    const { request, updateBody } = useStoreRequest();
+
     const [data, setData] = useState<Payload>({
-            cursor: getCursor(),
-            status: argument.status, 
-            content: argument.content_type,
-            payload: argument.payload,
+        cursor: getCursor(),
+        status: request.body.status, 
+        content: request.body.content_type,
+        payload: request.body.payload,
     });
+
+    useEffect(() => {
+        setData(prevData => ({
+            ...prevData,
+            status: request.body.status, 
+            content: request.body.content_type,
+            payload: request.body.payload,
+        }));
+    }, [request.body]);
     
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCursor(e.target.value);
@@ -42,14 +49,14 @@ export function BodyArguments({ argument, onValueChange }: BodyArgumentsProps) {
     const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newData = {...data, status: e.target.checked};
         setData(newData);
-        onValueChange(makeBody(newData));
+        updateBody(makeBody(newData));
     };
 
     const payloadChange = (content: string, payload: string) => {
         content = payload == "" ? "" : content;
         let newData = {...data, content: content, payload: payload};
         setData(newData);
-        onValueChange(makeBody(newData));
+        updateBody(makeBody(newData));
     }
 
     const makeBody = (payload: Payload): Body => {
