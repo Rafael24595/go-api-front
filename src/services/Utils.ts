@@ -1,6 +1,6 @@
-import { StatusCategoryKeyValue } from "../interfaces/StatusCategoryKeyValue";
+import { ItemStatusCategoryKeyValue, StatusCategoryKeyValue } from "../interfaces/StatusCategoryKeyValue";
 import { StatusKeyValue } from "../interfaces/StatusKeyValue";
-import { StatusValue } from "../interfaces/StatusValue";
+import { ItemStatusValue, StatusValue } from "../interfaces/StatusValue";
 import { Dict } from "../types/Dict";
 
 export function detachStatusKeyValue(dict: Dict<StatusValue[]>): StatusKeyValue[] {
@@ -67,7 +67,27 @@ export const mergeStatusCategoryKeyValue = (newValues: StatusCategoryKeyValue[])
         if(!merge[value.category]) {
             merge[value.category] = {};
         }
-        merge[value.category][value.key] = value;
+        merge[value.category][value.key] = {
+            order: value.order,
+            status: value.status,
+            value: value.value,
+        };
+    }
+    return merge;
+}
+
+export const mergeStatusCategoryKeyValueAsItem = (newValues: ItemStatusCategoryKeyValue[]): Dict<Dict<ItemStatusValue>> => {
+    const merge: Dict<Dict<ItemStatusValue>> = {};
+    for (const value of newValues) {
+        if(!merge[value.category]) {
+            merge[value.category] = {};
+        }
+        merge[value.category][value.key] = {
+            id: value.id,
+            order: value.order,
+            status: value.status,
+            value: value.value,
+        };
     }
     return merge;
 }

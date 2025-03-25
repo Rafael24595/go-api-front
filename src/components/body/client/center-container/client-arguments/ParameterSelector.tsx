@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { QueryArguments } from './query-arguments/QueryArguments';
 import { HeaderArguments } from './header-arguments/HeaderArguments';
 import { AuthArguments } from './auth-arguments/AuthArguments';
@@ -7,7 +7,7 @@ import { StatusKeyValue } from '../../../../../interfaces/StatusKeyValue';
 import { Auths, Body, Headers, Queries } from '../../../../../interfaces/request/Request';
 import { detachStatusKeyValue, mergeStatusKeyValue } from '../../../../../services/Utils';
 import { ContextModal } from '../../../../context/ContextModal';
-import { Context } from '../../../../../interfaces/context/Context';
+import { useStoreContext } from '../../../../../store/StoreProviderContext';
 
 import './ParameterSelector.css';
 
@@ -31,19 +31,14 @@ export interface ItemRequestParameters {
 
 interface ParameterSelectorProps {
     autoReadUri: boolean;
-    context: Context;
     parameters: ItemRequestParameters;
     readUri: () => StatusKeyValue[];
-    onContextChange: (context: Context) => void;
     onReadUriChange: (uriProcess: boolean) => void;
     onValueChange: (parameters: ItemRequestParameters) => void;
 }
 
 interface Payload {
     cursor: string;
-    initialHash: string;
-    actualHash: string;
-    context: Context;
     modalStatus: boolean;
     autoReadUri: boolean;
     query: StatusKeyValue[];
@@ -52,12 +47,9 @@ interface Payload {
     body: Body;
 }
 
-export function ParameterSelector({ autoReadUri, context, parameters, readUri, onContextChange, onReadUriChange, onValueChange }: ParameterSelectorProps) {
+export function ParameterSelector({ autoReadUri, parameters, readUri, onReadUriChange, onValueChange }: ParameterSelectorProps) {
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
-        initialHash: "",
-        actualHash: "",
-        context: context,
         modalStatus: false,
         autoReadUri: autoReadUri,
         query: detachStatusKeyValue(parameters.query.queries),
@@ -65,10 +57,8 @@ export function ParameterSelector({ autoReadUri, context, parameters, readUri, o
         auth: parameters.auth,
         body: parameters.body
     });
-    
-    useEffect(() => {
-        setData({ ...data, context: context });
-    }, [context]);
+
+    const { initialHash, actualHash } = useStoreContext();
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCursor(e.target.value);
@@ -78,18 +68,6 @@ export function ParameterSelector({ autoReadUri, context, parameters, readUri, o
     const setModalStatus = (status: boolean) => {
         setData({...data, modalStatus: status});
     };
-
-    const onHashChange = (key: string, hash: string)  => {
-        setData(prevData => ({
-            ...prevData,
-            [key]: hash
-        }));
-    }
-
-    const onContextChangeStatus = (context: Context) => {
-        setData({...data, context });
-        onContextChange(context);
-    }
 
     const onReadUriChangeStatus = (uriProcess: boolean) => {
         let newTable = {...data, autoReadUri: uriProcess};
@@ -158,7 +136,7 @@ export function ParameterSelector({ autoReadUri, context, parameters, readUri, o
                     </div>
                     <div>
                         <button type="button" className="button-tag" onClick={() => setModalStatus(true)}>
-                            <span className={`button-modified-status small display ${ data.initialHash != data.actualHash && "visible" }`}></span>
+                            <span className={`button-modified-status small display ${ initialHash != actualHash && "visible" }`}></span>
                             Context
                         </button>
                     </div>
@@ -183,9 +161,6 @@ export function ParameterSelector({ autoReadUri, context, parameters, readUri, o
             </div>
             <ContextModal
                 isOpen={data.modalStatus}
-                context={data.context}
-                onHashChange={onHashChange}
-                onValueChange={onContextChangeStatus}
                 onClose={() => setModalStatus(false)}/>
         </>
     )

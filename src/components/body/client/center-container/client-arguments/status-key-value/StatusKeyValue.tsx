@@ -1,31 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import type { StatusKeyValue } from '../../../../../../interfaces/StatusKeyValue';
 
 import './StatusKeyValue.css'
-
-export interface ItemStatusKeyValue {
-    id: string
-    order: number
-    status: boolean
-    key: string
-    value: string
-    focus: string
-}
-
-export const toItem = (rowsStr: StatusKeyValue[]): ItemStatusKeyValue[] => {
-    if(!rowsStr) {
-        return [];
-    }
-    return [...rowsStr].sort((a, b) => a.order - b.order).map(r => ({...r, id: uuidv4(), focus: ""}));
-}
-
-export const fixOrder = (argument: ItemStatusKeyValue[]) => {
-    return argument.map((item, i) => {
-        item.order = i;
-        return item;
-    });
-}
 
 interface StatusKeyValueProps {
     order?: number

@@ -1,33 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import type { StatusCategoryKeyValue } from '../../../../../../interfaces/StatusCategoryKeyValue';
 import type { KeyValue } from '../../../../../../interfaces/KeyValue';
 
 import '../status-key-value/StatusKeyValue.css'
-
-export interface ItemStatusCategoryKeyValue {
-    id: string
-    order: number
-    status: boolean
-    category: string
-    key: string
-    value: string
-    focus: string
-}
-
-export const toItem = (rowsStr: StatusCategoryKeyValue[]): ItemStatusCategoryKeyValue[] => {
-    if(!rowsStr) {
-        return [];
-    }
-    return fixOrder([...rowsStr].sort((a, b) => a.order - b.order).map(r => ({...r, id: uuidv4(), focus: ""})));
-}
-
-export const fixOrder = (argument: ItemStatusCategoryKeyValue[]) => {
-    return argument.map((item, i) => {
-        item.order = i;
-        return item;
-    });
-}
 
 interface StatusCategoryKeyValueProps {
     order?: number

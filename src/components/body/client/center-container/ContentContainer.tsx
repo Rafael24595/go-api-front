@@ -7,7 +7,7 @@ import { Response } from "../../../../interfaces/response/Response";
 import { insertAction, pushHistoric } from "../../../../services/api/ServiceStorage";
 import { StatusKeyValue } from "../../../../interfaces/StatusKeyValue";
 import { detachStatusKeyValue, generateHash } from "../../../../services/Utils";
-import { Context, newContext } from "../../../../interfaces/context/Context";
+import { useStoreContext } from "../../../../store/StoreProviderContext";
 
 import './ContentContainer.css'
 
@@ -24,7 +24,6 @@ interface Payload {
     autoReadUri: boolean;
     initialHash: string;
     actualHash: string;
-    context: Context;
     backup: Request;
     request: Request;
     response?: Response;
@@ -35,11 +34,12 @@ export function ContentContainer({ request, response, reloadRequestSidebar, onVa
         autoReadUri: getCursor(),
         initialHash: "",
         actualHash: "",
-        context: newContext("anonymous"),
         backup: request,
         request: request,
         response: response
     });
+
+    const { getContext } = useStoreContext();
 
     useEffect(() => {
         if(data.initialHash == "") {
@@ -60,10 +60,6 @@ export function ContentContainer({ request, response, reloadRequestSidebar, onVa
             [key]: newHash
         }));
     }
-    
-    const contextChange = (context: Context) => {
-        setData({ ...data, context });
-    };
 
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newRequest = {...data.request, uri: e.target.value};
@@ -126,7 +122,7 @@ export function ContentContainer({ request, response, reloadRequestSidebar, onVa
             data.request.name = `temp-${data.request.method}-${data.request.timestamp}`;
         }
 
-        let apiResponse = await executeFormAction(data.request, data.context);
+        let apiResponse = await executeFormAction(data.request, getContext());
 
         onValueChange(data.request, apiResponse.response);
         setData({ ...data, response: apiResponse.response });
@@ -183,10 +179,8 @@ export function ContentContainer({ request, response, reloadRequestSidebar, onVa
                 <div id="client-content">
                     <ParameterSelector 
                         autoReadUri={data.autoReadUri} 
-                        context={data.context}
                         parameters={data.request} 
                         readUri={readUri}
-                        onContextChange={contextChange}
                         onReadUriChange={onReadUriChange} 
                         onValueChange={parametersChange}/>
                 </div>

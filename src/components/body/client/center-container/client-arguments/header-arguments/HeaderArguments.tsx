@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { StatusKeyValue as StrStatusKeyValue } from '../../../../../../interfaces/StatusKeyValue';
-import { fixOrder, ItemStatusKeyValue, StatusKeyValue, toItem } from '../status-key-value/StatusKeyValue';
+import { fixOrder, ItemStatusKeyValue, StatusKeyValue as StrStatusKeyValue, toItem } from '../../../../../../interfaces/StatusKeyValue';
+import { StatusKeyValue } from '../status-key-value/StatusKeyValue';
 
 import './HeaderArguments.css'
 

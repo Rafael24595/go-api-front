@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Modal } from '../utils/modal/Modal';
 import { v4 as uuidv4 } from 'uuid';
-import { StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
-import { fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue, toItem } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
-import { Context } from '../../interfaces/context/Context';
-import { detachStatusCategoryKeyValue, generateHash, mergeStatusCategoryKeyValue } from '../../services/Utils';
-import { findContext, insertContext } from '../../services/api/ServiceStorage';
+import { fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
+import { StatusCategoryKeyValue } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
+import { ItemContext } from '../../interfaces/context/Context';
+import { insertContext } from '../../services/api/ServiceStorage';
+import { useStoreContext } from '../../store/StoreProviderContext';
 
 import './ContextModal.css'
 
@@ -74,9 +74,6 @@ const EMPTY_FILTER: Filter = {
 
 interface ContextModalProps {
     isOpen: boolean,
-    context: Context,
-    onHashChange: (key: string, hash: string) => void
-    onValueChange: (context: Context) => void
     onClose: () => void,
 }
 
@@ -88,71 +85,36 @@ interface Filter {
 }
 
 interface Payload {
-    initialHash: string;
-    actualHash: string;
     categoryPreview: string;
     template: string;
     preview: string;
     showPreview: boolean;
     filter: Filter;
-    context: Context;
-    backup: Context;
     status: boolean;
     argument: ItemStatusCategoryKeyValue[];
 }
 
-export function ContextModal({ isOpen, context, onHashChange, onValueChange, onClose }: ContextModalProps) {
+export function ContextModal({ isOpen, onClose }: ContextModalProps) {
+    const { initialHash, actualHash, context, getContext, defineContext, updateContext } = useStoreContext();
+
     const [data, setData] = useState<Payload>({
-        initialHash: "",
-        actualHash: "",
         categoryPreview: getCategoryPreview(),
         template: getTemplate(),
         preview: getTemplate(),
         showPreview: getStatus(),
         filter: getFilter(),
-        context: context,
-        backup: context,
         status: context.status,
-        argument: toItem(detachStatusCategoryKeyValue(context.dictionary))
+        argument: context.dictionary
     });
-    
-    useEffect(() => {
-        const loadContext = async () => {
-            const context = await findContext("anonymous");
-            const newArgument = toItem(detachStatusCategoryKeyValue(context.dictionary));
-            const fixContext = makeContext(context.status, newArgument);
-            setData({ ...data, context: fixContext, backup: fixContext, status: context.status, argument: newArgument });
-            updatePreview(context.status, data.template, data.categoryPreview, newArgument);
-            onValueChange(fixContext);
-        };
-        loadContext();
-    }, []);
 
     useEffect(() => {
-        if(data.initialHash == "") {
-            setUpdateHash("initialHash", data.backup);
-            setUpdateHash("actualHash", data.backup);
-        }
-        
-        if (data.context) {
-            setUpdateHash("actualHash", data.context);
-        }
-
-    }, [data.context]);
-
-    const setUpdateHash = async (key: string, context: Context) => {
-        const newHash = await setHash(key, context);
-        onHashChange(key, newHash);
-    }
-
-    const setHash = async (key: string, context: Context) => {
-        const newHash = await generateHash(context);
         setData(prevData => ({
             ...prevData,
-            [key]: newHash
+            status: context.status,
+            argument: context.dictionary
         }));
-        return newHash;
-    }
+        updatePreview(context.status, data.template, data.categoryPreview, context.dictionary);
+    }, [context]);
 
     const onFilterStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         onFilterChange("status", e.target.value);
@@ -206,7 +168,7 @@ export function ContextModal({ isOpen, context, onHashChange, onValueChange, onC
     };
 
     const onStatusChange = (e: React.ChangeEvent<HTMLInputElement>)  => {
-        onValueChange(makeContext(e.target.checked, data.argument));
+        updateContext(makeContext(e.target.checked, data.argument));
         updatePreview(e.target.checked, data.template, data.categoryPreview, data.argument);
     }
 
@@ -218,8 +180,10 @@ export function ContextModal({ isOpen, context, onHashChange, onValueChange, onC
         let newArgument = copyRows();
         newArgument.splice(order, 1);
 
+        newArgument = fixOrder(newArgument);
+
         updatePreview(data.status, data.template, data.categoryPreview, newArgument);
-        onValueChange(makeContext(data.status, newArgument));
+        updateContext(makeContext(data.status, newArgument));
     }
 
     const rowPush = (row: StrStatusCategoryKeyValue, focus: string, order?: number) => {
@@ -235,9 +199,11 @@ export function ContextModal({ isOpen, context, onHashChange, onValueChange, onC
                 id: uuidv4(), 
                 focus: focus});
         }
-        
+
+        newArgument = fixOrder(newArgument);
+
         updatePreview(data.status, data.template, data.categoryPreview, newArgument);
-        onValueChange(makeContext(data.status, newArgument));
+        updateContext(makeContext(data.status, newArgument));
     }
 
     const copyRows = (): ItemStatusCategoryKeyValue[] => {
@@ -262,17 +228,15 @@ export function ContextModal({ isOpen, context, onHashChange, onValueChange, onC
         updatePreview(data.status, e.target.value, data.categoryPreview, data.argument);
     }
 
-    const updatePreview = (status: boolean, template: string, category: string, args: ItemStatusCategoryKeyValue[]) => {
+    const updatePreview = (status: boolean, template: string, category: string, argument: ItemStatusCategoryKeyValue[]) => {
         setTemplate(template);
 
-        const argument = fixOrder(args);
         const newData = { 
             status, 
             template, 
             categoryPreview: category, 
             argument: argument, 
             preview: template,
-            context: makeContext(status, argument)
         };
 
         if(!status || template == "") {
@@ -284,7 +248,7 @@ export function ContextModal({ isOpen, context, onHashChange, onValueChange, onC
         }
         
         let newPreview = template;
-        for (const arg of args) {
+        for (const arg of argument) {
             if(!arg.status) {
                 continue;
             }
@@ -305,21 +269,19 @@ export function ContextModal({ isOpen, context, onHashChange, onValueChange, onC
     }
 
     const submitContext = async () => {
-        const newContext = makeContext(data.status, data.argument);
+        const newContext = getContext();
         const response = await insertContext("anonymous", newContext);
-        setData({ ...data, initialHash: "", actualHash: "", context: newContext, backup: context });
-        //TODO: Review
-        //setData({...data, context: response, status: response.status, argument: toItem(detachStatusCategoryKeyValue(response.dictionary))})
+        defineContext(context);
     }
 
-    const makeContext = (status: boolean, argument: ItemStatusCategoryKeyValue[]): Context => {
+    const makeContext = (status: boolean, argument: ItemStatusCategoryKeyValue[]): ItemContext => {
         return {
-            _id: data.context._id,
+            _id: context._id,
             status: status,
-            timestamp: data.context.timestamp,
-            dictionary: mergeStatusCategoryKeyValue(argument),
-            owner: "anonymous",
-            modified: data.context.modified
+            timestamp: context.timestamp,
+            dictionary: argument,
+            owner: context.owner,
+            modified: context.modified
         };
     }
 
@@ -342,7 +304,7 @@ export function ContextModal({ isOpen, context, onHashChange, onValueChange, onC
             title={
                 <span id="context-title-container">
                     <span>Client Context</span>
-                    <span className={`button-modified-status ${ data.initialHash != data.actualHash && "visible" }`}></span>
+                    <span className={`button-modified-status ${ initialHash != actualHash && "visible" }`}></span>
                 </span>
             }
             width="70%"
