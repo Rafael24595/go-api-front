@@ -3,7 +3,7 @@ import { Context, fromContext, ItemContext, newItemContext, toContext } from "..
 import { findContext } from "../services/api/ServiceStorage";
 import { generateHash } from "../services/Utils";
 
-interface StoreContextType {
+interface StoreProviderContextType {
   initialHash: string;
   actualHash: string;
   backup: ItemContext;
@@ -21,7 +21,7 @@ interface Payload {
   loading: boolean;
 }
 
-const StoreContext = createContext<StoreContextType | undefined>(undefined);
+const StoreContext = createContext<StoreProviderContextType | undefined>(undefined);
 
 export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState<Payload>({
@@ -36,12 +36,13 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     const loadContext = async () => {
       const context = await findContext("anonymous");
       const item = fromContext(context);
-      setData(prevData => ({
-        ...prevData,
+      setData({
+        initialHash: "",
+        actualHash: "",
         backup: item,
         context: item,
         loading: false
-      }));
+      });
     };
     loadContext();
   }, []);
@@ -63,7 +64,7 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   }, [data.context]);
 
   const setHash = async (key: string, context: ItemContext) => {
-    const newHash = await generateHash(context);
+    const newHash = await generateHash(toContext(context));
     setData(prevData => ({
       ...prevData,
       [key]: newHash
@@ -99,7 +100,7 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   );
 };
 
-export const useStoreContext = (): StoreContextType => {
+export const useStoreContext = (): StoreProviderContextType => {
   const context = useContext(StoreContext);
   if (!context) {
     throw new Error("useStore must be used within a StoreProviderClient");

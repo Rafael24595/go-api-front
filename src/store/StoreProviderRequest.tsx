@@ -6,7 +6,7 @@ import { fixOrder } from "../interfaces/StatusKeyValue";
 import { fromResponse, ItemResponse, newItemResponse, Response, toResponse } from "../interfaces/response/Response";
 import { findAction } from "../services/api/ServiceStorage";
 
-interface StoreContextType {
+interface StoreProviderRequestType {
   initialHash: string;
   actualHash: string;
   backup: ItemRequest;
@@ -35,7 +35,7 @@ interface Payload {
   response: ItemResponse;
 }
 
-const StoreContext = createContext<StoreContextType | undefined>(undefined);
+const StoreContext = createContext<StoreProviderRequestType | undefined>(undefined);
 
 export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState<Payload>({
@@ -58,8 +58,8 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   }, [data.request]);
 
-  const setHash = async (key: string, context: ItemRequest) => {
-    const newHash = await generateHash(context);
+  const setHash = async (key: string, request: ItemRequest) => {
+    const newHash = await generateHash(toRequest(request));
     setData(prevData => ({
       ...prevData,
       [key]: newHash
@@ -212,7 +212,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   );
 };
 
-export const useStoreRequest = (): StoreContextType => {
+export const useStoreRequest = (): StoreProviderRequestType => {
   const context = useContext(StoreContext);
   if (!context) {
     throw new Error("useStore must be used within a StoreProviderClient");
