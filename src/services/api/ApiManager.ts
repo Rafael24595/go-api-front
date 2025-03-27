@@ -25,7 +25,11 @@ apiManager.interceptors.response.use(
   (error) => {
     //TODO: Manage exceptions.
     console.error("API Error:", error.response || error.message);
-    return Promise.reject(error);
+    return Promise.reject({
+      statusCode: error.status,
+      statusText: error.response.statusText,
+      message: error.response.data || error.message
+    });
   }
 );
 
