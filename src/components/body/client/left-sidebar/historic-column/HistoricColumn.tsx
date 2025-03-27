@@ -1,49 +1,17 @@
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
-import { deleteAction, findAllHistoric } from '../../../../../services/api/ServiceStorage';
-import { useEffect, useImperativeHandle, useState } from 'react';
+import { deleteAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
+import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
+import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 
 import './HistoricColumn.css';
-import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 
-interface HistoricColumnProps {
-    ref: React.RefObject<HistoricColumnMethods | null>;
-}
-
-export type HistoricColumnMethods = {
-    fetchHistoric: () => void;
-};
-
-export function HistoricColumn({ ref }: HistoricColumnProps) {
+export function HistoricColumn() {
     const { request, defineRequest, fetchRequest } = useStoreRequest();
-    const [requests, setHistoric] = useState<Request[]>([]);
-    
-    useImperativeHandle(ref, () => ({
-        fetchHistoric
-    }));
-
-    useEffect(() => {
-        fetchHistoric();
-
-        const interval = setInterval(() => {
-            fetchHistoric();
-        }, 10000);
-
-        return () => clearInterval(interval);
-    }, []);
+    const { historic, fetchHistoric } = useStoreRequests();
 
     const resetRequest = () => {
         defineRequest(newRequest("anonymous"));
-    };
-
-    const fetchHistoric = async () => {
-        try {
-            const data = (await findAllHistoric("anonymous"))
-                .sort((a, b) => b.timestamp - a.timestamp);
-            setHistoric(data);
-        } catch (error) {
-            console.error("Error fetching history:", error);
-        }
     };
 
     const deleteHistoric = async (request: Request) => {
@@ -69,8 +37,8 @@ export function HistoricColumn({ ref }: HistoricColumnProps) {
                     <span>Clean</span>
                 </button>
                 <div id="actions-container">
-                    {requests.length > 0 ? (
-                        requests.map((cursor) => (
+                    {historic.length > 0 ? (
+                        historic.map((cursor) => (
                             <div key={ makeKey(cursor) } className={`request-preview ${ cursor._id == request._id && "request-selected"}`}>
                                 <a className="request-link" title={ cursor.uri }
                                     onClick={() => fetchRequest(cursor)}>

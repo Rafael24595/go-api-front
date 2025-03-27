@@ -1,46 +1,14 @@
-import { useEffect, useImperativeHandle, useState } from 'react';
-import { deleteAction, findAllAction } from '../../../../../services/api/ServiceStorage';
+import { deleteAction } from '../../../../../services/api/ServiceStorage';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
+import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
+import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 
 import './StoredColumn.css'
-import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 
-interface StoredColumnProps {
-    ref: React.RefObject<StoredColumnMethods | null>;
-}
-
-export type StoredColumnMethods = {
-    fetchStored: () => void;
-};
-
-export function StoredColumn({ ref }: StoredColumnProps) {
+export function StoredColumn() {
     const { request, defineRequest, fetchRequest } = useStoreRequest();
-    const [requests, setStored] = useState<Request[]>([]);
-
-     useImperativeHandle(ref, () => ({
-        fetchStored
-    }));
-    
-    useEffect(() => {
-        fetchStored();
-
-        const interval = setInterval(() => {
-            fetchStored();
-        }, 10000);
-
-        return () => clearInterval(interval);
-    }, []);
-
-    const fetchStored = async () => {
-        try {
-            const data = (await findAllAction("anonymous"))
-                .sort((a, b) => b.timestamp - a.timestamp);
-                setStored(data);
-        } catch (error) {
-            console.error("Error fetching history:", error);
-        }
-    };
+    const { stored, fetchStored } = useStoreRequests();
 
     const deleteStored = async (request: Request) => {
         try {
@@ -65,8 +33,8 @@ export function StoredColumn({ ref }: StoredColumnProps) {
                         <span>New</span>
                     </button>
                     <div id="actions-container">
-                        {requests.length > 0 ? (
-                            requests.map((cursor) => (
+                        {stored.length > 0 ? (
+                            stored.map((cursor) => (
                                 <div key={ makeKey(cursor) } className={`request-preview ${ cursor._id == request._id && "request-selected"}`}>
                                     <a className="request-link" title={ cursor.uri }
                                         onClick={() => fetchRequest(cursor)}>

@@ -3,15 +3,18 @@ import { Client } from './client/Client'
 
 import './Body.css'
 import { StoreProviderRequest } from '../../store/StoreProviderRequest'
+import { StoreProviderRequests } from '../../store/StoreProviderRequests'
 
 export function Body() {
     return (
         <div id='body-content'>
-            <StoreProviderRequest>
-                <StoreProviderContext>
-                    <Client/>
-                </StoreProviderContext>
-            </StoreProviderRequest>
+            <StoreProviderContext>
+                <StoreProviderRequest>
+                    <StoreProviderRequests>
+                        <Client/>
+                    </StoreProviderRequests>
+                </StoreProviderRequest>
+            </StoreProviderContext>
         </div>
     )
 }

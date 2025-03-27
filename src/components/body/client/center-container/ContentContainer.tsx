@@ -3,18 +3,19 @@ import { ParameterSelector } from "./client-arguments/ParameterSelector";
 import { executeFormAction } from "../../../../services/api/ServiceManager";
 import { insertAction, pushHistoric } from "../../../../services/api/ServiceStorage";
 import { useStoreContext } from "../../../../store/StoreProviderContext";
+import { useStoreRequest } from "../../../../store/StoreProviderRequest";
+import { useAlert } from "../../../utils/alert/Alert";
+import { EAlertCategory } from "../../../../interfaces/AlertData";
 
 import './ContentContainer.css'
-import { useStoreRequest } from "../../../../store/StoreProviderRequest";
+import { useStoreRequests } from "../../../../store/StoreProviderRequests";
 
-
-interface ContentContainerProps {
-    reloadRequestSidebar: () => void
-}
-
-export function ContentContainer({ reloadRequestSidebar }: ContentContainerProps) {
+export function ContentContainer() {
     const { getContext } = useStoreContext();
     const { initialHash, actualHash, request, getRequest, getResponse, defineRequest, updateRequest, updateName, updateUri } = useStoreRequest();
+    const { fetchAll } = useStoreRequests();
+
+    const { push } = useAlert();
 
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateUri(e.target.value);
@@ -31,7 +32,16 @@ export function ContentContainer({ reloadRequestSidebar }: ContentContainerProps
             updateName(name);
         }
 
-        let apiResponse = await executeFormAction(req, getContext());
+        let apiResponse = await executeFormAction(req, getContext()).catch(e =>
+            push({
+                title: `[${e.statusCode}] ${e.statusText}`,
+                category: EAlertCategory.ERRO,
+                content: e.message,
+            }));
+
+        if(!apiResponse) {
+            return;
+        }
 
         updateRequest(req, apiResponse.response);
 
@@ -41,7 +51,7 @@ export function ContentContainer({ reloadRequestSidebar }: ContentContainerProps
         req._id = apiResponse.request._id;
         updateRequest(req, apiResponse.response);
 
-        reloadRequestSidebar();
+        fetchAll();
     };
 
     const insertFormAction = async (e: { preventDefault: () => void; }) => {
@@ -68,7 +78,7 @@ export function ContentContainer({ reloadRequestSidebar }: ContentContainerProps
         //TODO: Manage user session.
         apiResponse = await pushHistoric("anonymous", apiResponse.request, apiResponse.response);
 
-        reloadRequestSidebar();
+        fetchAll();
     };
 
     return (

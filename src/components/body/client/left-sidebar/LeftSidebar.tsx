@@ -1,6 +1,6 @@
-import { useImperativeHandle, useRef, useState } from 'react';
-import { HistoricColumn, HistoricColumnMethods } from './historic-column/HistoricColumn';
-import { StoredColumn, StoredColumnMethods } from './stored-column/StoredColumn';
+import { useState } from 'react';
+import { HistoricColumn } from './historic-column/HistoricColumn';
+import { StoredColumn } from './stored-column/StoredColumn';
 import { CollectionColumn } from './collection-column/CollectionColumn';
 
 import './LeftSidebar.css';
@@ -15,43 +15,14 @@ const DEFAULT_CURSOR = VIEW_HISTORIC;
 
 const CURSOR_KEY = "LeftSidebarCursor";
 
-interface LeftSidebarProps {
-    ref: React.RefObject<LeftSidebarMethods | null>;
-}
-
-export type LeftSidebarMethods = {
-    reloadView: () => void;
-  };
-
 interface Payload {
     cursor: string;
 }
 
-export function LeftSidebar({ ref }: LeftSidebarProps) {
-    const historicColumRef = useRef<HistoricColumnMethods>(null);
-    const storedColumRef = useRef<StoredColumnMethods>(null);
-
+export function LeftSidebar() {
     const [data, setData] = useState<Payload>({
         cursor: getCursor(),
     });
-
-    useImperativeHandle(ref, () => ({
-        reloadView
-    }));
-
-    const reloadView = () => {
-        switch (data.cursor) {
-            case VIEW_HISTORIC:
-                historicColumRef.current?.fetchHistoric();
-            break;
-            case VIEW_STORED:
-                storedColumRef.current?.fetchStored();
-            break;
-            default:
-                //TODO: Implement all cases.
-            break;
-        }
-    }
         
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCursor(e.target.value);
@@ -78,10 +49,8 @@ export function LeftSidebar({ ref }: LeftSidebarProps) {
                 <label htmlFor="tag-left-sidebar-collection">Collection</label>
             </div>
             <div id="request-form-options">
-                {data.cursor === VIEW_HISTORIC && <HistoricColumn 
-                    ref={historicColumRef}/>}
-                {data.cursor === VIEW_STORED && <StoredColumn
-                    ref={storedColumRef}/>}
+                {data.cursor === VIEW_HISTORIC && <HistoricColumn/>}
+                {data.cursor === VIEW_STORED && <StoredColumn/>}
                 {data.cursor === VIEW_COLLECTION && <CollectionColumn/>}
             </div>
         </div>
