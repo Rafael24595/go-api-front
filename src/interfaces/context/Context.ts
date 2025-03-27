@@ -1,4 +1,4 @@
-import { detachStatusCategoryKeyValue, mergeStatusCategoryKeyValueAsItem } from "../../services/Utils";
+import { detachStatusCategoryKeyValue, mergeStatusCategoryKeyValue } from "../../services/Utils";
 import { Dict } from "../../types/Dict";
 import { ItemStatusCategoryKeyValue, toItem } from "../StatusCategoryKeyValue";
 import { StatusValue } from "../StatusValue";
@@ -45,7 +45,7 @@ export const fromContext = (context: Context): ItemContext => {
 }
 
 export const toContext = (context: ItemContext): Context => {
-  const argumentMap = mergeStatusCategoryKeyValueAsItem(context.dictionary)
+  const argumentMap = mergeStatusCategoryKeyValue(context.dictionary)
   return {
       _id: context._id,
       status: context.status,
