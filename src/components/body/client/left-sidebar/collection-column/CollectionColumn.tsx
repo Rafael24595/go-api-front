@@ -1,15 +1,13 @@
-import './CollectionColumn.css'
+import './CollectionColumn.css';
 
 export function CollectionColumn() {
     return (
         <>
-            <div id="column-container">
-                <button className="column-option option-button border-bottom">
-                    <span>New</span>
-                </button>
-                <div id="collection-container">
-                    <p>//TODO: Implement CollectionColumn</p>
-                </div>
+            <button className="column-option option-button border-bottom">
+                <span>New</span>
+            </button>
+            <div id="collection-container">
+                <p>//TODO: Implement CollectionColumn</p>
             </div>
         </>
     )

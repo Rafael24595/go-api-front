@@ -5,9 +5,9 @@ import { CollectionColumn } from './collection-column/CollectionColumn';
 
 import './LeftSidebar.css';
 
-const VIEW_HISTORIC = "historic";
-const VIEW_STORED = "stored";
-const VIEW_COLLECTION = "collection";
+export const VIEW_HISTORIC = "historic";
+export const VIEW_STORED = "stored";
+export const VIEW_COLLECTION = "collection";
 
 const VALID_CURSORS = [VIEW_HISTORIC, VIEW_STORED, VIEW_COLLECTION];
 
@@ -21,12 +21,16 @@ interface Payload {
 
 export function LeftSidebar() {
     const [data, setData] = useState<Payload>({
-        cursor: getCursor(),
+        cursor: findCursor(),
     });
         
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCursor(e.target.value);
-        setData({...data, cursor: e.target.value});
+    };
+
+    const setCursor = (cursor: string) => {
+        storeCursor(cursor);
+        setData({...data, cursor: cursor});
     };
 
     return (
@@ -49,7 +53,7 @@ export function LeftSidebar() {
                 <label htmlFor="tag-left-sidebar-collection">Collection</label>
             </div>
             <div id="request-form-options">
-                {data.cursor === VIEW_HISTORIC && <HistoricColumn/>}
+                {data.cursor === VIEW_HISTORIC && <HistoricColumn setCursor={setCursor}/>}
                 {data.cursor === VIEW_STORED && <StoredColumn/>}
                 {data.cursor === VIEW_COLLECTION && <CollectionColumn/>}
             </div>
@@ -57,11 +61,11 @@ export function LeftSidebar() {
     )
 }
 
-const getCursor = () => {
+const findCursor = () => {
     const storedValue = localStorage.getItem(CURSOR_KEY);
     return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
 }
 
-const setCursor = (cursor: string) => {
+const storeCursor = (cursor: string) => {
     localStorage.setItem(CURSOR_KEY, cursor);
 }

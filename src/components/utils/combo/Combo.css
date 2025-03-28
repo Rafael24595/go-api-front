@@ -1,0 +1,65 @@
+.options-container {
+    position: relative;
+}
+
+.list-container {
+    max-width: 400px;
+    margin: 20px auto;
+    background: white;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.options-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.options-button:hover {
+    background-color: initial;
+}
+
+.options-menu {
+    position: absolute;
+    width: 125px;
+    right: 0;
+    margin-top: 5px;
+    padding: 5px;
+    background: #efefef;
+    box-shadow: 2px 2px 2px 0px darkgrey;
+    z-index: 10;
+}
+
+.options-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 7px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.options-menu button:hover {
+    background: #f8f8f8;
+}
+
+.option-icon {
+    margin-right: 7px;
+}

@@ -1,18 +1,18 @@
 import { MethodSelector } from "./method-selector/MethodSelector";
 import { ParameterSelector } from "./client-arguments/ParameterSelector";
 import { executeFormAction } from "../../../../services/api/ServiceManager";
-import { insertAction, pushHistoric } from "../../../../services/api/ServiceStorage";
+import { pushHistoric } from "../../../../services/api/ServiceStorage";
 import { useStoreContext } from "../../../../store/StoreProviderContext";
 import { useStoreRequest } from "../../../../store/StoreProviderRequest";
 import { useAlert } from "../../../utils/alert/Alert";
 import { EAlertCategory } from "../../../../interfaces/AlertData";
-
-import './ContentContainer.css'
 import { useStoreRequests } from "../../../../store/StoreProviderRequests";
+
+import './ContentContainer.css';
 
 export function ContentContainer() {
     const { getContext } = useStoreContext();
-    const { initialHash, actualHash, request, getRequest, getResponse, defineRequest, updateRequest, updateName, updateUri } = useStoreRequest();
+    const { initialHash, actualHash, request, getRequest, getResponse, defineRequest, updateRequest, updateName, updateUri, insertRequest } = useStoreRequest();
     const { fetchAll } = useStoreRequests();
 
     const { push } = useAlert();
@@ -60,19 +60,12 @@ export function ContentContainer() {
         const req = getRequest();
         const res = getResponse();
 
-        if(req.status == "draft") {
-            const name = prompt("Insert a name: ");
-            if(name == null) {
-                return;
-            }            
-            req.name = name;
-            updateName(name);
-        }
-
         //TODO: Manage user session.
-        let apiResponse = await insertAction("anonymous", req, res);
+        let apiResponse = await insertRequest(req, res);
 
         req._id = apiResponse.request._id;
+        req.name = apiResponse.request.name;
+
         defineRequest(req, res)
 
         //TODO: Manage user session.

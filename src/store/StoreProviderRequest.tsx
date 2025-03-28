@@ -4,7 +4,8 @@ import { Auths, Body, fromRequest, ItemRequest, newItemRequest, Request, toReque
 import { cleanCopy, ItemStatusKeyValue } from "../interfaces/StatusKeyValue";
 import { fixOrder } from "../interfaces/StatusKeyValue";
 import { fromResponse, ItemResponse, newItemResponse, Response, toResponse } from "../interfaces/response/Response";
-import { findAction } from "../services/api/ServiceStorage";
+import { findAction, insertAction } from "../services/api/ServiceStorage";
+import { ResponseExecuteAction } from "../services/api/ResponseExecuteAction";
 
 interface StoreProviderRequestType {
   initialHash: string;
@@ -23,7 +24,8 @@ interface StoreProviderRequestType {
   updateHeader: (items: ItemStatusKeyValue[]) => void;
   updateBody: (body: Body) => void;
   updateAuth: (auth: Auths) => void;
-  fetchRequest: (request: Request) => void;
+  fetchRequest: (request: Request) => Promise<void>;
+  insertRequest: (req: Request, res?: Response) => Promise<ResponseExecuteAction>;
   processUri: () => void;
 }
 
@@ -174,6 +176,22 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     defineRequest(apiResponse.request, apiResponse.response);
   }
 
+  const insertRequest = async (req: Request, res?: Response): Promise<ResponseExecuteAction> => {
+    if(req.status == "draft") {
+        const name = prompt("Insert a name: ");
+        if(name == null) {
+            return {
+              request: req,
+              response: res
+            };
+        }            
+        req.name = name;
+    }
+
+    //TODO: Manage user session.
+    return insertAction("anonymous", req, res);
+};
+
   const processUri = () => {
     const url = new URL(data.request.uri);
     const queryParams = new URLSearchParams(url.search);
@@ -206,7 +224,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       updateRequest, updateName, updateMethod, 
       updateUri, updateQuery, updateHeader,
       updateBody, updateAuth, fetchRequest,
-      processUri }}>
+      insertRequest, processUri }}>
       {children}
     </StoreContext.Provider>
   );

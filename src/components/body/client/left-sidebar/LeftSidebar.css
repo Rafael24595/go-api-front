@@ -6,3 +6,10 @@
     width: 20%;
     border: 1px solid lightgray;
 }
+
+#request-form-options {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
