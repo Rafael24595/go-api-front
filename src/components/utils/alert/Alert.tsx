@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { AlertData } from "../../../interfaces/AlertData";
 import { v4 as uuidv4 } from 'uuid';
 
-import './Alert.css'
+import './Alert.css';
 
 interface AlertType {
   push: (alert: AlertData) => void;
