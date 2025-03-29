@@ -1,3 +1,4 @@
+import { Collection } from "../../interfaces/collection/Collection";
 import { Context } from "../../interfaces/context/Context";
 import { Request } from "../../interfaces/request/Request";
 import { Response } from "../../interfaces/response/Response";
@@ -76,4 +77,22 @@ export const pushHistoric = async (user: string, request: Request, response?: Re
     } catch (error) {
       throw error;
     }
+};
+
+export const findAllCollection = async (user: string): Promise<Collection[]> => {
+  try {
+      const apiResponse = await apiManager.get(`/api/v1/collection/${user}`);
+      return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const insertCollection = async (user: string, collection: Collection): Promise<ResponseExecuteAction> => {
+  try {
+      const apiResponse = await apiManager.post(`/api/v1/collection/${user}`, collection);
+      return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
 };

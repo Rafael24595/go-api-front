@@ -21,6 +21,17 @@ export type ItemContext = {
   modified: number;
 };
 
+export function newContext(owner: string): Context {
+  return {
+    _id: "",
+    status: true,
+    timestamp: 0,
+    dictionary: {},
+    modified: 0,
+    owner: owner
+  }
+}
+
 export function newItemContext(owner: string): ItemContext {
   return {
     _id: "",

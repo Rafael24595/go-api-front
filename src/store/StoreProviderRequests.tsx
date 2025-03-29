@@ -1,18 +1,22 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { findAllAction, findAllHistoric } from "../services/api/ServiceStorage";
+import { findAllAction, findAllCollection, findAllHistoric } from "../services/api/ServiceStorage";
 import { Request } from "../interfaces/request/Request";
+import { Collection } from "../interfaces/collection/Collection";
 
 interface StoreProviderRequestsType {
   historic: Request[];
   stored: Request[];
+  collection: Collection[];
   fetchAll: () => Promise<void>;
   fetchHistoric: () => Promise<void>;
   fetchStored: () => Promise<void>;
+  fetchCollection: () => Promise<void>;
 }
 
 interface Payload {
   historic: Request[];
   stored: Request[];
+  collection: Collection[];
 }
 
 const StoreContext = createContext<StoreProviderRequestsType | undefined>(undefined);
@@ -20,7 +24,8 @@ const StoreContext = createContext<StoreProviderRequestsType | undefined>(undefi
 export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState<Payload>({
     historic: [],
-    stored: []
+    stored: [],
+    collection: []
   });
 
   useEffect(() => {
@@ -36,6 +41,7 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
   const fetchAll = async () => {
     fetchHistoric();
     fetchStored();
+    fetchCollection();
 };
 
   const fetchHistoric = async () => {
@@ -60,12 +66,25 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
             stored: data
           }));
       } catch (error) {
-          console.error("Error fetching history:", error);
+          console.error("Error fetching stored:", error);
       }
   };
 
+  const fetchCollection = async () => {
+    try {
+        const data = (await findAllCollection("anonymous"))
+            .sort((a, b) => b.timestamp - a.timestamp);
+        setData((prevData) => ({
+          ...prevData,
+          collection: data
+        }));
+    } catch (error) {
+        console.error("Error fetching collection:", error);
+    }
+};
+
   return (
-    <StoreContext.Provider value={{ ...data, fetchAll, fetchHistoric, fetchStored }}>
+    <StoreContext.Provider value={{ ...data, fetchAll, fetchHistoric, fetchStored, fetchCollection }}>
       {children}
     </StoreContext.Provider>
   );
