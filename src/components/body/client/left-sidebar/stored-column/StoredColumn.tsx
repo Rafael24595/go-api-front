@@ -11,6 +11,19 @@ export function StoredColumn() {
     const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
     const { stored, fetchStored } = useStoreRequests();
 
+    const insertNewRequest = async () => {
+        const name = prompt("New request name:");
+        if(name == null) {
+            return;
+        }
+        
+        const request = newRequest("anonymous");
+        request.name = name;
+
+        defineRequest(request);
+        await fetchStored();
+    }
+
     const insertStored = async (request: Request) => {
         const newRequest = {...request};
         newRequest._id = undefined;
@@ -44,7 +57,7 @@ export function StoredColumn() {
                 <button 
                     type="button"
                     className="column-option option-button border-bottom"
-                    onClick={() => defineRequest(newRequest(prompt("New request name:") || ""))}>
+                    onClick={() => insertNewRequest()}>
                     <span>New</span>
                 </button>
                 <div id="actions-container">
