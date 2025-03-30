@@ -1,0 +1,22 @@
+.summary-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.details-button {
+  display: flex;
+  justify-content: flex-start;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.details-content {
+  display: none;
+  padding-left: 10px;
+}
+
+.details-content.open {
+  display: block;
+}
