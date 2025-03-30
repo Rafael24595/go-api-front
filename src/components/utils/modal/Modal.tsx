@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
-import './Modal.css'
 import { ModalButton } from '../../../interfaces/ModalButton';
+
+import './Modal.css';
 
 interface ModalProps {
     title?: string | ReactNode
