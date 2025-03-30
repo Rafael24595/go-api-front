@@ -1,20 +1,32 @@
+import { useState } from 'react';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
 import { deleteAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
+import { CollectionModal } from '../../../../collection/CollectionModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';
 
 import './HistoricColumn.css';
 
-interface Payload {
+interface HistoricColumnProps {
     setCursor: (cursor: string) => void;
 }
 
-export function HistoricColumn({ setCursor }: Payload) {
+interface Payload {
+    request: Request;
+    modal: boolean;
+}
+
+export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
     const { historic, fetchHistoric, fetchStored } = useStoreRequests();
+
+    const [data, setData] = useState<Payload>({
+        request: newRequest("anonymous"),
+        modal: false,
+    });
 
     const resetRequest = () => {
         defineRequest(newRequest("anonymous"));
@@ -44,6 +56,14 @@ export function HistoricColumn({ setCursor }: Payload) {
     const makeKey = (request: Request): string => {
         return `${request.timestamp}-${request.method}-${request.uri}`;
     }
+
+    const openModal = (request: Request) => {
+        setData({request: request, modal: true});
+    };
+
+    const closeModal = () => {
+        setData({...data, modal: false});
+    };
 
     return (
         <>
@@ -85,6 +105,12 @@ export function HistoricColumn({ setCursor }: Payload) {
                                     label: "Clone",
                                     title: "Clone request",
                                     action: () => cloneHistoric(cursor)
+                                },
+                                {
+                                    icon: "📚",
+                                    label: "Collect",
+                                    title: "Push to collection",
+                                    action: () => openModal(cursor)
                                 }
                             ]}/>
                         </div>
@@ -93,6 +119,10 @@ export function HistoricColumn({ setCursor }: Payload) {
                     <p className="no-data"> - No history found - </p>
                 )}
             </div>
+            <CollectionModal 
+                isOpen={data.modal} 
+                request={data.request} 
+                onClose={closeModal}/>
         </>
     );
 }
