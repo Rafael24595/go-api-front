@@ -1,14 +1,21 @@
 import { ItemCollection, newCollection } from '../../../../../interfaces/collection/Collection';
+import { fromContext } from '../../../../../interfaces/context/Context';
 import { Request } from '../../../../../interfaces/request/Request';
 import { insertCollection } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
+import { useStoreContext } from '../../../../../store/StoreProviderContext';
+import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 import { Combo } from '../../../../utils/combo/Combo';
 import { Details } from '../../../../utils/details/Details';
 
 import './CollectionColumn.css';
 
+const CURSOR_KEY = "CollectionColumnDetailsCursor";
+
 export function CollectionColumn() {
+    const { switchContext } = useStoreContext();
+    const { request, defineRequest } = useStoreRequest();
     const { collection, fetchCollection } = useStoreRequests();
 
     const insertNewCollection = async () => {
@@ -24,8 +31,10 @@ export function CollectionColumn() {
         await fetchCollection();
     }
 
-    const defineCollectionRequest = (collection: ItemCollection, request: Request) => {
-
+    const defineCollectionRequest = async (collection: ItemCollection, request: Request) => {
+        const context = fromContext(collection.context);
+        defineRequest(request);
+        await switchContext(context);
     }
 
     const makeKey = (collection: ItemCollection, request: Request): string => {
@@ -42,37 +51,42 @@ export function CollectionColumn() {
             </button>
             <div id="actions-container">
                 {collection.length > 0 ? (
-                    collection.map((collection) => (
+                    collection.map((cursorCollection) => (
                         <Details 
-                            summary={collection.name}
+                            key={cursorCollection._id}
+                            identity={cursorKey(cursorCollection)}
+                            summary={cursorCollection.name}
                             options={(
                                 <Combo options={[
                                     {
                                         icon: "💾",
-                                        label: "Oh hey!",
-                                        title: "Oh hey!",
-                                        action: () => console.log("Oh hey!")
+                                        label: "_Test",
+                                        title: "_Test",
+                                        action: () => console.log("_test")
                                     }
-                                ]}/>
-                        )}>
-                            {collection.nodes.map(({request}) => (
-                                <div key={ makeKey(collection, request) } className={`request-preview ${ request._id == request._id && "request-selected"}`}>
-                                    <a className="request-link" title={ request.uri }
-                                        onClick={() => defineCollectionRequest(collection, request)}>
+                                ]}/>)}
+                            subsummary={(
+                                <span className="request-sign-timestamp">{ millisecondsToDate(cursorCollection.timestamp) }</span>
+                            )}
+                            >
+                            {cursorCollection.nodes.map((node) => (
+                                <div key={ makeKey(cursorCollection, node.request) } className={`request-preview ${ node.request._id == request._id && "request-selected"}`}>
+                                    <a className="request-link" title={ node.request.uri }
+                                        onClick={() => defineCollectionRequest(cursorCollection, node.request)}>
                                         <div className="request-sign">
-                                            <span className="request-sign-method">{ request.method }</span>
-                                            <span className="request-sign-url">{ request.name }</span>
+                                            <span className="request-sign-method">{ node.request.method }</span>
+                                            <span className="request-sign-url">{ node.request.name }</span>
                                         </div>
                                         <div>
-                                            <span className="request-sign-timestamp">{ millisecondsToDate(request.timestamp) }</span>
+                                            <span className="request-sign-timestamp">{ millisecondsToDate(node.request.timestamp) }</span>
                                         </div>
                                     </a>
                                     <Combo options={[
                                         {
                                             icon: "🗑️",
-                                            label: "test",
-                                            title: "test",
-                                            action: () => console.log("test")
+                                            label: "_Test",
+                                            title: "_Test",
+                                            action: () => console.log("_test")
                                         }
                                     ]}/>
                                 </div>
@@ -85,4 +99,8 @@ export function CollectionColumn() {
             </div>
         </>
     )
+}
+
+const cursorKey = (collection: ItemCollection) => {
+    return `${CURSOR_KEY}-${collection._id}`;
 }

@@ -7,6 +7,7 @@ import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 import { CollectionModal } from '../../../../collection/CollectionModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';
+import { useStoreContext } from '../../../../../store/StoreProviderContext';
 
 import './HistoricColumn.css';
 
@@ -20,6 +21,7 @@ interface Payload {
 }
 
 export function HistoricColumn({ setCursor }: HistoricColumnProps) {
+    const { switchContext } = useStoreContext();
     const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
     const { historic, fetchHistoric, fetchStored } = useStoreRequests();
 
@@ -31,6 +33,11 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const resetRequest = () => {
         defineRequest(newRequest("anonymous"));
     };
+
+    const defineHistoricRequest = async (request: Request) => {
+        await fetchRequest(request);
+        await switchContext();
+    }
 
     const insertHistoric = async (request: Request) => {
         await insertRequest(request);
@@ -78,7 +85,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                     historic.map((cursor) => (
                         <div key={ makeKey(cursor) } className={`request-preview ${ cursor._id == request._id && "request-selected"}`}>
                             <a className="request-link" title={ cursor.uri }
-                                onClick={() => fetchRequest(cursor)}>
+                                onClick={() => defineHistoricRequest(cursor)}>
                                 <div className="request-sign">
                                     <span className="request-sign-method">{ cursor.method }</span>
                                     <span className="request-sign-url">{ cursor.uri }</span>
@@ -109,7 +116,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                                 {
                                     icon: "📚",
                                     label: "Collect",
-                                    title: "Push to collection",
+                                    title: "Copy to collection",
                                     action: () => openModal(cursor)
                                 }
                             ]}/>

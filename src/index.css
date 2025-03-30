@@ -188,3 +188,7 @@ button:hover {
 .button-modified-status.display.visible {
   display: initial;
 }
+
+.request-sign-timestamp {
+  font-style: italic;
+}

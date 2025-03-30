@@ -63,7 +63,17 @@ const STATUS_VALUES = [
 ];
 
 const TEMPLATE = `curl -X GET https://github.com/\${username}/\${uri.repository}/tree/\${global.branch} \\
--H "\${header.header-key}: \${header.header-value}"`
+-H "\${header.header-key}: \${header.header-value}"`;
+
+const translateDomain = (domain: string) => {
+    switch (domain) {
+        case "collection":
+            return "Collection";
+        case "user":
+        default:
+            return "Client"
+    }
+}
 
 const EMPTY_FILTER: Filter = {
     status: "none",
@@ -108,6 +118,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     });
 
     useEffect(() => {
+        console.log(context)
         setData(prevData => ({
             ...prevData,
             status: context.status,
@@ -275,13 +286,9 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     }
 
     const makeContext = (status: boolean, argument: ItemStatusCategoryKeyValue[]): ItemContext => {
-        return {
-            _id: context._id,
+        return {...context, 
             status: status,
-            timestamp: context.timestamp,
             dictionary: argument,
-            owner: context.owner,
-            modified: context.modified
         };
     }
 
@@ -303,7 +310,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
             ]}  
             title={
                 <span id="context-title-container">
-                    <span>Client Context</span>
+                    <span>{translateDomain(context.domain)} Context</span>
                     <span className={`button-modified-status ${ initialHash != actualHash && "visible" }`}></span>
                 </span>
             }

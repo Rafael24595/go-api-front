@@ -1,20 +1,32 @@
 .summary-container {
   display: flex;
   justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.summary-content {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .details-button {
   display: flex;
   justify-content: flex-start;
+  font-size: 1em;
   font-weight: 600;
   background: none;
   border: none;
   cursor: pointer;
+  padding: 0px;
 }
 
 .details-content {
   display: none;
-  padding-left: 10px;
+  padding-left: 15px;
+  font-size: 0.85em;
 }
 
 .details-content.open {

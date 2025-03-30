@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { Context, fromContext, ItemContext, newItemContext, toContext } from "../interfaces/context/Context";
+import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../interfaces/context/Context";
 import { findContext } from "../services/api/ServiceStorage";
 import { generateHash } from "../services/Utils";
 
@@ -10,7 +10,9 @@ interface StoreProviderContextType {
   context: ItemContext;
   getContext: () => Context;
   defineContext: (value: ItemContext) => void;
+  switchContext: (value?: ItemContext) => Promise<void>;
   updateContext: (value: ItemContext) => void;
+  fectchContext: () => Promise<void>;
 }
 
 interface Payload {
@@ -33,18 +35,7 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   });
 
   useEffect(() => {
-    const loadContext = async () => {
-      const context = await findContext("anonymous");
-      const item = fromContext(context);
-      setData({
-        initialHash: "",
-        actualHash: "",
-        backup: item,
-        context: item,
-        loading: false
-      });
-    };
-    loadContext();
+    fectchContext();
   }, []);
 
   useEffect(() => {
@@ -82,8 +73,20 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
       initialHash: "",
       actualHash: "",
       backup: context,
-      context
+      context: context,
+      loading: false
     }));
+  }
+
+  const switchContext = async (context?: ItemContext) => {
+    if(!context) {
+      await fectchContext();
+      return;
+    }
+
+    if(context._id != data.context._id) {
+      defineContext(context);
+    }
   }
 
   const updateContext = (context: ItemContext) => {
@@ -93,8 +96,15 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     }));
   }
 
+  const fectchContext = async () => {
+    const context = await findContext("anonymous")
+      .catch(() => newContext("anonymous"));
+    const item = fromContext(context );
+    defineContext(item);
+  };
+
   return (
-    <StoreContext.Provider value={{ ...data, getContext, defineContext, updateContext }}>
+    <StoreContext.Provider value={{ ...data, getContext, defineContext, switchContext, updateContext, fectchContext }}>
       {children}
     </StoreContext.Provider>
   );

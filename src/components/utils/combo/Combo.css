@@ -24,6 +24,8 @@
 }
 
 .options-button {
+    display: flex;
+    align-items: center;
     background: none;
     border: none;
     cursor: pointer;

@@ -4,12 +4,19 @@ import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 import { Combo } from '../../../../utils/combo/Combo';
+import { useStoreContext } from '../../../../../store/StoreProviderContext';
 
 import './StoredColumn.css';
 
 export function StoredColumn() {
+    const { switchContext } = useStoreContext();
     const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
     const { stored, fetchStored } = useStoreRequests();
+
+    const defineHistoricRequest = async (request: Request) => {
+        await fetchRequest(request);
+        await switchContext();
+    }
 
     const insertNewRequest = async () => {
         const name = prompt("New request name:");
@@ -65,7 +72,7 @@ export function StoredColumn() {
                         stored.map((cursor) => (
                             <div key={ makeKey(cursor) } className={`request-preview ${ cursor._id == request._id && "request-selected"}`}>
                                 <a className="request-link" title={ cursor.uri }
-                                    onClick={() => fetchRequest(cursor)}>
+                                    onClick={() => defineHistoricRequest(cursor)}>
                                     <div className="request-sign">
                                         <span className="request-sign-method">{ cursor.method }</span>
                                         <span className="request-sign-url">{ cursor.name }</span>

@@ -10,6 +10,7 @@ export type Context = {
   dictionary: Dict<Dict<StatusValue>>;
   owner: string;
   modified: number;
+  domain: string;
 };
 
 export type ItemContext = {
@@ -19,16 +20,18 @@ export type ItemContext = {
   dictionary: ItemStatusCategoryKeyValue[];
   owner: string;
   modified: number;
+  domain: string;
 };
 
 export function newContext(owner: string): Context {
   return {
     _id: "",
     status: true,
-    timestamp: 0,
+    timestamp: Date.now(),
     dictionary: {},
     modified: 0,
-    owner: owner
+    owner: owner,
+    domain: "user",
   }
 }
 
@@ -36,10 +39,11 @@ export function newItemContext(owner: string): ItemContext {
   return {
     _id: "",
     status: true,
-    timestamp: 0,
+    timestamp: Date.now(),
     dictionary: [],
     modified: 0,
-    owner: owner
+    owner: owner,
+    domain: "user",
   }
 }
 
@@ -51,7 +55,8 @@ export const fromContext = (context: Context): ItemContext => {
         timestamp: context.timestamp,
         dictionary: argumentVec,
         owner: context.owner,
-        modified: context.modified
+        modified: context.modified,
+        domain: context.domain
     };
 }
 
@@ -63,6 +68,7 @@ export const toContext = (context: ItemContext): Context => {
       timestamp: context.timestamp,
       dictionary: argumentMap,
       owner: context.owner,
-      modified: context.modified
+      modified: context.modified,
+      domain: context.domain
   };
 }

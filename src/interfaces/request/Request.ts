@@ -83,7 +83,7 @@ export interface Auth {
 export function newRequest(owner: string, name?: string): Request {
   return {
     _id: "",
-    timestamp: 0,
+    timestamp: Date.now(),
     name: name || "",
     method: HttpMethod.GET,
     uri: "",
@@ -101,7 +101,7 @@ export function newRequest(owner: string, name?: string): Request {
 export function newItemRequest(owner: string, name?: string): ItemRequest {
   return {
     _id: "",
-    timestamp: 0,
+    timestamp: Date.now(),
     name: name || "",
     method: HttpMethod.GET,
     uri: "",

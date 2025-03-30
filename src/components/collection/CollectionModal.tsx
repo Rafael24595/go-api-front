@@ -62,6 +62,7 @@ export function CollectionModal({ isOpen, request, onClose }: CollectionModalPro
     const submitChanges = async () => {
        await pushToCollection("anonymous", data.collectionId, data.collectionName, request, data.requestName);
        await fetchCollection();
+       onClose();
     }
 
     return (
