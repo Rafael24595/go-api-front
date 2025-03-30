@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Modal } from '../utils/modal/Modal';
 import { Request } from '../../interfaces/request/Request';
 import { useStoreRequests } from '../../store/StoreProviderRequests';
+import { pushToCollection } from '../../services/api/ServiceStorage';
 
 import './CollectionModal.css';
 
@@ -14,45 +15,53 @@ interface CollectionModalProps {
 }
 
 interface Payload {
-    name: string;
-    collection: string;
-    newCollection: string;
+    collectionId: string;
+    collectionName: string;
+    requestName: string;
 }
 
 export function CollectionModal({ isOpen, request, onClose }: CollectionModalProps) {
-    const { collection } = useStoreRequests();
+    const { collection, fetchCollection } = useStoreRequests();
 
     const [data, setData] = useState<Payload>({
-        name: request.name,
-        collection: NEW_COLLECTION,
-        newCollection: "",
+        collectionId: NEW_COLLECTION,
+        collectionName: "",
+        requestName: request.name,
     });
 
     useEffect(() => {
         setData(prevData => ({
             ...prevData,
-            name: request.name,
+            requestName: request.name,
             collection: NEW_COLLECTION,
-            newCollection: "",
+            collectionName: "",
         }));
     }, [request]);
 
-    const nameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const requestNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setData((prevData) => ({
             ...prevData,
-            name: e.target.value
+            requestName: e.target.value
         }));
     };
 
     const collectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setData((prevData) => ({
             ...prevData,
-            collection: e.target.value
+            collectionId: e.target.value
+        }));
+    };
+
+    const collectionNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setData((prevData) => ({
+            ...prevData,
+            collectionName: e.target.value
         }));
     };
 
     const submitChanges = async () => {
-       //TODO: Define.
+       await pushToCollection("anonymous", data.collectionId, data.collectionName, request, data.requestName);
+       await fetchCollection();
     }
 
     return (
@@ -81,7 +90,7 @@ export function CollectionModal({ isOpen, request, onClose }: CollectionModalPro
                 <div id="form-group">
                     <div className="form-fragment">
                         <label htmlFor="collection-request-name">Name:</label>
-                        <input className="request-name-input" name="collection-request-name" type="text" onChange={nameChange} placeholder="Request name" value={data.name}/>
+                        <input className="request-name-input" name="collection-request-name" type="text" onChange={requestNameChange} placeholder="Request name" value={data.requestName}/>
                     </div>
                     <div className="form-fragment">
                         <label htmlFor="collection-request-parent">Collection:</label>
@@ -94,10 +103,10 @@ export function CollectionModal({ isOpen, request, onClose }: CollectionModalPro
                         </select>
                     </div>
                     <div className="form-fragment">
-                        {data.collection == NEW_COLLECTION && (
+                        {data.collectionId == NEW_COLLECTION && (
                             <>
                                 <label htmlFor="collection-request-name">New Collection:</label>
-                                <input className="request-name-input" name="collection-request-name" type="text" onChange={nameChange} placeholder="Collection name" value={data.newCollection}/>
+                                <input className="request-name-input" name="collection-request-name" type="text" onChange={collectionNameChange} placeholder="Collection name" value={data.collectionName}/>
                             </>
                         )}
                     </div>

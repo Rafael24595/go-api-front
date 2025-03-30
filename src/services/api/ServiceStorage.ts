@@ -1,8 +1,9 @@
-import { Collection } from "../../interfaces/collection/Collection";
+import { Collection, ItemCollection } from "../../interfaces/collection/Collection";
 import { Context } from "../../interfaces/context/Context";
 import { Request } from "../../interfaces/request/Request";
 import { Response } from "../../interfaces/response/Response";
 import apiManager from "./ApiManager";
+import { RequestPushToCollection } from "./RequestPushToCollection";
 import { ResponseExecuteAction } from "./ResponseExecuteAction";
 
 export const findContext = async (user: string): Promise<Context> => {
@@ -79,7 +80,7 @@ export const pushHistoric = async (user: string, request: Request, response?: Re
     }
 };
 
-export const findAllCollection = async (user: string): Promise<Collection[]> => {
+export const findAllCollection = async (user: string): Promise<ItemCollection[]> => {
   try {
       const apiResponse = await apiManager.get(`/api/v1/collection/${user}`);
       return apiResponse.data;
@@ -91,6 +92,21 @@ export const findAllCollection = async (user: string): Promise<Collection[]> => 
 export const insertCollection = async (user: string, collection: Collection): Promise<ResponseExecuteAction> => {
   try {
       const apiResponse = await apiManager.post(`/api/v1/collection/${user}`, collection);
+      return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const pushToCollection = async (user: string, collectionId: string, collectionName: string, request: Request, requestName: string): Promise<ResponseExecuteAction> => {
+  try {
+      const payload: RequestPushToCollection = { 
+        collection_id: collectionId,
+        collection_name: collectionName,
+        request: request,
+        request_name: requestName
+      };
+      const apiResponse = await apiManager.put(`/api/v1/collection/${user}`, payload);
       return apiResponse.data;
   } catch (error) {
     throw error;

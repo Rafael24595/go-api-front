@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { findAllAction, findAllCollection, findAllHistoric } from "../services/api/ServiceStorage";
 import { Request } from "../interfaces/request/Request";
-import { Collection } from "../interfaces/collection/Collection";
+import { ItemCollection } from "../interfaces/collection/Collection";
 
 interface StoreProviderRequestsType {
   historic: Request[];
   stored: Request[];
-  collection: Collection[];
+  collection: ItemCollection[];
   fetchAll: () => Promise<void>;
   fetchHistoric: () => Promise<void>;
   fetchStored: () => Promise<void>;
@@ -16,7 +16,7 @@ interface StoreProviderRequestsType {
 interface Payload {
   historic: Request[];
   stored: Request[];
-  collection: Collection[];
+  collection: ItemCollection[];
 }
 
 const StoreContext = createContext<StoreProviderRequestsType | undefined>(undefined);
