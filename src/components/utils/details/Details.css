@@ -1,15 +1,15 @@
 .summary-container {
   display: flex;
   justify-content: space-between;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .summary-content {
   display: flex;
-  width: 100%;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  flex-direction: column;
+  width: 100%;
 }
 
 .details-button {

@@ -32,11 +32,9 @@ export const Details: React.FC<DetailsProps> = ({ identity, summary, options, su
             <span>{isOpen ? "▲" : "▼"}</span>
             {summary} 
           </button>
-          {options && options}
-        </div>
-        <div className="subsummary-content">
           {subsummary}
         </div>
+        {options && options}
       </div>
       <div className={`details-content ${isOpen ? "open" : ""}`}>
         {children}
