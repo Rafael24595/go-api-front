@@ -118,7 +118,6 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     });
 
     useEffect(() => {
-        console.log(context)
         setData(prevData => ({
             ...prevData,
             status: context.status,
@@ -281,7 +280,8 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
 
     const submitContext = async () => {
         const newContext = getContext();
-        const response = await insertContext("anonymous", newContext);
+        const response = await insertContext(newContext);
+        context._id = response._id;
         defineContext(context);
     }
 
