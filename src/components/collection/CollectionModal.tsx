@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Modal } from '../utils/modal/Modal';
 import { Request } from '../../interfaces/request/Request';
 import { useStoreRequests } from '../../store/StoreProviderRequests';
-import { pushToCollection } from '../../services/api/ServiceStorage';
 
 import './CollectionModal.css';
 
@@ -11,6 +10,7 @@ const NEW_COLLECTION = "";
 interface CollectionModalProps {
     isOpen: boolean,
     request: Request,
+    onSubmit(collectionId: string, collectionName: string, request: Request, requestName: string): Promise<void>,
     onClose: () => void,
 }
 
@@ -20,7 +20,7 @@ interface Payload {
     requestName: string;
 }
 
-export function CollectionModal({ isOpen, request, onClose }: CollectionModalProps) {
+export function CollectionModal({ isOpen, request, onSubmit, onClose }: CollectionModalProps) {
     const { collection, fetchCollection } = useStoreRequests();
 
     const [data, setData] = useState<Payload>({
@@ -60,7 +60,7 @@ export function CollectionModal({ isOpen, request, onClose }: CollectionModalPro
     };
 
     const submitChanges = async () => {
-       await pushToCollection("anonymous", data.collectionId, data.collectionName, request, data.requestName);
+       await onSubmit(data.collectionId, data.collectionName, request, data.requestName);
        await fetchCollection();
        onClose();
     }

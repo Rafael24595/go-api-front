@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
-import { deleteAction } from '../../../../../services/api/ServiceStorage';
+import { deleteAction, pushToCollection } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
@@ -8,6 +8,7 @@ import { CollectionModal } from '../../../../collection/CollectionModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
+import { RequestPushToCollection } from '../../../../../services/api/RequestPushToCollection';
 
 import './HistoricColumn.css';
 
@@ -47,7 +48,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
 
     const deleteHistoric = async (request: Request) => {
         try {
-            await deleteAction("anonymous", request);
+            await deleteAction(request);
             await fetchHistoric();
         } catch (error) {
             console.error("Error fetching history:", error);
@@ -71,6 +72,18 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const closeModal = () => {
         setData({...data, modal: false});
     };
+
+    const submitModal = async (collectionId: string, collectionName: string, request: Request, requestName: string) => {
+        const payload: RequestPushToCollection = {
+            source_id: "",
+            target_id: collectionId,
+            target_name: collectionName,
+            request: request,
+            request_name: requestName,
+            move: 'clone',
+        };
+        await pushToCollection(payload);
+    }
 
     return (
         <>
@@ -129,6 +142,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
             <CollectionModal 
                 isOpen={data.modal} 
                 request={data.request} 
+                onSubmit={submitModal}
                 onClose={closeModal}/>
         </>
     );
