@@ -54,3 +54,20 @@ export function newItemCollection(owner: string): ItemCollection {
     owner: owner
   }
 }
+
+export const toCollection = (collection: ItemCollection): Collection => {
+  const nodes = collection.nodes
+    .map(n => {return {
+      order: n.order, 
+      request: n.request._id || ""}
+    });
+  return {
+    _id: collection._id,
+    name: "",
+    timestamp: collection.timestamp,
+    context: collection.context._id,
+    nodes: nodes,
+    modified: collection.modified,
+    owner: collection.owner
+  }
+}

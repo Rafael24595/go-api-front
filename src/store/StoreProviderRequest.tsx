@@ -190,7 +190,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     //TODO: Manage user session.
     return insertAction(req, res);
-};
+  };
 
   const processUri = () => {
     const url = new URL(data.request.uri);

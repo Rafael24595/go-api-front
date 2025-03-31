@@ -61,7 +61,6 @@ export function CollectionModal({ isOpen, request, onSubmit, onClose }: Collecti
 
     const submitChanges = async () => {
        await onSubmit(data.collectionId, data.collectionName, request, data.requestName);
-       await fetchCollection();
        onClose();
     }
 

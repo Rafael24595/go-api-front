@@ -53,6 +53,15 @@ export const insertAction = async (request: Request, response?: Response): Promi
   }
 };
 
+export const updateAction = async (request: Request): Promise<ResponseExecuteAction> => {
+  try {
+    const apiResponse = await apiManager.put(`/api/v1/storage`, request);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const deleteAction = async (request: Request): Promise<ResponseExecuteAction> => {
   try {
     const apiResponse = await apiManager.delete(`/api/v1/storage/${request._id}`);

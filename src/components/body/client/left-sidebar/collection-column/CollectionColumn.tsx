@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ItemCollection, newCollection } from '../../../../../interfaces/collection/Collection';
+import { ItemCollection, newCollection, toCollection } from '../../../../../interfaces/collection/Collection';
 import { fromContext } from '../../../../../interfaces/context/Context';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
-import { cloneCollection, deleteCollection, deleteFromCollection, insertCollection, pushToCollection, takeFromCollection } from '../../../../../services/api/ServiceStorage';
+import { cloneCollection, deleteCollection, deleteFromCollection, insertCollection, pushToCollection, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
@@ -53,6 +53,27 @@ export function CollectionColumn() {
         await fetchCollection();
     }
 
+    const renameCollection = async (collection: ItemCollection) => {
+        const name = prompt("Insert a name: ");
+        if(name == null) {
+            return;
+        }
+        collection.name = name;
+
+        await insertCollection(toCollection(collection));
+        await fetchCollection();
+    };
+
+    const renameFromCollection = async (request: Request) => {
+        const name = prompt("Insert a name: ");
+        if(name == null) {
+            return;
+        }
+        request.name = name;
+        await updateAction(request);
+        await fetchCollection();
+    };
+
     const clone = async (collection: ItemCollection) => {
         const name = prompt("Insert a name: ");
         if(name == null) {
@@ -79,6 +100,13 @@ export function CollectionColumn() {
         await switchContext(context);
     }
 
+    const cloneFromCollection = (request: Request) => {
+        const newRequest = {...request};
+        newRequest._id = undefined;
+        newRequest.status = 'draft';
+        defineRequest(newRequest);
+    };
+
     const openCloneModal = (request: Request) => {
         setData({collection: undefined, request: request, move: false, modal: true});
     };
@@ -101,6 +129,7 @@ export function CollectionColumn() {
             move: data.move ? "move" : "clone",
         };
         await pushToCollection(payload);
+        await fetchCollection();
     }
 
     const makeKey = (collection: ItemCollection, request: Request): string => {
@@ -131,9 +160,15 @@ export function CollectionColumn() {
                                         action: () => remove(cursorCollection)
                                     },
                                     {
-                                        icon: "🐑",
-                                        label: "Clone",
-                                        title: "Clone request",
+                                        icon: "✏️",
+                                        label: "Rename",
+                                        title: "Rename request",
+                                        action: () => renameCollection(cursorCollection)
+                                    },
+                                    {
+                                        icon: "🐏",
+                                        label: "Duplicate",
+                                        title: "Duplicate collection",
                                         action: () => clone(cursorCollection)
                                     },
                                 ]}/>)}
@@ -161,9 +196,21 @@ export function CollectionColumn() {
                                             action: () => removeFrom(cursorCollection, node.request)
                                         },
                                         {
+                                            icon: "✏️",
+                                            label: "Rename",
+                                            title: "Rename request",
+                                            action: () => renameFromCollection(node.request)
+                                        },
+                                        {
                                             icon: "🐑",
                                             label: "Clone",
-                                            title: "Clone to collection",
+                                            title: "Clone request",
+                                            action: () => cloneFromCollection(node.request)
+                                        },
+                                        {
+                                            icon: "🐏",
+                                            label: "Duplicate",
+                                            title: "Duplicate to collection",
                                             action: () => openCloneModal(node.request)
                                         },
                                         {

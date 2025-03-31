@@ -1,4 +1,4 @@
-import { deleteAction } from '../../../../../services/api/ServiceStorage';
+import { deleteAction, pushToCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
@@ -7,11 +7,26 @@ import { Combo } from '../../../../utils/combo/Combo';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
 
 import './StoredColumn.css';
+import { useState } from 'react';
+import { CollectionModal } from '../../../../collection/CollectionModal';
+import { RequestPushToCollection } from '../../../../../services/api/RequestPushToCollection';
+
+interface Payload {
+    request: Request;
+    move: boolean;
+    modal: boolean;
+}
 
 export function StoredColumn() {
     const { switchContext } = useStoreContext();
     const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
-    const { stored, fetchStored } = useStoreRequests();
+    const { stored, fetchStored, fetchCollection } = useStoreRequests();
+
+    const [data, setData] = useState<Payload>({
+        request: newRequest("anonymous"),
+        move: false,
+        modal: false,
+    });
 
     const defineHistoricRequest = async (request: Request) => {
         await fetchRequest(request);
@@ -39,6 +54,16 @@ export function StoredColumn() {
         await fetchStored();
     };
 
+    const renameStored = async (request: Request) => {
+        const name = prompt("Insert a name: ");
+        if(name == null) {
+            return;
+        }
+        request.name = name;
+        await updateAction(request);
+        await fetchStored();
+    };
+
     const deleteStored = async (request: Request) => {
         try {
             await deleteAction(request);
@@ -54,6 +79,32 @@ export function StoredColumn() {
         newRequest.status = 'draft';
         defineRequest(newRequest);
     };
+
+    const openCollectModal = (request: Request) => {
+        setData({request: request, move: false, modal: true});
+    };
+
+    const openMoveModal = (request: Request) => {
+        setData({request: request, move: true, modal: true});
+    };
+
+    const closeModal = () => {
+        setData({...data, modal: false});
+    };
+
+    const submitModal = async (collectionId: string, collectionName: string, request: Request, requestName: string) => {
+        const payload: RequestPushToCollection = {
+            source_id: "",
+            target_id: collectionId,
+            target_name: collectionName,
+            request: request,
+            request_name: requestName,
+            move: data.move ? "move" : "clone",
+        };
+        await pushToCollection(payload);
+        await fetchStored();
+        await fetchCollection();
+    }
 
     const makeKey = (request: Request): string => {
         return `${request.timestamp}-${request.method}-${request.uri}`;
@@ -89,17 +140,35 @@ export function StoredColumn() {
                                         action: () => deleteStored(cursor)
                                     },
                                     {
-                                        icon: "🐏",
-                                        label: "Duplicate",
-                                        title: "Duplicate request",
-                                        action: () => insertStored(cursor)
+                                        icon: "✏️",
+                                        label: "Rename",
+                                        title: "Rename request",
+                                        action: () => renameStored(cursor)
                                     },
                                     {
                                         icon: "🐑",
                                         label: "Clone",
                                         title: "Clone request",
                                         action: () => cloneStored(cursor)
-                                    }
+                                    },
+                                    {
+                                        icon: "🐏",
+                                        label: "Duplicate",
+                                        title: "Duplicate request",
+                                        action: () => insertStored(cursor)
+                                    },
+                                    {
+                                        icon: "📚",
+                                        label: "Collect",
+                                        title: "Copy to collection",
+                                        action: () => openCollectModal(cursor)
+                                    },
+                                    {
+                                        icon: "📦",
+                                        label: "Move",
+                                        title: "Move to collection",
+                                        action: () => openMoveModal(cursor)
+                                    },
                                 ]}/>
                             </div>
                         ))
@@ -107,6 +176,11 @@ export function StoredColumn() {
                         <p className="no-data"> - No requests found - </p>
                     )}
                 </div>
+                <CollectionModal
+                    isOpen={data.modal} 
+                    request={data.request} 
+                    onSubmit={submitModal}
+                    onClose={closeModal}/>
             </>
         );
 }

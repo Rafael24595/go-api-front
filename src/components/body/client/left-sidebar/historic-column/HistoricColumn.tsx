@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
-import { deleteAction, pushToCollection } from '../../../../../services/api/ServiceStorage';
+import { deleteAction, pushToCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
@@ -24,7 +24,7 @@ interface Payload {
 export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const { switchContext } = useStoreContext();
     const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
-    const { historic, fetchHistoric, fetchStored } = useStoreRequests();
+    const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreRequests();
 
     const [data, setData] = useState<Payload>({
         request: newRequest("anonymous"),
@@ -83,6 +83,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
             move: 'clone',
         };
         await pushToCollection(payload);
+        await fetchCollection();
     }
 
     return (
