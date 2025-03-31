@@ -1,4 +1,4 @@
-import { Context } from "../context/Context";
+import { Context, newContext } from "../context/Context";
 import { Request } from "../request/Request";
 
 export interface Collection {
@@ -37,6 +37,18 @@ export function newCollection(owner: string): Collection {
     name: "",
     timestamp: 0,
     context: "",
+    modified: 0,
+    nodes: [],
+    owner: owner
+  }
+}
+
+export function newItemCollection(owner: string): ItemCollection {
+  return {
+    _id: "",
+    name: "",
+    timestamp: 0,
+    context: newContext(owner),
     modified: 0,
     nodes: [],
     owner: owner
