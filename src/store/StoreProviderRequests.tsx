@@ -46,7 +46,7 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
 
   const fetchHistoric = async () => {
       try {
-          const data = (await findAllHistoric("anonymous"))
+          const data = (await findAllHistoric())
               .sort((a, b) => b.timestamp - a.timestamp);
           setData((prevData) => ({
             ...prevData,
@@ -59,7 +59,7 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
 
   const fetchStored = async () => {
       try {
-          const data = (await findAllAction("anonymous"))
+          const data = (await findAllAction())
               .sort((a, b) => b.timestamp - a.timestamp);
           setData((prevData) => ({
             ...prevData,
@@ -72,7 +72,7 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
 
   const fetchCollection = async () => {
     try {
-        const data = (await findAllCollection("anonymous"))
+        const data = (await findAllCollection())
             .sort((a, b) => b.timestamp - a.timestamp);
         setData((prevData) => ({
           ...prevData,

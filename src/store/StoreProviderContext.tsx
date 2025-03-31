@@ -97,7 +97,7 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const fectchContext = async () => {
-    const context = await findContext("anonymous")
+    const context = await findContext()
       .catch(() => newContext("anonymous"));
     const item = fromContext(context );
     defineContext(item);

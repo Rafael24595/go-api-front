@@ -172,7 +172,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   };
 
   const fetchRequest = async (request: Request) => {
-    const apiResponse = await findAction("anonymous", request);
+    const apiResponse = await findAction(request);
     defineRequest(apiResponse.request, apiResponse.response);
   }
 
@@ -189,7 +189,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     }
 
     //TODO: Manage user session.
-    return insertAction("anonymous", req, res);
+    return insertAction(req, res);
 };
 
   const processUri = () => {

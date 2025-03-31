@@ -41,7 +41,7 @@ export function StoredColumn() {
 
     const deleteStored = async (request: Request) => {
         try {
-            await deleteAction("anonymous", request);
+            await deleteAction(request);
             await fetchStored();
         } catch (error) {
             console.error("Error fetching history:", error);

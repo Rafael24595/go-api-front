@@ -46,7 +46,7 @@ export function ContentContainer() {
         updateRequest(req, apiResponse.response);
 
         //TODO: Manage user session.
-        apiResponse = await pushHistoric("anonymous", req, apiResponse.response);
+        apiResponse = await pushHistoric(req, apiResponse.response);
 
         req._id = apiResponse.request._id;
         updateRequest(req, apiResponse.response);
@@ -69,7 +69,7 @@ export function ContentContainer() {
         defineRequest(req, res)
 
         //TODO: Manage user session.
-        apiResponse = await pushHistoric("anonymous", apiResponse.request, apiResponse.response);
+        apiResponse = await pushHistoric(apiResponse.request, apiResponse.response);
 
         fetchAll();
     };
