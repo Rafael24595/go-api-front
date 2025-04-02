@@ -53,7 +53,6 @@ export const Combo: React.FC<OptionsMenuProps> = ({ options }) => {
         onClick={() => setIsOpen(!isOpen)}
         className="options-button"
       >
-        {/* Inline SVG for three dots */}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="5" r="2" />
           <circle cx="12" cy="12" r="2" />
@@ -65,12 +64,12 @@ export const Combo: React.FC<OptionsMenuProps> = ({ options }) => {
           ref={boxRef}
           className="options-menu"
           style={{
-            bottom: yAxis === "top" ? "100%" : "auto",
-            top: yAxis === "bottom" ? "100%" : "auto",
+            bottom: yAxis === "top" ? "75%" : "auto",
+            top: yAxis === "bottom" ? "75%" : "auto",
             marginBottom: yAxis === "top" ? "5px" : "0",
             marginTop: yAxis === "bottom" ? "5px" : "0",
-            left: xAxis === "right" ? "100%" : "auto",
-            right: xAxis === "left" ? "100%" : "auto",
+            left: xAxis === "right" ? "80%" : "auto",
+            right: xAxis === "left" ? "80%" : "auto",
           }}
         >
           {options.map((option, index) => (
