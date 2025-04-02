@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ItemCollection, newCollection, toCollection } from '../../../../../interfaces/collection/Collection';
+import { ItemCollection, newCollection, newItemCollection, toCollection } from '../../../../../interfaces/collection/Collection';
 import { fromContext } from '../../../../../interfaces/context/Context';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
 import { cloneCollection, deleteCollection, deleteFromCollection, insertCollection, pushToCollection, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
@@ -14,9 +14,13 @@ import { RequestPushToCollection } from '../../../../../services/api/RequestPush
 
 import './CollectionColumn.css';
 
+const FILTER_TARGET_KEY = "CollectionColumnDetailsFilterTarget";
+const FILTER_VALUE_KEY = "CollectionColumnDetailsFilterValue";
 const CURSOR_KEY = "CollectionColumnDetailsCursor";
 
 interface Payload {
+    filterTarget: keyof ItemCollection;
+    filterValue: string;
     request: Request;
     collection?: ItemCollection;
     move: boolean;
@@ -29,6 +33,8 @@ export function CollectionColumn() {
     const { collection, fetchStored, fetchCollection } = useStoreRequests();
 
     const [data, setData] = useState<Payload>({
+        filterTarget: findFilterTarget(),
+        filterValue: findFilterValue(),
         request: newRequest("anonymous"),
         collection: undefined,
         move: false,
@@ -58,6 +64,9 @@ export function CollectionColumn() {
         if(name == null) {
             return;
         }
+
+        console.log(name)
+
         collection.name = name;
 
         await insertCollection(toCollection(collection));
@@ -108,11 +117,23 @@ export function CollectionColumn() {
     };
 
     const openCloneModal = (request: Request) => {
-        setData({collection: undefined, request: request, move: false, modal: true});
+        setData((prevData) => ({
+            ...prevData,
+            collection: undefined, 
+            request: request, 
+            move: false, 
+            modal: true
+        }));
     };
 
     const openMoveModal = (request: Request, collection: ItemCollection) => {
-        setData({collection: collection, request: request, move: true, modal: true});
+        setData((prevData) => ({
+            ...prevData,
+            collection: collection, 
+            request: request, 
+            move: true, 
+            modal: true
+        }));
     };
 
     const closeModal = () => {
@@ -132,6 +153,42 @@ export function CollectionColumn() {
         await fetchCollection();
     }
 
+    function onFilterTargetChange(event: React.ChangeEvent<HTMLSelectElement>): void {
+        const target = fixFilterTarget(event.target.value);
+        storeFilterTarget(target);
+        setData((prevData) => ({
+            ...prevData,
+            filterTarget: target,
+        }));
+    }
+
+    function onFilterValueChange(event: React.ChangeEvent<HTMLInputElement>): void {
+        storeFilterValue(event.target.value);
+        setData((prevData) => ({
+            ...prevData,
+            filterValue: event.target.value,
+        }));
+    }
+
+    function onFilterValueClean(): void {
+        setData((prevData) => ({
+            ...prevData,
+            filterValue: "",
+        }));
+    }
+
+    function applyFilter(value: ItemCollection): boolean {
+        if(data.filterValue == "") {
+            return true;
+        }
+        
+        let field = value[data.filterTarget].toString();
+        if(data.filterTarget == "timestamp") {
+            field = millisecondsToDate(value[data.filterTarget]);
+        }
+        return field.toLowerCase().includes(data.filterValue.toLowerCase())
+    }
+
     const makeKey = (collection: ItemCollection, request: Request): string => {
         return `${collection.name}-${request.timestamp}-${request.method}-${request.uri}`;
     }
@@ -146,7 +203,7 @@ export function CollectionColumn() {
             </button>
             <div id="actions-container">
                 {collection.length > 0 ? (
-                    collection.map((cursorCollection) => (
+                    collection.filter(applyFilter).map((cursorCollection) => (
                         <Details 
                             key={cursorCollection._id}
                             identity={cursorKey(cursorCollection)}
@@ -239,8 +296,42 @@ export function CollectionColumn() {
                     <p className="no-data"> - No Collections found - </p>
                 )}
             </div>
+            <div id="search-box">
+                <button title="Clean filter" onClick={onFilterValueClean}></button>
+                <input id="search-input" type="text" value={data.filterValue} onChange={onFilterValueChange}/>
+                <select value={data.filterTarget} onChange={onFilterTargetChange}>
+                    <option value="name">Name</option>
+                    <option value="timestamp">Date</option>
+                </select>
+            </div>
         </>
     )
+}
+
+const emptyItemCollection = newItemCollection("anonymous");
+
+const fixFilterTarget = (value: string | null): keyof ItemCollection => {
+    if (value && value in emptyItemCollection) {
+        return value as keyof ItemCollection;
+    }
+    return "name";
+}
+
+const findFilterTarget = (): keyof ItemCollection => {
+    const value = localStorage.getItem(FILTER_TARGET_KEY);
+    return fixFilterTarget(value);
+}
+
+const storeFilterTarget = (filter: string) => {
+    localStorage.setItem(FILTER_VALUE_KEY, filter);
+}
+
+const findFilterValue = () => {
+    return localStorage.getItem(FILTER_TARGET_KEY) || "";
+}
+
+const storeFilterValue = (filter: string) => {
+    localStorage.setItem(FILTER_VALUE_KEY, filter);
 }
 
 const cursorKey = (collection: ItemCollection) => {

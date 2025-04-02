@@ -5,13 +5,18 @@ import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
-
-import './StoredColumn.css';
 import { useState } from 'react';
 import { CollectionModal } from '../../../../collection/CollectionModal';
 import { RequestPushToCollection } from '../../../../../services/api/RequestPushToCollection';
 
+import './StoredColumn.css';
+
+const FILTER_TARGET_KEY = "CollectionColumnDetailsFilterTarget";
+const FILTER_VALUE_KEY = "CollectionColumnDetailsFilterValue";
+
 interface Payload {
+    filterTarget: keyof Request;
+    filterValue: string;
     request: Request;
     move: boolean;
     modal: boolean;
@@ -23,6 +28,8 @@ export function StoredColumn() {
     const { stored, fetchStored, fetchCollection } = useStoreRequests();
 
     const [data, setData] = useState<Payload>({
+        filterTarget: findFilterTarget(),
+        filterValue: findFilterValue(),
         request: newRequest("anonymous"),
         move: false,
         modal: false,
@@ -81,11 +88,21 @@ export function StoredColumn() {
     };
 
     const openCollectModal = (request: Request) => {
-        setData({request: request, move: false, modal: true});
+        setData((prevData) => ({
+            ...prevData,
+            request: request,
+            move: false,
+            modal: true
+        }));
     };
 
     const openMoveModal = (request: Request) => {
-        setData({request: request, move: true, modal: true});
+        setData((prevData) => ({
+            ...prevData,
+            request: request,
+            move: true,
+            modal: true
+        }));
     };
 
     const closeModal = () => {
@@ -106,6 +123,43 @@ export function StoredColumn() {
         await fetchCollection();
     }
 
+    function onFilterTargetChange(event: React.ChangeEvent<HTMLSelectElement>): void {
+        const target = fixFilterTarget(event.target.value);
+        storeFilterTarget(target);
+        setData((prevData) => ({
+            ...prevData,
+            filterTarget: target,
+        }));
+    }
+
+    function onFilterValueChange(event: React.ChangeEvent<HTMLInputElement>): void {
+        storeFilterValue(event.target.value);
+        setData((prevData) => ({
+            ...prevData,
+            filterValue: event.target.value,
+        }));
+    }
+
+    function onFilterValueClean(): void {
+        setData((prevData) => ({
+            ...prevData,
+            filterValue: "",
+        }));
+    }
+
+    function applyFilter(value: Request): boolean {
+        let field = value[data.filterTarget]
+        if(data.filterValue == "" || field == undefined) {
+            return true;
+        }
+
+        field = field.toString();
+        if(data.filterTarget == "timestamp") {
+            field = millisecondsToDate(value[data.filterTarget]);
+        }
+        return field.toLowerCase().includes(data.filterValue.toLowerCase())
+    }
+
     const makeKey = (request: Request): string => {
         return `${request.timestamp}-${request.method}-${request.uri}`;
     }
@@ -120,7 +174,7 @@ export function StoredColumn() {
                 </button>
                 <div id="actions-container">
                     {stored.length > 0 ? (
-                        stored.map((cursor) => (
+                        stored.filter(applyFilter).map((cursor) => (
                             <div key={ makeKey(cursor) } className={`request-preview ${ cursor._id == request._id && "request-selected"}`}>
                                 <a className="request-link" title={ cursor.uri }
                                     onClick={() => defineHistoricRequest(cursor)}>
@@ -176,6 +230,16 @@ export function StoredColumn() {
                         <p className="no-data"> - No requests found - </p>
                     )}
                 </div>
+                <div id="search-box">
+                    <button title="Clean filter" onClick={onFilterValueClean}></button>
+                    <input id="search-input" type="text" value={data.filterValue} onChange={onFilterValueChange}/>
+                    <select value={data.filterTarget} onChange={onFilterTargetChange}>
+                        <option value="name">Name</option>
+                        <option value="timestamp">Date</option>
+                        <option value="method">Method</option>
+                        <option value="uri">Uri</option>
+                    </select>
+                </div>
                 <CollectionModal
                     isOpen={data.modal} 
                     request={data.request} 
@@ -183,4 +247,30 @@ export function StoredColumn() {
                     onClose={closeModal}/>
             </>
         );
+}
+
+const emptyRequest = newRequest("anonymous");
+
+const fixFilterTarget = (value: string | null): keyof Request => {
+    if (value && value in emptyRequest) {
+        return value as keyof Request;
+    }
+    return "name";
+}
+
+const findFilterTarget = (): keyof Request => {
+    const value = localStorage.getItem(FILTER_TARGET_KEY);
+    return fixFilterTarget(value);
+}
+
+const storeFilterTarget = (filter: string) => {
+    localStorage.setItem(FILTER_VALUE_KEY, filter);
+}
+
+const findFilterValue = () => {
+    return localStorage.getItem(FILTER_TARGET_KEY) || "";
+}
+
+const storeFilterValue = (filter: string) => {
+    localStorage.setItem(FILTER_VALUE_KEY, filter);
 }

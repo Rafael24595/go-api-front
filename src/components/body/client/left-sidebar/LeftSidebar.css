@@ -13,3 +13,27 @@
     flex-direction: column;
     flex: 1 1 auto;
 }
+
+#search-box {
+    display: flex;
+    width: 100%;
+}
+
+#search-box input {
+    flex: 1 1 auto;
+    height: 20px;
+    border-radius: 0px;
+}
+
+#search-box select, #search-box button {
+    max-width: 50px;
+    border-radius: 0px;
+}
+
+#search-box button::after {
+    content: '🗑️';
+}
+
+#search-input {
+    flex: 1 1 auto;
+}

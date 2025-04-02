@@ -21,7 +21,7 @@ interface Payload {
 }
 
 export function CollectionModal({ isOpen, request, onSubmit, onClose }: CollectionModalProps) {
-    const { collection, fetchCollection } = useStoreRequests();
+    const { collection } = useStoreRequests();
 
     const [data, setData] = useState<Payload>({
         collectionId: NEW_COLLECTION,

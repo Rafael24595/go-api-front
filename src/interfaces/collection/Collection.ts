@@ -63,7 +63,7 @@ export const toCollection = (collection: ItemCollection): Collection => {
     });
   return {
     _id: collection._id,
-    name: "",
+    name: collection.name,
     timestamp: collection.timestamp,
     context: collection.context._id,
     nodes: nodes,
