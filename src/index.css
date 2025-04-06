@@ -100,6 +100,20 @@ button:hover {
   text-align: center;
 }
 
+.column-option.options {
+  display: flex;
+  justify-content: space-between;
+}
+
+#left-options, #right-options {
+  visibility: hidden;
+}
+
+#left-options.show, #right-options.show {
+  visibility: visible;
+}
+
+
 /* ----------------------- */
 
 /* Move to custom css file */
@@ -191,4 +205,17 @@ button:hover {
 
 .request-sign-timestamp {
   font-style: italic;
+}
+
+.button-anchor {
+  background-color: transparent;
+  border: 0px;
+  font-weight: 600;
+  font-size: 1em;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.button-anchor:hover {
+  background-color: transparent;
 }

@@ -11,6 +11,7 @@ import { CollectionModal } from '../../../../collection/CollectionModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { Details } from '../../../../utils/details/Details';
 import { RequestPushToCollection } from '../../../../../services/api/RequestPushToCollection';
+import { OpenApiModal } from '../../../../collection/OpenApiModal';
 
 import './CollectionColumn.css';
 
@@ -24,7 +25,8 @@ interface Payload {
     request: Request;
     collection?: ItemCollection;
     move: boolean;
-    modal: boolean;
+    modalOpenApi: boolean;
+    modalCollection: boolean;
 }
 
 export function CollectionColumn() {
@@ -38,7 +40,8 @@ export function CollectionColumn() {
         request: newRequest("anonymous"),
         collection: undefined,
         move: false,
-        modal: false,
+        modalOpenApi: false,
+        modalCollection: false,
     });
 
     const insert = async () => {
@@ -64,8 +67,6 @@ export function CollectionColumn() {
         if(name == null) {
             return;
         }
-
-        console.log(name)
 
         collection.name = name;
 
@@ -122,7 +123,7 @@ export function CollectionColumn() {
             collection: undefined, 
             request: request, 
             move: false, 
-            modal: true
+            modalCollection: true
         }));
     };
 
@@ -132,15 +133,18 @@ export function CollectionColumn() {
             collection: collection, 
             request: request, 
             move: true, 
-            modal: true
+            modalCollection: true
         }));
     };
 
-    const closeModal = () => {
-        setData({...data, modal: false});
+    const closeCollectionModal = () => {
+        setData((prevData) => ({
+            ...prevData,
+            modalCollection: false
+        }));
     };
 
-    const submitModal = async (collectionId: string, collectionName: string, request: Request, requestName: string) => {
+    const submitCollectionModal = async (collectionId: string, collectionName: string, request: Request, requestName: string) => {
         const payload: RequestPushToCollection = {
             source_id: data.collection ? data.collection?._id : "",
             target_id: collectionId,
@@ -152,6 +156,25 @@ export function CollectionColumn() {
         await pushToCollection(payload);
         await fetchCollection();
     }
+
+    const openOpenaApiModal = () => {
+        setData((prevData) => ({
+            ...prevData,
+            modalOpenApi: true
+        }));
+    };
+
+    const submitOpenaApiModal = async (form: FormData) => {
+        console.log("//TODO: POST");
+        console.log(form.entries().next())
+    }
+
+    const closeOpenaApiModal = () => {
+        setData((prevData) => ({
+            ...prevData,
+            modalOpenApi: false
+        }));
+    };
 
     function onFilterTargetChange(event: React.ChangeEvent<HTMLSelectElement>): void {
         const target = fixFilterTarget(event.target.value);
@@ -195,12 +218,22 @@ export function CollectionColumn() {
 
     return (
         <>
-            <button 
-                type="button"
-                className="column-option option-button border-bottom"
-                onClick={() => insert()}>
-                <span>New</span>
-            </button>
+            <div className="column-option options border-bottom">
+                <div id="left-options">
+                    <Combo options={[]}/>
+                </div>
+                <button type="button" className="button-anchor" onClick={() => insert()}>New</button>
+                <div id="right-options show">
+                    <Combo options={[
+                        {
+                            icon: "📃",
+                            label: "OpenApi",
+                            title: "Load an OpenApi definition",
+                            action: openOpenaApiModal
+                        }
+                    ]}/>
+                </div>
+            </div>
             <div id="actions-container">
                 {collection.length > 0 ? (
                     collection.filter(applyFilter).map((cursorCollection) => (
@@ -286,10 +319,10 @@ export function CollectionColumn() {
                                 </div>
                             ))}
                             <CollectionModal 
-                                isOpen={data.modal} 
+                                isOpen={data.modalCollection} 
                                 request={data.request} 
-                                onSubmit={submitModal}
-                                onClose={closeModal}/>
+                                onSubmit={submitCollectionModal}
+                                onClose={closeCollectionModal}/>
                         </Details>
                     ))
                 ) : (
@@ -304,6 +337,11 @@ export function CollectionColumn() {
                     <option value="timestamp">Date</option>
                 </select>
             </div>
+            <OpenApiModal
+                isOpen={data.modalOpenApi}
+                onSubmit={submitOpenaApiModal}
+                onClose={closeOpenaApiModal}
+            />
         </>
     )
 }

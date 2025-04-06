@@ -1,0 +1,34 @@
+#openapi-selector-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#selector-container, #metadata-container{
+    padding: 10px;
+}
+
+#metadata-container {
+    display: flex;
+}
+
+.selector-title {
+    margin-bottom: 5px;
+}
+
+.metadata-fragment {
+    flex: 1 1 auto;
+    max-width: 50%;
+}
+
+#selector-container input, .metadata-fragment p {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.metadata-title {
+    font-weight: 600;
+}
+
+.metadata-value {
+    font-style: italic;
+}
