@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ItemCollection, newCollection, newItemCollection, toCollection } from '../../../../../interfaces/collection/Collection';
 import { fromContext } from '../../../../../interfaces/context/Context';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
-import { cloneCollection, deleteCollection, deleteFromCollection, insertCollection, pushToCollection, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
+import { cloneCollection, deleteCollection, deleteFromCollection, insertCollection, insertOpenApiCollection, pushToCollection, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
@@ -12,6 +12,8 @@ import { Combo } from '../../../../utils/combo/Combo';
 import { Details } from '../../../../utils/details/Details';
 import { RequestPushToCollection } from '../../../../../services/api/RequestPushToCollection';
 import { OpenApiModal } from '../../../../collection/OpenApiModal';
+import { useAlert } from '../../../../utils/alert/Alert';
+import { EAlertCategory } from '../../../../../interfaces/AlertData';
 
 import './CollectionColumn.css';
 
@@ -33,6 +35,8 @@ export function CollectionColumn() {
     const { switchContext } = useStoreContext();
     const { request, defineRequest } = useStoreRequest();
     const { collection, fetchStored, fetchCollection } = useStoreRequests();
+
+    const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({
         filterTarget: findFilterTarget(),
@@ -164,9 +168,22 @@ export function CollectionColumn() {
         }));
     };
 
-    const submitOpenaApiModal = async (form: FormData) => {
-        console.log("//TODO: POST");
-        console.log(form.entries().next())
+    const submitOpenaApiModal = async (file: File) => {
+        const form = new FormData();
+        form.append('file', file);
+
+        const collection = await insertOpenApiCollection(form).catch(e =>
+            push({
+                title: `[${e.statusCode}] ${e.statusText}`,
+                category: EAlertCategory.ERRO,
+                content: e.message,
+            }));
+        if(!collection) {
+            return;
+        }
+        
+        closeOpenaApiModal();
+        await fetchCollection();
     }
 
     const closeOpenaApiModal = () => {
@@ -263,7 +280,9 @@ export function CollectionColumn() {
                                     },
                                 ]}/>)}
                             subsummary={(
-                                <span className="request-sign-timestamp">{ millisecondsToDate(cursorCollection.timestamp) }</span>
+                                <div className="request-sign-date">
+                                    <span className="request-sign-timestamp" title={millisecondsToDate(cursorCollection.timestamp)}>{ millisecondsToDate(cursorCollection.timestamp) }</span>
+                                </div>
                             )}
                             >
                             {cursorCollection.nodes.map((node) => (
@@ -274,8 +293,8 @@ export function CollectionColumn() {
                                             <span className="request-sign-method">{ node.request.method }</span>
                                             <span className="request-sign-url">{ node.request.name }</span>
                                         </div>
-                                        <div>
-                                            <span className="request-sign-timestamp">{ millisecondsToDate(node.request.timestamp) }</span>
+                                        <div className="request-sign-date">
+                                            <span className="request-sign-timestamp" title={millisecondsToDate(node.request.timestamp)}>{ millisecondsToDate(node.request.timestamp) }</span>
                                         </div>
                                     </a>
                                     <Combo options={[

@@ -7,7 +7,7 @@ import { formatBytes, millisecondsToDate } from '../../services/Tools';
 
 interface OpenApiModalProps {
     isOpen: boolean,
-    onSubmit(form: FormData): Promise<void>,
+    onSubmit(file: File): Promise<void>,
     onClose: () => void,
 }
 
@@ -49,11 +49,8 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
             });
             return;
         }
-    
-        const formData = new FormData();
-        formData.append('file', data.file);
 
-        await onSubmit(formData);
+        await onSubmit(data.file);
     }
 
     return (

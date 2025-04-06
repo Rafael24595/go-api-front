@@ -155,3 +155,16 @@ export const takeFromCollection = async (collection: ItemCollection, request: Re
     throw error;
   }
 };
+
+export const insertOpenApiCollection = async (form: FormData): Promise<ItemCollection> => {
+  try {
+    const apiResponse = await apiManager.post(`/api/v1/openapi`, form, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
