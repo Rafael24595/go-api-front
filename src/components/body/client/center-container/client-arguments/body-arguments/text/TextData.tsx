@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import CodeMirror from "@uiw/react-codemirror";
 import { lintGutter } from "@codemirror/lint";
 
@@ -12,18 +10,15 @@ interface Payload {
   onValueChange: (content: string, payload: string) => void;
 }
 
-export function TextData({value, onValueChange}: Payload) {
-    const [data, setData] = useState(value);
-    
+export function TextData({value, onValueChange}: Payload) {   
     const onChange = (value: string) => {
-      setData(value);
       onValueChange(CONTENT_TYPE, value);
     };
 
     return (
         <>
             <CodeMirror
-                value={data}
+                value={value}
                 height="300px"
                 extensions={[lintGutter()]}
                 onChange={onChange}

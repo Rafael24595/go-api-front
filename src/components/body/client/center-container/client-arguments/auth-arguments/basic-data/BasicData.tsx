@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Auth } from '../../../../../../../interfaces/request/Request';
 
 import './BasicData.css';
@@ -18,11 +18,11 @@ interface Payload {
 }
 
 export function BasicData({value, onValueChange}: BasicProps) {
-    const [data, setData] = useState<Payload>({
-            status: value ? value.status : false,
-            username: value && value.parameters["username"] ? value.parameters["username"] : "",
-            password: value && value.parameters["password"] ? value.parameters["password"] : "",
-    });
+    const [data, setData] = useState<Payload>(extractValue(value));
+
+    useEffect(() => {
+        setData(extractValue(value));
+    }, [value]);
 
     const handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newData = { ...data, status: e.target.checked };
@@ -60,4 +60,12 @@ export function BasicData({value, onValueChange}: BasicProps) {
             </div>
         </>
     )
+}
+
+const extractValue = (value: Auth | undefined): Payload => {
+    return {
+        status: value ? value.status : false,
+        username: value && value.parameters["username"] ? value.parameters["username"] : "",
+        password: value && value.parameters["password"] ? value.parameters["password"] : "",
+    }
 }

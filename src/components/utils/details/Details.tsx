@@ -21,7 +21,7 @@ export const Details: React.FC<DetailsProps> = ({ identity, summary, options, su
   };
 
   return (
-    <div className="details-container">
+    <>
       <div className="summary-container request-preview">
         <div className="summary-content">
           <button
@@ -30,7 +30,7 @@ export const Details: React.FC<DetailsProps> = ({ identity, summary, options, su
             aria-expanded={isOpen}
             aria-controls="details-content">
             <span>{isOpen ? "▲" : "▼"}</span>
-            {summary} 
+            <span className="summary-text" title={summary}>{summary}</span>
           </button>
           {subsummary}
         </div>
@@ -39,7 +39,7 @@ export const Details: React.FC<DetailsProps> = ({ identity, summary, options, su
       <div className={`details-content ${isOpen ? "open" : ""}`}>
         {children}
       </div>
-    </div>
+    </>
   );
 };
 

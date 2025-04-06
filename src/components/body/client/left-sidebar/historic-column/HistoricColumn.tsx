@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
-import { deleteAction, pushToCollection, updateAction } from '../../../../../services/api/ServiceStorage';
+import { deleteAction, pushToCollection } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
@@ -104,8 +104,8 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                                     <span className="request-sign-method">{ cursor.method }</span>
                                     <span className="request-sign-url">{ cursor.uri }</span>
                                 </div>
-                                <div>
-                                    <span className="request-sign-timestamp">{ millisecondsToDate(cursor.timestamp) }</span>
+                                <div className="request-sign-date">
+                                    <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{ millisecondsToDate(cursor.timestamp) }</span>
                                 </div>
                             </a>
                             <Combo options={[

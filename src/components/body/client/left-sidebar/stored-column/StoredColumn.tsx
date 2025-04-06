@@ -182,8 +182,8 @@ export function StoredColumn() {
                                         <span className="request-sign-method">{ cursor.method }</span>
                                         <span className="request-sign-url">{ cursor.name }</span>
                                     </div>
-                                    <div>
-                                        <span className="request-sign-timestamp">{ millisecondsToDate(cursor.timestamp) }</span>
+                                    <div className="request-sign-date">
+                                        <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{ millisecondsToDate(cursor.timestamp) }</span>
                                     </div>
                                 </a>
                                 <Combo options={[

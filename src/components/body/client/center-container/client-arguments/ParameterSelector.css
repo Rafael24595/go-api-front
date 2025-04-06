@@ -5,4 +5,6 @@
 
 #client-argument-content {
     padding: 10px;
+    scrollbar-gutter: stable;
+    overflow: auto;
 }

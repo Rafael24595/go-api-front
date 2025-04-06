@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Auth } from '../../../../../../../interfaces/request/Request';
 
 import './BearerData.css';
@@ -17,11 +17,11 @@ interface Payload {
 }
 
 export function BearerData({value, onValueChange}: BearerDataProps) {
-    const [data, setData] = useState<Payload>({
-        status: value ? value.status : false,
-        bearer: value && value.parameters["bearer"] ? value.parameters["bearer"] : "",
-        token: value && value.parameters["token"] ? value.parameters["token"] : "",
-    });
+    const [data, setData] = useState<Payload>(extractValue(value));
+
+    useEffect(() => {
+        setData(extractValue(value));
+    }, [value]);
 
     const handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newData = { ...data, status: e.target.checked };
@@ -74,4 +74,12 @@ export function BearerData({value, onValueChange}: BearerDataProps) {
             </div>
         </>
     )
+}
+
+const extractValue = (value: Auth | undefined): Payload => {
+    return {
+        status: value ? value.status : false,
+        bearer: value && value.parameters["bearer"] ? value.parameters["bearer"] : "",
+        token: value && value.parameters["token"] ? value.parameters["token"] : "",
+    }
 }
