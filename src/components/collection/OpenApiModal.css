@@ -5,7 +5,7 @@
 
 #selector-container {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
 }
 
 #selector-container, #metadata-container {
@@ -32,10 +32,22 @@
 
 #selector-file {
     display: flex;
+    align-items: flex-start;
+    flex: 1 1 auto;
 }
 
-#selector-file input {
+#selector-file input, #selector-file textarea {
     margin-right: 10px;
+}
+
+#selector-file input{
+    width: 100%;
+}
+
+#selector-file textarea {
+    width: 100%;
+    height: 100px;
+    resize: none;
 }
 
 .selector-title {

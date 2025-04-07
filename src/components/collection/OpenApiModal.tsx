@@ -15,11 +15,12 @@ interface OpenApiModalProps {
     onClose: () => void,
 }
 
-type FileType = "local" | "remote";
+type FileType = "local" | "remote" | "text";
 
 interface Payload {
     file: File | null
     fileUri: string
+    fileBlob: string
     fileType: FileType
 }
 
@@ -29,6 +30,7 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
     const [data, setData] = useState<Payload>({
         file: null,
         fileUri: "",
+        fileBlob: "",
         fileType: findFileType()
     });
 
@@ -60,18 +62,12 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
             return;
         }
 
-        await onSubmit(data.file).then(() => {
-            setData((prevData) => ({
-                ...prevData,
-                fileUri: "",
-                file: null
-            }))
-        });
+        await onSubmit(data.file).then(resetModal);
     }
 
     const changeFileType = (e: React.ChangeEvent<HTMLSelectElement>): void => {
         const value = e.target.value;
-        if (value != "local" && value != "remote") {
+        if (value != "local" && value != "remote" && value != "text") {
             return;
         }
 
@@ -80,6 +76,7 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
         setData({
             file: null,
             fileUri: "",
+            fileBlob: "",
             fileType: value
         });
     }
@@ -108,6 +105,36 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
         }))
     }
 
+    const changeFileBlob = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
+        setData((prevData) => ({
+            ...prevData,
+            fileBlob: e.target.value
+        }));
+    }
+
+    const loadFileBlob = async () => {
+        const file = new File([data.fileBlob], "text", { type: "blob" });
+
+        setData((prevData) => ({
+            ...prevData,
+            file
+        }))
+    }
+
+    const localClose = () => {
+        resetModal();
+        onClose();
+    }
+
+    const resetModal = () => {
+        setData((prevData) => ({
+            ...prevData,
+            file: null,
+            fileUri: "",
+            fileBlob: "",
+        }));
+    }
+
     return (
         <Modal 
             buttons={[
@@ -120,17 +147,17 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
                 {
                     title: "Close",
                     callback: {
-                        func: onClose
+                        func: localClose
                     }
                 }
             ]}  
             title={
                 <span>Upload an OpenAPI file</span>
             }
-            width="45%"
-            height="40%"
+            width="50%"
+            height="45%"
             isOpen={isOpen} 
-            onClose={onClose}>
+            onClose={localClose}>
                 <div id="openapi-selector-container">
                     <div>
                         <h3 className="selector-title">Selector:</h3>
@@ -140,6 +167,7 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
                                 <select name="file-type" value={data.fileType} onChange={changeFileType}>
                                     <option value="local">Local</option>
                                     <option value="remote">Remote</option>
+                                    <option value="text">Text</option>
                                 </select>
                             </div>
                             <div id="selector-file">
@@ -150,6 +178,12 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
                                     <>
                                         <input type="text" placeholder="https://swagger.io/docs/specification/v3_0/basic-structure" value={data.fileUri} onChange={changeFileUri}/>
                                         <button type="button" onClick={fetchUriFile}>Load</button>
+                                    </>
+                                )}
+                                {data.fileType == 'text' && (
+                                    <>
+                                        <textarea value={data.fileBlob} onChange={changeFileBlob}></textarea>
+                                        <button type="button" onClick={loadFileBlob}>Load</button>
                                     </>
                                 )}
                             </div>
@@ -178,7 +212,7 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
 
 const findFileType = (): FileType => {
     const value = localStorage.getItem(FILE_TYPE_KEY);
-    if(value != "local" && value != "remote") {
+    if(value != "local" && value != "remote" && value != "text") {
         return "local";
     }
     return value;
