@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ItemCollection, newCollection, newItemCollection, toCollection } from '../../../../../interfaces/collection/Collection';
 import { fromContext } from '../../../../../interfaces/context/Context';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
-import { cloneCollection, deleteCollection, deleteFromCollection, insertCollection, insertOpenApiCollection, pushToCollection, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
+import { cloneCollection, deleteCollection, deleteFromCollection, insertCollection, insertCollections, insertOpenApiCollection, pushToCollection, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
@@ -14,6 +14,8 @@ import { RequestPushToCollection } from '../../../../../services/api/RequestPush
 import { OpenApiModal } from '../../../../collection/OpenApiModal';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
+import { downloadFile } from '../../../../../services/Utils';
+import { ImportModal } from '../../../../collection/ImportModal';
 
 import './CollectionColumn.css';
 
@@ -27,6 +29,7 @@ interface Payload {
     request: Request;
     collection?: ItemCollection;
     move: boolean;
+    modalImport: boolean;
     modalOpenApi: boolean;
     modalCollection: boolean;
 }
@@ -44,6 +47,7 @@ export function CollectionColumn() {
         request: newRequest("anonymous"),
         collection: undefined,
         move: false,
+        modalImport: false,
         modalOpenApi: false,
         modalCollection: false,
     });
@@ -161,6 +165,36 @@ export function CollectionColumn() {
         await fetchCollection();
     }
 
+    const openImportModal = () => {
+        setData((prevData) => ({
+            ...prevData,
+            modalImport: true
+        }));
+    };
+
+    const submitImportModal = async (collections: ItemCollection[]) => {
+        const collection = await insertCollections(collections).catch(e =>
+            push({
+                title: `[${e.statusCode}] ${e.statusText}`,
+                category: EAlertCategory.ERRO,
+                content: e.message,
+            }));
+        if(!collection) {
+            return;
+        }
+        
+        closeImportModal();
+        await fetchCollection();
+    }
+
+    const closeImportModal = () => {
+        setData((prevData) => ({
+            ...prevData,
+            modalImport: false
+        }));
+    };
+
+
     const openOpenaApiModal = () => {
         setData((prevData) => ({
             ...prevData,
@@ -233,6 +267,17 @@ export function CollectionColumn() {
         return `${collection.name}-${request.timestamp}-${request.method}-${request.uri}`;
     }
 
+    const exportAll = () => {
+        const name = `collections_${Date.now()}.json`;
+        downloadFile(name, collection);
+    }
+
+    const exportCollection = (collection: ItemCollection) => {
+        let name = collection.name.toLowerCase().replace(/\s+/g, "_");
+        name = `${name}_${Date.now()}.json`;
+        downloadFile(name, collection);
+    }
+
     return (
         <>
             <div className="column-option options border-bottom">
@@ -247,6 +292,18 @@ export function CollectionColumn() {
                             label: "OpenApi",
                             title: "Load an OpenApi definition",
                             action: openOpenaApiModal
+                        },
+                        {
+                            icon: "💾",
+                            label: "Export",
+                            title: "Export all",
+                            action: exportAll
+                        },
+                        {
+                            icon: "💽",
+                            label: "Import",
+                            title: "Import collections",
+                            action: () => openImportModal()
                         }
                     ]}/>
                 </div>
@@ -278,6 +335,12 @@ export function CollectionColumn() {
                                         title: "Duplicate collection",
                                         action: () => clone(cursorCollection)
                                     },
+                                    {
+                                        icon: "💾",
+                                        label: "Export",
+                                        title: "Export collection",
+                                        action: () => exportCollection(cursorCollection)
+                                    }
                                 ]}/>)}
                             subsummary={(
                                 <div className="request-sign-date">
@@ -356,6 +419,11 @@ export function CollectionColumn() {
                     <option value="timestamp">Date</option>
                 </select>
             </div>
+            <ImportModal
+                isOpen={data.modalImport}
+                onSubmit={submitImportModal}
+                onClose={closeImportModal}
+            />
             <OpenApiModal
                 isOpen={data.modalOpenApi}
                 onSubmit={submitOpenaApiModal}

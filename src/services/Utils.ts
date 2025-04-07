@@ -122,3 +122,23 @@ function deepSort(obj: any): any {
     
     return sortedObj;
 }
+
+export const downloadFile = (name: string, data: any) => {
+    let str = `${data}`;
+    let type = "";
+    try {
+        str = JSON.stringify(data, null, 2);
+        type = "application/json";
+    } catch (err) {
+        console.error(err)
+    }
+
+    const blob = new Blob([str], { type });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(url);
+  };

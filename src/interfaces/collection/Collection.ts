@@ -71,3 +71,22 @@ export const toCollection = (collection: ItemCollection): Collection => {
     owner: collection.owner
   }
 }
+
+export const cleanItemCollections = (items: ItemCollection[]): ItemCollection[] => {
+  const itemsClone = structuredClone(items);
+  return itemsClone.map(cleanItemCollection);
+}
+
+export const cleanItemCollection = (item: ItemCollection): ItemCollection => {
+  const itemClone = structuredClone(item);
+  itemClone._id = "";
+  itemClone.context._id = "";
+  itemClone.nodes.map(cleanItemNode);
+  return itemClone;
+}
+
+const cleanItemNode = (item: ItemNode): ItemNode => {
+  const itemClone = structuredClone(item);
+  itemClone.request._id = "";
+  return itemClone;
+}
