@@ -3,12 +3,39 @@
     flex-direction: column;
 }
 
-#selector-container, #metadata-container{
+#selector-container {
+    display: flex;
+    align-items: center;
+}
+
+#selector-container, #metadata-container {
     padding: 10px;
 }
 
 #metadata-container {
     display: flex;
+}
+
+#selector-type {
+    display: flex;
+    margin-right: 15px;
+}
+
+#selector-type label {
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+#selector-type select {
+    width: 150px;
+}
+
+#selector-file {
+    display: flex;
+}
+
+#selector-file input {
+    margin-right: 10px;
 }
 
 .selector-title {
@@ -20,7 +47,7 @@
     max-width: 50%;
 }
 
-#selector-container input, .metadata-fragment p {
+.metadata-fragment p {
     margin-top: 5px;
     margin-bottom: 5px;
 }

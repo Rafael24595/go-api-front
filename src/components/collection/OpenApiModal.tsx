@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import './OpenApiModal.css';
 import { Modal } from '../utils/modal/Modal';
 import { useAlert } from '../utils/alert/Alert';
 import { EAlertCategory } from '../../interfaces/AlertData';
 import { formatBytes, millisecondsToDate } from '../../services/Tools';
+import { fetchFile } from '../../services/api/ServiceClient';
+
+import './OpenApiModal.css';
+
+const FILE_TYPE_KEY = "OpenApiModalKey";
 
 interface OpenApiModalProps {
     isOpen: boolean,
@@ -11,15 +15,21 @@ interface OpenApiModalProps {
     onClose: () => void,
 }
 
+type FileType = "local" | "remote";
+
 interface Payload {
     file: File | null
+    fileUri: string
+    fileType: FileType
 }
 
 export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
     const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({
-        file: null
+        file: null,
+        fileUri: "",
+        fileType: findFileType()
     });
 
     useEffect(() => {
@@ -50,7 +60,52 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
             return;
         }
 
-        await onSubmit(data.file);
+        await onSubmit(data.file).then(() => {
+            setData((prevData) => ({
+                ...prevData,
+                fileUri: "",
+                file: null
+            }))
+        });
+    }
+
+    const changeFileType = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+        const value = e.target.value;
+        if (value != "local" && value != "remote") {
+            return;
+        }
+
+        storeFileType(value);
+        
+        setData({
+            file: null,
+            fileUri: "",
+            fileType: value
+        });
+    }
+
+    const changeFileUri = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        setData((prevData) => ({
+            ...prevData,
+            fileUri: e.target.value
+        }));
+    }
+
+    const fetchUriFile = async () => {
+        const file = await fetchFile(data.fileUri).catch(e =>
+            push({
+                title: `[${e.statusCode}] ${e.statusText}`,
+                category: EAlertCategory.ERRO,
+                content: e.message,
+            }));
+        if(!file) {
+            return;
+        }
+
+        setData((prevData) => ({
+            ...prevData,
+            file
+        }))
     }
 
     return (
@@ -80,7 +135,25 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
                     <div>
                         <h3 className="selector-title">Selector:</h3>
                         <div id="selector-container">
-                            <input type="file" onChange={handleFileChange}/>
+                            <div id="selector-type">
+                                <label htmlFor="file-type">File: </label>
+                                <select name="file-type" value={data.fileType} onChange={changeFileType}>
+                                    <option value="local">Local</option>
+                                    <option value="remote">Remote</option>
+                                </select>
+                            </div>
+                            <div id="selector-file">
+                                {data.fileType == 'local' && (
+                                    <input type="file" onChange={handleFileChange}/>
+                                )}
+                                {data.fileType == 'remote' && (
+                                    <>
+                                        <input type="text" placeholder="https://swagger.io/docs/specification/v3_0/basic-structure" value={data.fileUri} onChange={changeFileUri}/>
+                                        <button type="button" onClick={fetchUriFile}>Load</button>
+                                    </>
+                                )}
+                            </div>
+                            
                         </div>
                     </div>
                     { data.file && (
@@ -92,7 +165,7 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
                                     <p><span className="metadata-title">Size: </span> <span className="metadata-value">{ formatBytes(data.file.size) }</span></p>
                                 </div>
                                 <div className="metadata-fragment">
-                                    <p><span className="metadata-title">Type: </span> <span className="metadata-value">{ data.file.type }</span></p>
+                                    <p><span className="metadata-title">Type: </span> <span className="metadata-value">{ data.file.type || "binary" }</span></p>
                                     <p><span className="metadata-title">Modified: </span> <span className="metadata-value">{ millisecondsToDate(data.file.lastModified) }</span></p>
                                 </div>
                             </div>
@@ -101,4 +174,16 @@ export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
                 </div>
         </Modal>
     )
+}
+
+const findFileType = (): FileType => {
+    const value = localStorage.getItem(FILE_TYPE_KEY);
+    if(value != "local" && value != "remote") {
+        return "local";
+    }
+    return value;
+}
+
+const storeFileType = (fileType: FileType) => {
+    localStorage.setItem(FILE_TYPE_KEY, fileType);
 }
