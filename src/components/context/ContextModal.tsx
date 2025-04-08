@@ -3,9 +3,13 @@ import { Modal } from '../utils/modal/Modal';
 import { v4 as uuidv4 } from 'uuid';
 import { fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
 import { StatusCategoryKeyValue } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
-import { ItemContext } from '../../interfaces/context/Context';
-import { insertContext } from '../../services/api/ServiceStorage';
+import { Context, ItemContext, toContext } from '../../interfaces/context/Context';
+import { importContext, insertContext } from '../../services/api/ServiceStorage';
 import { useStoreContext } from '../../store/StoreProviderContext';
+import { downloadFile } from '../../services/Utils';
+import { ImportContext } from './ImportContext';
+import { EAlertCategory } from '../../interfaces/AlertData';
+import { useAlert } from '../utils/alert/Alert';
 
 import './ContextModal.css'
 
@@ -99,19 +103,23 @@ interface Payload {
     template: string;
     preview: string;
     showPreview: boolean;
+    showImport: boolean;
     filter: Filter;
     status: boolean;
     argument: ItemStatusCategoryKeyValue[];
 }
 
 export function ContextModal({ isOpen, onClose }: ContextModalProps) {
-    const { initialHash, actualHash, context, getContext, defineContext, updateContext } = useStoreContext();
+    const { initialHash, actualHash, context, getContext, defineContext, updateContext, fetchContext } = useStoreContext();
+
+    const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({
         categoryPreview: getCategoryPreview(),
         template: getTemplate(),
         preview: getTemplate(),
         showPreview: getStatus(),
+        showImport: false,
         filter: getFilter(),
         status: context.status,
         argument: context.dictionary
@@ -225,6 +233,13 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         setStatus(!data.showPreview);
     }
 
+    const switchImport = () => {
+        setData((prevData) => ({
+            ...prevData,
+            showImport: !prevData.showImport  
+        }));
+    }
+
     const onPreviewCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setCategoryPreviews(e.target.value);
         updatePreview(data.status, data.template, e.target.value, data.argument);
@@ -292,6 +307,31 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         };
     }
 
+    function exportContext(): void {
+        const name = `context_${context.owner}_${Date.now()}.json`;
+        downloadFile(name, toContext(context));
+    }
+
+    const submitImportContext = async (source: Context) => {
+        const target = getContext();
+        const result = await importContext(target, source).catch(e =>
+            push({
+                title: `[${e.statusCode}] ${e.statusText}`,
+                category: EAlertCategory.ERRO,
+                content: e.message,
+            }));
+        if(!result) {
+            return;
+        }
+        
+        setData((prevData) => ({
+            ...prevData,
+            showImport: false  
+        }));
+
+        await fetchContext(result._id);
+    }
+
     return (
         <Modal 
             buttons={[
@@ -321,11 +361,11 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                 <div id="preview-title" className="border-bottom">
                     <p className="title">Preview:</p>
                     <div id="preview-buttons">
-                        <button type="button" onClick={previewClean}>Clean</button>
-                        <button type="button" onClick={switchPreview}>{ data.showPreview ? "Hide" : "Show" }</button>
+                        <button type="button" className="button-tag" onClick={switchPreview}>{ data.showPreview ? "Hide" : "Show" }</button>
+                        <button type="button" className="button-tag" onClick={previewClean}>Clean</button>
                     </div>
                 </div>
-                {data.showPreview && (
+                {data.showPreview ? (
                     <div id="preview-container">
                         <div id="preview-params">
                             <div className="preview-select-param">
@@ -342,73 +382,91 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                             <textarea className="preview-component" onChange={updateTemplate} value={data.template}/>
                         </div>
                     </div>
+                ) : (
+                    <br />
                 )}
                 <div id="dictionary-title" className="border-bottom">
-                    <input type="checkbox" onChange={onStatusChange} checked={data.status}/>
-                    <p className="title">Dictionary:</p>
-                </div>
-                <div id="dictionary-items">
-                    <p id="dictionary-items-counter">
-                        Showing: {data.argument.filter(filterContext).length} <span>/</span> {data.argument.length} items
-                    </p>
-                    <div id="filter-container">
-                        <div className='filter-fragment'>
-                            <label htmlFor="filter-status">Status:</label>
-                            <select name="filter-status" onChange={onFilterStatusChange}>
-                                {STATUS_VALUES.map(s => (
-                                    <option key={s.value} value={s.value} selected={data.filter.status == s.value}>{s.key}</option>    
-                                ))}
-                            </select>
-                        </div>
-                        <div className='filter-fragment'>
-                        <label htmlFor="filter-category">Category:</label>
-                            <select name="category" onChange={onFilterCategoryChange}>
-                                <option value="none">None</option>
-                                {ROW_DEFINITION.categories.map(c => (
-                                    <option key={c.value} value={c.value} selected={data.filter.category == c.value}>{c.key}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className='filter-fragment'>
-                            <label htmlFor="filter-key">Key:</label>
-                            <input type="input" name="filter-key" onChange={(onFilterKeyChange)} value={data.filter.key}/>
-                        </div>
-                        <div className='filter-fragment'>
-                            <label htmlFor="filter-value">Value:</label>
-                            <input type="input" name="filter-value" onChange={onFilterValueChange} value={data.filter.value}/>
-                        </div>
-                        <div className='filter-fragment'>
-                            <button type="button" onClick={clearFilter}>Clean</button>
-                        </div>
+                    <div id="dictionary-status">
+                        <input type="checkbox" onChange={onStatusChange} checked={data.status}/>
+                        <p className="title">Dictionary:</p>
+                    </div>
+                    <div>
+                        <button type="button" className="button-tag" onClick={switchImport}><span>{ data.showImport ? "Variables" : "Import" }</span></button>
+                        <button type="button" className="button-tag" onClick={exportContext}>Export</button>
                     </div>
                 </div>
-                <div id="context-dictionary-content">
-                    {data.argument.filter(filterContext).map((item, i) => (
-                        <StatusCategoryKeyValue
-                            key={`context-param-${item.id}`}
-                            order={i}
-                            focus={item.focus}
-                            value={{
-                                order: item.order,
-                                status: item.status,
-                                category: item.category,
-                                key: item.key,
-                                value: item.value
-                            }}
-                            definition={{ 
-                                ...ROW_DEFINITION, 
-                                disabled: false}}
-                            rowPush={rowPush}
-                            rowTrim={rowTrim}
-                        />
-                    ))}
-                    <StatusCategoryKeyValue 
-                        key={uuidv4()}
-                        definition={ ROW_DEFINITION }
-                        rowPush={rowPush}
-                        rowTrim={rowTrim}
-                    />
-                </div>
+
+                {data.showImport ? (
+                    <div id="import-container">
+                        <ImportContext
+                            onSubmit={submitImportContext}/>
+                    </div>
+                ) : (
+                    <>
+                        <div id="dictionary-items">
+                            <p id="dictionary-items-counter">
+                                Showing: {data.argument.filter(filterContext).length} <span>/</span> {data.argument.length} items
+                            </p>
+                            <div id="filter-container">
+                                <div className='filter-fragment'>
+                                    <label htmlFor="filter-status">Status:</label>
+                                    <select name="filter-status" onChange={onFilterStatusChange}>
+                                        {STATUS_VALUES.map(s => (
+                                            <option key={s.value} value={s.value} selected={data.filter.status == s.value}>{s.key}</option>    
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className='filter-fragment'>
+                                <label htmlFor="filter-category">Category:</label>
+                                    <select name="category" onChange={onFilterCategoryChange}>
+                                        <option value="none">None</option>
+                                        {ROW_DEFINITION.categories.map(c => (
+                                            <option key={c.value} value={c.value} selected={data.filter.category == c.value}>{c.key}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className='filter-fragment'>
+                                    <label htmlFor="filter-key">Key:</label>
+                                    <input type="input" name="filter-key" onChange={(onFilterKeyChange)} value={data.filter.key}/>
+                                </div>
+                                <div className='filter-fragment'>
+                                    <label htmlFor="filter-value">Value:</label>
+                                    <input type="input" name="filter-value" onChange={onFilterValueChange} value={data.filter.value}/>
+                                </div>
+                                <div className='filter-fragment'>
+                                    <button type="button" onClick={clearFilter}>Clean</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="context-dictionary-content">
+                            {data.argument.filter(filterContext).map((item, i) => (
+                                <StatusCategoryKeyValue
+                                    key={`context-param-${item.id}`}
+                                    order={i}
+                                    focus={item.focus}
+                                    value={{
+                                        order: item.order,
+                                        status: item.status,
+                                        category: item.category,
+                                        key: item.key,
+                                        value: item.value
+                                    }}
+                                    definition={{ 
+                                        ...ROW_DEFINITION, 
+                                        disabled: false}}
+                                    rowPush={rowPush}
+                                    rowTrim={rowTrim}
+                                />
+                            ))}
+                            <StatusCategoryKeyValue 
+                                key={uuidv4()}
+                                definition={ ROW_DEFINITION }
+                                rowPush={rowPush}
+                                rowTrim={rowTrim}
+                            />
+                        </div>
+                    </>
+                )}
         </Modal>
     )
 }

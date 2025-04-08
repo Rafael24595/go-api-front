@@ -16,12 +16,6 @@
     justify-content: space-between;
 }
 
-#preview-buttons button {
-    margin-left: 10px;
-    height: 22px;
-    width: 60px;
-}
-
 .preview-component {
     flex: 1 1 auto;
     margin: 0px;
@@ -60,7 +54,13 @@
 
 #dictionary-title {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-top: 30px;
+}
+
+#dictionary-status {
+    display: flex;
 }
 
 #dictionary-title, #preview-title {
@@ -70,8 +70,9 @@
 #dictionary-title p, #preview-title p {
     padding-left: 10px;
     padding-right: 10px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin: 0px;
 }
 
 #filter-container {
@@ -110,4 +111,10 @@
     scrollbar-gutter: stable;
     padding: 10px;
     padding: 10px;
+}
+
+#import-container {
+    padding: 10px;
+    margin: 5px;
+    background: lightgrey;
 }
