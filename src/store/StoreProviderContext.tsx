@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../interfaces/context/Context";
-import { findContext } from "../services/api/ServiceStorage";
+import { findContext, findUserContext } from "../services/api/ServiceStorage";
 import { generateHash } from "../services/Utils";
 
 interface StoreProviderContextType {
@@ -10,9 +10,9 @@ interface StoreProviderContextType {
   context: ItemContext;
   getContext: () => Context;
   defineContext: (value: ItemContext) => void;
-  switchContext: (value?: ItemContext) => Promise<void>;
   updateContext: (value: ItemContext) => void;
-  fectchContext: () => Promise<void>;
+  fetchContext: (id: string) => Promise<void>;
+  fectchUserContext: () => Promise<void>;
 }
 
 interface Payload {
@@ -35,7 +35,7 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   });
 
   useEffect(() => {
-    fectchContext();
+    fectchUserContext();
   }, []);
 
   useEffect(() => {
@@ -78,17 +78,6 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     }));
   }
 
-  const switchContext = async (context?: ItemContext) => {
-    if(!context) {
-      await fectchContext();
-      return;
-    }
-
-    if(context._id != data.context._id) {
-      defineContext(context);
-    }
-  }
-
   const updateContext = (context: ItemContext) => {
     setData(prevData => ({
       ...prevData,
@@ -96,15 +85,22 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     }));
   }
 
-  const fectchContext = async () => {
-    const context = await findContext()
+  const fectchUserContext = async () => {
+    const context = await findUserContext()
+      .catch(() => newContext("anonymous"));
+    const item = fromContext(context );
+    defineContext(item);
+  };
+  
+  const fetchContext = async (id: string) => {
+    const context = await findContext(id)
       .catch(() => newContext("anonymous"));
     const item = fromContext(context );
     defineContext(item);
   };
 
   return (
-    <StoreContext.Provider value={{ ...data, getContext, defineContext, switchContext, updateContext, fectchContext }}>
+    <StoreContext.Provider value={{ ...data, getContext, defineContext, updateContext, fetchContext, fectchUserContext }}>
       {children}
     </StoreContext.Provider>
   );
