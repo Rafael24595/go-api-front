@@ -1,5 +1,5 @@
-import { deleteAction, pushToCollection, updateAction } from '../../../../../services/api/ServiceStorage';
-import { newRequest, Request } from '../../../../../interfaces/request/Request';
+import { deleteAction, importRequests, pushToCollection, updateAction } from '../../../../../services/api/ServiceStorage';
+import { ItemRequest, newRequest, Request } from '../../../../../interfaces/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
@@ -8,6 +8,10 @@ import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { useState } from 'react';
 import { CollectionModal } from '../../../../collection/CollectionModal';
 import { RequestPushToCollection } from '../../../../../services/api/RequestPushToCollection';
+import { downloadFile } from '../../../../../services/Utils';
+import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
+import { EAlertCategory } from '../../../../../interfaces/AlertData';
+import { useAlert } from '../../../../utils/alert/Alert';
 
 import './StoredColumn.css';
 
@@ -19,25 +23,29 @@ interface Payload {
     filterValue: string;
     request: Request;
     move: boolean;
-    modal: boolean;
+    modalImport: boolean;
+    modalMove: boolean;
 }
 
 export function StoredColumn() {
-    const { switchContext } = useStoreContext();
+    const { fectchUserContext } = useStoreContext();
     const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
     const { stored, fetchStored, fetchCollection } = useStoreRequests();
+
+    const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({
         filterTarget: findFilterTarget(),
         filterValue: findFilterValue(),
         request: newRequest("anonymous"),
         move: false,
-        modal: false,
+        modalImport: false,
+        modalMove: false,
     });
 
     const defineHistoricRequest = async (request: Request) => {
         await fetchRequest(request);
-        await switchContext();
+        await fectchUserContext();
     }
 
     const insertNewRequest = async () => {
@@ -71,10 +79,13 @@ export function StoredColumn() {
         await fetchStored();
     };
 
-    const deleteStored = async (request: Request) => {
+    const deleteStored = async (cursorRequest: Request) => {
         try {
-            await deleteAction(request);
+            await deleteAction(cursorRequest);
             await fetchStored();
+            if(request._id == cursorRequest._id) {
+                defineRequest(newRequest("anonymous"));
+            }
         } catch (error) {
             console.error("Error fetching history:", error);
         }
@@ -92,7 +103,7 @@ export function StoredColumn() {
             ...prevData,
             request: request,
             move: false,
-            modal: true
+            modalMove: true
         }));
     };
 
@@ -101,12 +112,15 @@ export function StoredColumn() {
             ...prevData,
             request: request,
             move: true,
-            modal: true
+            modalMove: true
         }));
     };
 
-    const closeModal = () => {
-        setData({...data, modal: false});
+    const closeMoveModal = () => {
+        setData((prevData) => ({
+            ...prevData,
+            modalMove: false
+        }));
     };
 
     const submitModal = async (collectionId: string, collectionName: string, request: Request, requestName: string) => {
@@ -123,7 +137,7 @@ export function StoredColumn() {
         await fetchCollection();
     }
 
-    function onFilterTargetChange(event: React.ChangeEvent<HTMLSelectElement>): void {
+    const onFilterTargetChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const target = fixFilterTarget(event.target.value);
         storeFilterTarget(target);
         setData((prevData) => ({
@@ -132,7 +146,7 @@ export function StoredColumn() {
         }));
     }
 
-    function onFilterValueChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    const onFilterValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         storeFilterValue(event.target.value);
         setData((prevData) => ({
             ...prevData,
@@ -140,14 +154,14 @@ export function StoredColumn() {
         }));
     }
 
-    function onFilterValueClean(): void {
+    const onFilterValueClean = () => {
         setData((prevData) => ({
             ...prevData,
             filterValue: "",
         }));
     }
 
-    function applyFilter(value: Request): boolean {
+    const applyFilter = (value: Request): boolean => {
         let field = value[data.filterTarget]
         if(data.filterValue == "" || field == undefined) {
             return true;
@@ -160,18 +174,74 @@ export function StoredColumn() {
         return field.toLowerCase().includes(data.filterValue.toLowerCase())
     }
 
+    const openImportModal = () => {
+        setData((prevData) => ({
+            ...prevData,
+            modalImport: true
+        }));
+    };
+
+    const submitImportModal = async (requests: ItemRequest[]) => {
+        const collection = await importRequests(requests).catch(e =>
+            push({
+                title: `[${e.statusCode}] ${e.statusText}`,
+                category: EAlertCategory.ERRO,
+                content: e.message,
+            }));
+        if(!collection) {
+            return;
+        }
+        
+        closeImportModal();
+        await fetchStored();
+    }
+
+    const closeImportModal = () => {
+        setData((prevData) => ({
+            ...prevData,
+            modalImport: false
+        }));
+    };
+
+    const exportAll = () => {
+        const name = `requests_${Date.now()}.json`;
+        downloadFile(name, stored);
+    }
+
+    const exportRequest = (request: Request) => {
+        let name = request.name.toLowerCase().replace(/\s+/g, "_");
+        name = `request_${name}_${Date.now()}.json`;
+        downloadFile(name, request);
+    }
+
     const makeKey = (request: Request): string => {
         return `${request.timestamp}-${request.method}-${request.uri}`;
     }
 
     return (
             <>
-                <button 
-                    type="button"
-                    className="column-option option-button border-bottom"
-                    onClick={() => insertNewRequest()}>
-                    <span>New</span>
-                </button>
+                <div className="column-option options border-bottom">
+                    <div id="left-options">
+                        <Combo options={[]}/>
+                    </div>
+                    <button type="button" className="button-anchor" onClick={() => insertNewRequest()}>New</button>
+                    <div id="right-options show">
+                        <Combo options={[
+                            {
+                                icon: "💾",
+                                label: "Export",
+                                title: "Export all",
+                                action: exportAll
+                            },
+                            {
+                                icon: "💽",
+                                label: "Import",
+                                title: "Import collections",
+                                action: () => openImportModal()
+                            }
+                        ]}/>
+                    </div>
+                </div>
                 <div id="actions-container">
                     {stored.length > 0 ? (
                         stored.filter(applyFilter).map((cursor) => (
@@ -223,6 +293,12 @@ export function StoredColumn() {
                                         title: "Move to collection",
                                         action: () => openMoveModal(cursor)
                                     },
+                                    {
+                                        icon: "💾",
+                                        label: "Export",
+                                        title: "Export request",
+                                        action: () => exportRequest(cursor)
+                                    },
                                 ]}/>
                             </div>
                         ))
@@ -240,11 +316,15 @@ export function StoredColumn() {
                         <option value="uri">Uri</option>
                     </select>
                 </div>
+                <ImportRequestModal
+                    isOpen={data.modalImport}
+                    onSubmit={submitImportModal}
+                    onClose={closeImportModal}/>
                 <CollectionModal
-                    isOpen={data.modal} 
+                    isOpen={data.modalMove} 
                     request={data.request} 
                     onSubmit={submitModal}
-                    onClose={closeModal}/>
+                    onClose={closeMoveModal}/>
             </>
         );
 }
