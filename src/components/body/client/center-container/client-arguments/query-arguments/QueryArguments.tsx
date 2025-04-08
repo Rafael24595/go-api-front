@@ -71,7 +71,7 @@ export function QueryArguments() {
                         checked={false}
                         onChange={statusChange}/>
                 </div>
-                <button type="button" onClick={processUri}>Process</button>
+                <button type="button" className="button-tag" onClick={processUri}>Process</button>
             </div>
             <div id="client-argument-content">
                 {data.map((item, i) => (

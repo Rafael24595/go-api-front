@@ -2,6 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid #a7a7a7
 }
 
 .summary-content {
@@ -18,7 +19,7 @@
   justify-content: flex-start;
   width: 100%;
   font-size: 1em;
-  font-weight: 600;
+  /*font-weight: 600;*/
   background: none;
   border: none;
   cursor: pointer;
@@ -43,4 +44,9 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.switch-arrow {
+  font-size: 0.85em;
+  margin-right: 5px;
 }
