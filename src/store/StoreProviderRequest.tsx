@@ -10,11 +10,13 @@ import { ResponseExecuteAction } from "../services/api/ResponseExecuteAction";
 interface StoreProviderRequestType {
   initialHash: string;
   actualHash: string;
+  parent: string,
   backup: ItemRequest;
   request: ItemRequest;
   response: ItemResponse;
   getRequest: () => Request;
   getResponse: () => Response;
+  defineRequestFromParent: (parent: string, request: Request, response?: Response) => void;
   defineRequest: (request: Request, response?: Response) => void;
   updateRequest: (request: Request, response?: Response) => void;
   updateName: (name: string) => void;
@@ -30,8 +32,9 @@ interface StoreProviderRequestType {
 }
 
 interface Payload {
-  initialHash: "",
-  actualHash: "",
+  initialHash: string
+  actualHash: string
+  parent: string,
   backup: ItemRequest;
   request: ItemRequest;
   response: ItemResponse;
@@ -43,6 +46,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const [data, setData] = useState<Payload>({
     initialHash: "",
     actualHash: "",
+    parent: "",
     backup: newItemRequest("anonymous"),
     request: newItemRequest("anonymous"),
     response: newItemResponse("anonymous")
@@ -84,6 +88,21 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       ...prevData,
       initialHash: "",
       actualHash: "",
+      parent: "",
+      backup: itemRequest,
+      request: itemRequest,
+      response: itemResponse
+    }));
+  }
+
+  const defineRequestFromParent = (parent: string, request: Request, response?: Response) => {
+    const itemRequest = fromRequest(request);
+    const itemResponse = response ? fromResponse(response) : newItemResponse("anonymous");
+    setData(prevData => ({
+      ...prevData,
+      initialHash: "",
+      actualHash: "",
+      parent: parent,
       backup: itemRequest,
       request: itemRequest,
       response: itemResponse
@@ -95,6 +114,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     const itemResponse = response ? fromResponse(response) : newItemResponse("anonymous");
     setData(prevData => ({
       ...prevData,
+      parent: "",
       backup: itemRequest,
       request: itemRequest,
       response: itemResponse
@@ -221,10 +241,10 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   return (
     <StoreContext.Provider value={{ ...data, 
       getRequest, getResponse, defineRequest, 
-      updateRequest, updateName, updateMethod, 
-      updateUri, updateQuery, updateHeader,
-      updateBody, updateAuth, fetchRequest,
-      insertRequest, processUri }}>
+      defineRequestFromParent, updateRequest, updateName, 
+      updateMethod, updateUri, updateQuery, 
+      updateHeader, updateBody, updateAuth,
+      fetchRequest, insertRequest, processUri }}>
       {children}
     </StoreContext.Provider>
   );
