@@ -5,11 +5,11 @@ import { EAlertCategory } from '../../interfaces/AlertData';
 import { formatBytes, millisecondsToDate } from '../../services/Tools';
 import { fetchFile } from '../../services/api/ServiceClient';
 
-import './LoadFileModal.css';
+import './ImportModal.css';
 
 const FILE_TYPE_KEY = "OpenApiModalKey";
 
-interface OpenApiModalProps {
+interface ImportOpenApiModalProps {
     isOpen: boolean,
     onSubmit(file: File): Promise<void>,
     onClose: () => void,
@@ -24,7 +24,7 @@ interface Payload {
     fileType: FileType
 }
 
-export function OpenApiModal({ isOpen, onSubmit, onClose }: OpenApiModalProps) {
+export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiModalProps) {
     const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({

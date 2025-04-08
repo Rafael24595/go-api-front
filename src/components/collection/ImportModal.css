@@ -54,6 +54,11 @@
     margin-bottom: 5px;
 }
 
+.selector-title.paragraph{
+    font-weight: bold;
+    margin-top: 5px;
+}
+
 .metadata-fragment {
     flex: 1 1 auto;
     max-width: 50%;
@@ -70,4 +75,12 @@
 
 .metadata-value {
     font-style: italic;
+}
+
+#buttons-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid darkgrey;
 }

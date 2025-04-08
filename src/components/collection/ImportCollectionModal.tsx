@@ -5,11 +5,11 @@ import { EAlertCategory } from '../../interfaces/AlertData';
 import { formatBytes, millisecondsToDate } from '../../services/Tools';
 import { ItemCollection } from '../../interfaces/collection/Collection';
 
-import './LoadFileModal.css';
+import './ImportModal.css';
 
 const FILE_TYPE_KEY = "ImportModalKey";
 
-interface ImportModal {
+interface ImportCollectionModalProps {
     isOpen: boolean,
     onSubmit(collections: ItemCollection[]): Promise<void>,
     onClose: () => void,
@@ -24,7 +24,7 @@ interface Payload {
     fileType: FileType
 }
 
-export function ImportModal({ isOpen, onSubmit, onClose }: ImportModal) {
+export function ImportCollectionModal({ isOpen, onSubmit, onClose }: ImportCollectionModalProps) {
     const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({
