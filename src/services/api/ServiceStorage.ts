@@ -1,15 +1,25 @@
 import { Collection, ItemCollection } from "../../interfaces/collection/Collection";
 import { Context } from "../../interfaces/context/Context";
-import { Request } from "../../interfaces/request/Request";
+import { ItemRequest, Request } from "../../interfaces/request/Request";
 import { Response } from "../../interfaces/response/Response";
 import apiManager from "./ApiManager";
 import { RequestCloneCollection } from "./RequestCloneCollection";
+import { RequestImportContext } from "./RequestImportContext";
 import { RequestPushToCollection } from "./RequestPushToCollection";
 import { ResponseExecuteAction } from "./ResponseExecuteAction";
 
-export const findContext = async (): Promise<Context> => {
+export const findUserContext = async (): Promise<Context> => {
   try {
     const apiResponse = await apiManager.get(`/api/v1/context`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const findContext = async (id: string): Promise<Context> => {
+  try {
+    const apiResponse = await apiManager.get(`/api/v1/context/${id}`);
     return apiResponse.data;
   } catch (error) {
     throw error;
@@ -27,7 +37,7 @@ export const insertContext = async (context: Context): Promise<Context> => {
 
 export const findAction = async (request: Request): Promise<ResponseExecuteAction> => {
   try {
-    const apiResponse = await apiManager.get(`/api/v1/storage/${request._id}`);
+    const apiResponse = await apiManager.get(`/api/v1/request/${request._id}`);
     return apiResponse.data;
   } catch (error) {
     throw error;
@@ -36,7 +46,7 @@ export const findAction = async (request: Request): Promise<ResponseExecuteActio
 
 export const findAllAction = async (): Promise<Request[]> => {
   try {
-    const apiResponse = await apiManager.get(`/api/v1/storage`);
+    const apiResponse = await apiManager.get(`/api/v1/request`);
     return apiResponse.data;
   } catch (error) {
     throw error;
@@ -46,7 +56,7 @@ export const findAllAction = async (): Promise<Request[]> => {
 export const insertAction = async (request: Request, response?: Response): Promise<ResponseExecuteAction> => {
   try {
     const payload = { request, response };
-    const apiResponse = await apiManager.post(`/api/v1/storage`, payload);
+    const apiResponse = await apiManager.post(`/api/v1/request`, payload);
     return apiResponse.data;
   } catch (error) {
     throw error;
@@ -55,7 +65,7 @@ export const insertAction = async (request: Request, response?: Response): Promi
 
 export const updateAction = async (request: Request): Promise<ResponseExecuteAction> => {
   try {
-    const apiResponse = await apiManager.put(`/api/v1/storage`, request);
+    const apiResponse = await apiManager.put(`/api/v1/request`, request);
     return apiResponse.data;
   } catch (error) {
     throw error;
@@ -64,7 +74,7 @@ export const updateAction = async (request: Request): Promise<ResponseExecuteAct
 
 export const deleteAction = async (request: Request): Promise<ResponseExecuteAction> => {
   try {
-    const apiResponse = await apiManager.delete(`/api/v1/storage/${request._id}`);
+    const apiResponse = await apiManager.delete(`/api/v1/request/${request._id}`);
     return apiResponse.data;
   } catch (error) {
     throw error;
@@ -156,7 +166,16 @@ export const takeFromCollection = async (collection: ItemCollection, request: Re
   }
 };
 
-export const insertCollections = async (collections: ItemCollection[]): Promise<ItemCollection[]> => {
+export const importRequests = async (request: ItemRequest[]): Promise<ItemRequest[]> => {
+  try {
+    const apiResponse = await apiManager.post(`/api/v1/import/request`, request);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const importCollections = async (collections: ItemCollection[]): Promise<ItemCollection[]> => {
   try {
     const apiResponse = await apiManager.post(`/api/v1/import/collection`, collections);
     return apiResponse.data;
@@ -165,13 +184,35 @@ export const insertCollections = async (collections: ItemCollection[]): Promise<
   }
 };
 
-export const insertOpenApiCollection = async (form: FormData): Promise<ItemCollection> => {
+export const importToCollection = async (collection: string, request: ItemRequest[]): Promise<ItemCollection[]> => {
+  try {
+    const apiResponse = await apiManager.post(`/api/v1/import/collection/${collection}`, request);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const imporOpenApi = async (form: FormData): Promise<ItemCollection> => {
   try {
     const apiResponse = await apiManager.post(`/api/v1/import/openapi`, form, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const importContext = async (target: Context, source: Context): Promise<ItemCollection> => {
+  try {
+    const request: RequestImportContext = {
+      source, target
+    };
+
+    const apiResponse = await apiManager.post(`/api/v1/import/context`, request);
     return apiResponse.data;
   } catch (error) {
     throw error;
