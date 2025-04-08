@@ -98,7 +98,7 @@ export function ParameterSelector() {
 
 const getCursor = () => {
     const storedValue = localStorage.getItem(CURSOR_KEY);
-    return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
+    return storedValue && storedValue in VALID_CURSORS ? storedValue : DEFAULT_CURSOR;
 }
 
 const setCursor = (cursor: string) => {
