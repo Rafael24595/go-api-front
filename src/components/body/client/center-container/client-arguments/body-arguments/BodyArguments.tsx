@@ -4,6 +4,9 @@ import { Body } from '../../../../../../interfaces/request/Request';
 import { JsonData } from './json/JsonData';
 import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
 import { useStoreStatus } from '../../../../../../store/StoreProviderStatus';
+import * as prettier from 'prettier/standalone';
+import * as babelParser from 'prettier/plugins/babel';
+import prettierEstreePlugin  from 'prettier/plugins/estree';
 
 import './BodyArguments.css'
 
@@ -73,15 +76,13 @@ export function BodyArguments() {
         };
     }
 
-    const formatPayload = () => {
+    const formatPayload = async () => {
         let prettyPayload = data.payload;
         if(data.cursor == VIEW_JSON) {
-            try {
-                const jsonObj = JSON.parse(data.payload);
-                prettyPayload = JSON.stringify(jsonObj, null, 2);
-            } catch (error) {
-                console.error(error);
-            }
+            prettyPayload = await prettier.format(data.payload || '', {
+                parser: 'json',
+                plugins: [babelParser, prettierEstreePlugin],
+            });
         }
         setData((prevData) => ({
             ...prevData,
