@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useStoreStatus } from "../../../store/StoreProviderStatus";
 
 import './Details.css';
 
@@ -12,11 +13,18 @@ interface DetailsProps {
 }
 
 export const Details: React.FC<DetailsProps> = ({ identity, summary, summaryClassList, options, subsummary, children }) => {
-  const [isOpen, setIsOpen] = useState(findCursor(identity));
+  const { findOrDefault, store } = useStoreStatus();
+
+  const [isOpen, setIsOpen] = useState(
+    findOrDefault(identity, {
+      def: false,
+      parser: (v) => v == "true"
+    })
+  );
 
   const toggleOpen = () => {
     setIsOpen((prev) => {
-      storeCursor(identity, !prev);
+      store(identity, !prev);
       return !prev;
     })
   };
@@ -43,12 +51,3 @@ export const Details: React.FC<DetailsProps> = ({ identity, summary, summaryClas
     </>
   );
 };
-
-const findCursor = (key: string): boolean => {
-  const storedValue = localStorage.getItem(key);
-  return storedValue == "true";
-}
-
-const storeCursor = (key: string, status: boolean) => {
-  localStorage.setItem(key, `${status}`);
-}

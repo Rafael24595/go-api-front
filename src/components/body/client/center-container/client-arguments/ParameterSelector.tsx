@@ -6,6 +6,7 @@ import { BodyArguments } from './body-arguments/BodyArguments';
 import { Auths, Body, Headers, Queries } from '../../../../../interfaces/request/Request';
 import { ContextModal } from '../../../../context/ContextModal';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
+import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 
 import './ParameterSelector.css';
 
@@ -33,15 +34,20 @@ interface Payload {
 }
 
 export function ParameterSelector() {
+    const { find, store } = useStoreStatus();
+
     const [data, setData] = useState<Payload>({
-        cursor: getCursor(),
+        cursor: find(CURSOR_KEY, {
+            def: DEFAULT_CURSOR,
+            range: VALID_CURSORS
+        }),
         modalStatus: false,
     });
 
     const { initialHash, actualHash } = useStoreContext();
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCursor(e.target.value);
+        store(CURSOR_KEY, e.target.value);
         setData({...data, cursor: e.target.value});
     };
 
@@ -94,13 +100,4 @@ export function ParameterSelector() {
                 onClose={() => setModalStatus(false)}/>
         </>
     )
-}
-
-const getCursor = () => {
-    const storedValue = localStorage.getItem(CURSOR_KEY);
-    return storedValue && storedValue in VALID_CURSORS ? storedValue : DEFAULT_CURSOR;
-}
-
-const setCursor = (cursor: string) => {
-    localStorage.setItem(CURSOR_KEY, cursor);
 }

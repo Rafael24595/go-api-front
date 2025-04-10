@@ -3,9 +3,10 @@ import { AUTH_CODE_BASIC, BasicData } from './basic-data/BasicData';
 import { AUTH_CODE_BEARER, BearerData } from './bearer-data/BearerData';
 import { Auth, Auths } from '../../../../../../interfaces/request/Request';
 import { Dict } from '../../../../../../types/Dict';
+import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
+import { useStoreStatus } from '../../../../../../store/StoreProviderStatus';
 
 import './AuthArguments.css'
-import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
 
 const VIEW_BASIC = "basic";
 const VIEW_BEARER = "bearer";
@@ -24,10 +25,15 @@ interface Payload {
 }
 
 export function AuthArguments() {
+    const { find, store } = useStoreStatus();
+
     const { request, updateAuth } = useStoreRequest();
 
     const [data, setData] = useState<Payload>({
-        cursor: getCursor(),
+        cursor: find(CURSOR_KEY, {
+            def: DEFAULT_CURSOR,
+            range: VALID_CURSORS
+        }),
         status: request.auth.status,
         basic: request.auth.auths[AUTH_CODE_BASIC],
         bearer: request.auth.auths[AUTH_CODE_BEARER]
@@ -43,7 +49,7 @@ export function AuthArguments() {
     }, [request.auth]);
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCursor(e.target.value);
+        store(CURSOR_KEY, e.target.value);
         setData({...data, cursor: e.target.value});
     };
 
@@ -110,13 +116,4 @@ export function AuthArguments() {
             </div>
         </>
     )
-}
-
-const getCursor = () => {
-    const storedValue = localStorage.getItem(CURSOR_KEY);
-    return storedValue && storedValue in VALID_CURSORS ? storedValue : DEFAULT_CURSOR;
-}
-
-const setCursor = (cursor: string) => {
-    localStorage.setItem(CURSOR_KEY, cursor);
 }

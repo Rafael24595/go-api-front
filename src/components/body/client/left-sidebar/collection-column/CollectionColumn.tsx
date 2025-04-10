@@ -17,12 +17,17 @@ import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { downloadFile } from '../../../../../services/Utils';
 import { ImportCollectionModal } from '../../../../collection/ImportCollectionModal';
 import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
+import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 
 import './CollectionColumn.css';
 
 const FILTER_TARGET_KEY = "CollectionColumnDetailsFilterTarget";
 const FILTER_VALUE_KEY = "CollectionColumnDetailsFilterValue";
 const CURSOR_KEY = "CollectionColumnDetailsCursor";
+
+const DEFAULT_CURSOR = "name";
+const VALID_CURSORS = Object.keys(newItemCollection("anonymous"))
+    .map(k => k as keyof ItemCollection )
 
 interface Payload {
     filterTarget: keyof ItemCollection;
@@ -37,6 +42,8 @@ interface Payload {
 }
 
 export function CollectionColumn() {
+    const { find, findOrDefault, store } = useStoreStatus();
+
     const { fetchContext } = useStoreContext();
     const { parent, request, defineRequest, defineRequestFromParent } = useStoreRequest();
     const { collection, fetchStored, fetchCollection } = useStoreRequests();
@@ -44,8 +51,13 @@ export function CollectionColumn() {
     const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({
-        filterTarget: findFilterTarget(),
-        filterValue: findFilterValue(),
+        filterTarget: findOrDefault(FILTER_TARGET_KEY, {
+            def: DEFAULT_CURSOR,
+            range: VALID_CURSORS
+        }),
+        filterValue: find(FILTER_VALUE_KEY, {
+            def: ""
+        }),
         move: false,
         cursorRequest: newRequest("anonymous"),
         cursorCollection: undefined,
@@ -269,8 +281,10 @@ export function CollectionColumn() {
     };
 
     function onFilterTargetChange(event: React.ChangeEvent<HTMLSelectElement>): void {
-        const target = fixFilterTarget(event.target.value);
-        storeFilterTarget(target);
+        const target = event.target.value in VALID_CURSORS 
+            ? event.target.value as keyof ItemCollection
+            : DEFAULT_CURSOR;
+        store(FILTER_VALUE_KEY, target);
         setData((prevData) => ({
             ...prevData,
             filterTarget: target,
@@ -278,7 +292,7 @@ export function CollectionColumn() {
     }
 
     function onFilterValueChange(event: React.ChangeEvent<HTMLInputElement>): void {
-        storeFilterValue(event.target.value);
+        store(FILTER_VALUE_KEY, event.target.value);
         setData((prevData) => ({
             ...prevData,
             filterValue: event.target.value,
@@ -497,32 +511,6 @@ export function CollectionColumn() {
             />
         </>
     )
-}
-
-const emptyItemCollection = newItemCollection("anonymous");
-
-const fixFilterTarget = (value: string | null): keyof ItemCollection => {
-    if (value && value in emptyItemCollection) {
-        return value as keyof ItemCollection;
-    }
-    return "name";
-}
-
-const findFilterTarget = (): keyof ItemCollection => {
-    const value = localStorage.getItem(FILTER_TARGET_KEY);
-    return fixFilterTarget(value);
-}
-
-const storeFilterTarget = (filter: string) => {
-    localStorage.setItem(FILTER_VALUE_KEY, filter);
-}
-
-const findFilterValue = () => {
-    return localStorage.getItem(FILTER_TARGET_KEY) || "";
-}
-
-const storeFilterValue = (filter: string) => {
-    localStorage.setItem(FILTER_VALUE_KEY, filter);
 }
 
 const cursorKey = (collection: ItemCollection) => {

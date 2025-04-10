@@ -12,11 +12,16 @@ import { downloadFile } from '../../../../../services/Utils';
 import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { useAlert } from '../../../../utils/alert/Alert';
+import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 
 import './StoredColumn.css';
 
 const FILTER_TARGET_KEY = "CollectionColumnDetailsFilterTarget";
 const FILTER_VALUE_KEY = "CollectionColumnDetailsFilterValue";
+
+const DEFAULT_CURSOR = "name";
+const VALID_CURSORS = Object.keys(newRequest("anonymous"))
+    .map(k => k as keyof Request )
 
 interface Payload {
     filterTarget: keyof Request;
@@ -28,6 +33,8 @@ interface Payload {
 }
 
 export function StoredColumn() {
+    const { find, findOrDefault, store } = useStoreStatus();
+
     const { fectchUserContext } = useStoreContext();
     const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
     const { stored, fetchStored, fetchCollection } = useStoreRequests();
@@ -35,8 +42,13 @@ export function StoredColumn() {
     const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({
-        filterTarget: findFilterTarget(),
-        filterValue: findFilterValue(),
+        filterTarget: findOrDefault(FILTER_TARGET_KEY, {
+            def: DEFAULT_CURSOR,
+            range: VALID_CURSORS,
+        }),
+        filterValue: find(FILTER_VALUE_KEY, {
+            def: ""
+        }),
         request: newRequest("anonymous"),
         move: false,
         modalImport: false,
@@ -138,8 +150,10 @@ export function StoredColumn() {
     }
 
     const onFilterTargetChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const target = fixFilterTarget(event.target.value);
-        storeFilterTarget(target);
+        const target = event.target.value in VALID_CURSORS 
+            ? event.target.value as keyof Request
+            : DEFAULT_CURSOR;
+        store(FILTER_TARGET_KEY, target);
         setData((prevData) => ({
             ...prevData,
             filterTarget: target,
@@ -147,7 +161,7 @@ export function StoredColumn() {
     }
 
     const onFilterValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        storeFilterValue(event.target.value);
+        store(FILTER_VALUE_KEY, event.target.value);
         setData((prevData) => ({
             ...prevData,
             filterValue: event.target.value,
@@ -327,30 +341,4 @@ export function StoredColumn() {
                     onClose={closeMoveModal}/>
             </>
         );
-}
-
-const emptyRequest = newRequest("anonymous");
-
-const fixFilterTarget = (value: string | null): keyof Request => {
-    if (value && value in emptyRequest) {
-        return value as keyof Request;
-    }
-    return "name";
-}
-
-const findFilterTarget = (): keyof Request => {
-    const value = localStorage.getItem(FILTER_TARGET_KEY);
-    return fixFilterTarget(value);
-}
-
-const storeFilterTarget = (filter: string) => {
-    localStorage.setItem(FILTER_VALUE_KEY, filter);
-}
-
-const findFilterValue = () => {
-    return localStorage.getItem(FILTER_TARGET_KEY) || "";
-}
-
-const storeFilterValue = (filter: string) => {
-    localStorage.setItem(FILTER_VALUE_KEY, filter);
 }

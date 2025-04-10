@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { HistoricColumn } from './historic-column/HistoricColumn';
 import { StoredColumn } from './stored-column/StoredColumn';
 import { CollectionColumn } from './collection-column/CollectionColumn';
+import { useStoreStatus } from '../../../../store/StoreProviderStatus';
 
 import './LeftSidebar.css';
 
@@ -20,8 +21,13 @@ interface Payload {
 }
 
 export function LeftSidebar() {
+    const { find, store } = useStoreStatus();
+
     const [data, setData] = useState<Payload>({
-        cursor: findCursor(),
+        cursor: find(CURSOR_KEY, {
+            def: DEFAULT_CURSOR,
+            range: VALID_CURSORS
+        }),
     });
         
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,7 +35,7 @@ export function LeftSidebar() {
     };
 
     const setCursor = (cursor: string) => {
-        storeCursor(cursor);
+        store(CURSOR_KEY, cursor);
         setData({...data, cursor: cursor});
     };
 
@@ -59,13 +65,4 @@ export function LeftSidebar() {
             </div>
         </div>
     )
-}
-
-const findCursor = () => {
-    const storedValue = localStorage.getItem(CURSOR_KEY);
-    return storedValue && storedValue in VALID_CURSORS ? storedValue : DEFAULT_CURSOR;
-}
-
-const storeCursor = (cursor: string) => {
-    localStorage.setItem(CURSOR_KEY, cursor);
 }

@@ -4,8 +4,9 @@ import { PayloadColumn } from './payload-column/PayloadColumn';
 import { HeaderColumn } from './header-column/HeaderColumn';
 import { CookieColumn } from './cookie-column/CookieColumn';
 import { useStoreRequest } from '../../../../store/StoreProviderRequest';
+import { useStoreStatus } from '../../../../store/StoreProviderStatus';
 
-import './RightSidebar.css'
+import './RightSidebar.css';
 
 const VIEW_PAYLOAD = "payload";
 const VIEW_HEADER = "header";
@@ -18,12 +19,19 @@ const DEFAULT_CURSOR = VIEW_PAYLOAD;
 const CURSOR_KEY = "RightSidebarCursor";
 
 export function RightSidebar() {
+    const { find, store } = useStoreStatus();
+
     const { response } = useStoreRequest();
 
-    const [cursor, setCursor] = useState<string>(getCursor());
+    const [cursor, setCursor] = useState<string>(
+        find(CURSOR_KEY, {
+            def: DEFAULT_CURSOR,
+            range: VALID_CURSORS
+        })
+    );
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        storeCursor(e.target.value);
+        store(CURSOR_KEY, e.target.value);
         setCursor(e.target.value);
     };
 
@@ -58,13 +66,4 @@ export function RightSidebar() {
             </div>
         </div>
     )
-}
-
-const getCursor = () => {
-    const storedValue = localStorage.getItem(CURSOR_KEY);
-    return storedValue && VALID_CURSORS.includes(storedValue) ? storedValue : DEFAULT_CURSOR;
-}
-
-const storeCursor = (cursor: string) => {
-    localStorage.setItem(CURSOR_KEY, cursor);
 }

@@ -4,6 +4,7 @@ import { useAlert } from '../utils/alert/Alert';
 import { EAlertCategory } from '../../interfaces/AlertData';
 import { formatBytes, millisecondsToDate } from '../../services/Tools';
 import { fetchFile } from '../../services/api/ServiceClient';
+import { useStoreStatus } from '../../store/StoreProviderStatus';
 
 import './ImportModal.css';
 
@@ -15,23 +16,34 @@ interface ImportOpenApiModalProps {
     onClose: () => void,
 }
 
-type FileType = "local" | "remote" | "text";
+const CURSOR_LOCAL = "local";
+const CURSOR_REMOTE = "remote";
+const CURSOR_TEXT = "text";
+
+const VALID_CURSORS = [CURSOR_LOCAL, CURSOR_REMOTE, CURSOR_TEXT];
+
+const DEFAULT_CURSOR = CURSOR_LOCAL;
 
 interface Payload {
     file: File | null
     fileUri: string
     fileBlob: string
-    fileType: FileType
+    fileType: string
 }
 
 export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiModalProps) {
+    const { find, store } = useStoreStatus();
+
     const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({
         file: null,
         fileUri: "",
         fileBlob: "",
-        fileType: findFileType()
+        fileType: find(FILE_TYPE_KEY, {
+            def: DEFAULT_CURSOR,
+            range: VALID_CURSORS
+        })
     });
 
     useEffect(() => {
@@ -67,11 +79,11 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
 
     const changeFileType = (e: React.ChangeEvent<HTMLSelectElement>): void => {
         const value = e.target.value;
-        if (value != "local" && value != "remote" && value != "text") {
+        if (!VALID_CURSORS.includes(value)) {
             return;
         }
 
-        storeFileType(value);
+        store(FILE_TYPE_KEY, value);
         
         setData({
             file: null,
@@ -165,22 +177,22 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
                             <div id="selector-type">
                                 <label htmlFor="file-type">File: </label>
                                 <select name="file-type" value={data.fileType} onChange={changeFileType}>
-                                    <option value="local">Local</option>
-                                    <option value="remote">Remote</option>
-                                    <option value="text">Text</option>
+                                    <option value={CURSOR_LOCAL}>Local</option>
+                                    <option value={CURSOR_REMOTE}>Remote</option>
+                                    <option value={CURSOR_TEXT}>Text</option>
                                 </select>
                             </div>
                             <div id="selector-file">
-                                {data.fileType == 'local' && (
+                                {data.fileType == CURSOR_LOCAL && (
                                     <input type="file" onChange={handleFileChange}/>
                                 )}
-                                {data.fileType == 'remote' && (
+                                {data.fileType == CURSOR_REMOTE && (
                                     <>
                                         <input type="text" placeholder="https://swagger.io/docs/specification/v3_0/basic-structure" value={data.fileUri} onChange={changeFileUri}/>
                                         <button type="button" onClick={fetchUriFile}>Load</button>
                                     </>
                                 )}
-                                {data.fileType == 'text' && (
+                                {data.fileType == CURSOR_TEXT && (
                                     <>
                                         <textarea value={data.fileBlob} onChange={changeFileBlob}></textarea>
                                         <button type="button" onClick={loadFileBlob}>Load</button>
@@ -208,16 +220,4 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
                 </div>
         </Modal>
     )
-}
-
-const findFileType = (): FileType => {
-    const value = localStorage.getItem(FILE_TYPE_KEY);
-    if(value != "local" && value != "remote" && value != "text") {
-        return "local";
-    }
-    return value;
-}
-
-const storeFileType = (fileType: FileType) => {
-    localStorage.setItem(FILE_TYPE_KEY, fileType);
 }

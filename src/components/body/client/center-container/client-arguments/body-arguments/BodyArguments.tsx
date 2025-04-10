@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-
-import './BodyArguments.css'
 import { TextData } from './text/TextData';
 import { Body } from '../../../../../../interfaces/request/Request';
 import { JsonData } from './json/JsonData';
 import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
+import { useStoreStatus } from '../../../../../../store/StoreProviderStatus';
+
+import './BodyArguments.css'
 
 const VIEW_TEXT = "text";
 const VIEW_JSON = "json";
@@ -23,10 +24,15 @@ interface Payload {
 }
 
 export function BodyArguments() {
+    const { find, store } = useStoreStatus();
+
     const { request, updateBody } = useStoreRequest();
 
     const [data, setData] = useState<Payload>({
-        cursor: getCursor(),
+        cursor: find(CURSOR_KEY, {
+            def: DEFAULT_CURSOR,
+            range: VALID_CURSORS
+        }),
         status: request.body.status, 
         content: request.body.content_type,
         payload: request.body.payload,
@@ -42,7 +48,7 @@ export function BodyArguments() {
     }, [request.body]);
     
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCursor(e.target.value);
+        store(CURSOR_KEY, e.target.value);
         setData({...data, cursor: e.target.value});
     };
 
@@ -94,12 +100,3 @@ export function BodyArguments() {
         </>
     )
 }
-
-const getCursor = () => {
-    const storedValue = localStorage.getItem(CURSOR_KEY);
-    return storedValue && storedValue in VALID_CURSORS ? storedValue : DEFAULT_CURSOR;
-}
-
-const setCursor = (cursor: string) => {
-    localStorage.setItem(CURSOR_KEY, cursor);
-} 

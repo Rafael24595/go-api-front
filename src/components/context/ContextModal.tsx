@@ -10,8 +10,9 @@ import { downloadFile } from '../../services/Utils';
 import { ImportContext } from './ImportContext';
 import { EAlertCategory } from '../../interfaces/AlertData';
 import { useAlert } from '../utils/alert/Alert';
+import { useStoreStatus } from '../../store/StoreProviderStatus';
 
-import './ContextModal.css'
+import './ContextModal.css';
 
 const PREVIEW_CATEGORY_KEY = "ContextModalPreviewPreviewCategory";
 const STATUS_KEY = "ContextModalPreviewStatus";
@@ -110,17 +111,31 @@ interface Payload {
 }
 
 export function ContextModal({ isOpen, onClose }: ContextModalProps) {
+    const { find, findOrDefault, store } = useStoreStatus();
+
     const { initialHash, actualHash, context, getContext, defineContext, updateContext, fetchContext } = useStoreContext();
 
     const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({
-        categoryPreview: getCategoryPreview(),
-        template: getTemplate(),
-        preview: getTemplate(),
-        showPreview: getStatus(),
+        categoryPreview: find(PREVIEW_CATEGORY_KEY, {
+            def: "global"
+        }),
+        template: find(CONTENT_KEY, {
+            def: TEMPLATE
+        }),
+        preview: find(CONTENT_KEY, {
+            def: TEMPLATE
+        }),
+        showPreview: findOrDefault(STATUS_KEY, {
+            def: true,
+            parser: (v) => v == "true"
+        }),
         showImport: false,
-        filter: getFilter(),
+        filter: findOrDefault(FILTER_KEY, {
+            def: EMPTY_FILTER,
+            parser: (v) => JSON.parse(v)
+        }),
         status: context.status,
         argument: context.dictionary
     });
@@ -152,7 +167,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
 
     const clearFilter = () => {
         setData({...data, filter: EMPTY_FILTER});
-        setFilter(EMPTY_FILTER);
+        store(FILTER_KEY, JSON.stringify(EMPTY_FILTER));
     }
 
     const filterContext = (item: ItemStatusCategoryKeyValue): boolean => {
@@ -182,7 +197,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     const onFilterChange = (key: string, value: string) => {
         const newFilter: Filter = {...data.filter, [key]: value};
         setData({...data, filter: newFilter});
-        setFilter(newFilter);
+        store(FILTER_KEY, JSON.stringify(newFilter));
     };
 
     const onStatusChange = (e: React.ChangeEvent<HTMLInputElement>)  => {
@@ -230,7 +245,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
 
     const switchPreview = () => {
         setData({...data, showPreview: !data.showPreview});
-        setStatus(!data.showPreview);
+        store(STATUS_KEY, !data.showPreview);
     }
 
     const switchImport = () => {
@@ -241,7 +256,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     }
 
     const onPreviewCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setCategoryPreviews(e.target.value);
+        store(PREVIEW_CATEGORY_KEY, e.target.value);
         updatePreview(data.status, data.template, e.target.value, data.argument);
     }
 
@@ -254,7 +269,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     }
 
     const updatePreview = (status: boolean, template: string, category: string, argument: ItemStatusCategoryKeyValue[]) => {
-        setTemplate(template);
+        store(CONTENT_KEY, template);
 
         const newData = { 
             status, 
@@ -469,44 +484,4 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                 )}
         </Modal>
     )
-}
-
-const getCategoryPreview = () => {
-    return localStorage.getItem(PREVIEW_CATEGORY_KEY) || "global";
-}
-
-const setCategoryPreviews = (category: string) => {
-    localStorage.setItem(PREVIEW_CATEGORY_KEY, category);
-}
-
-const getStatus = () => {
-    return localStorage.getItem(STATUS_KEY) == "true";
-}
-
-const setStatus = (status: boolean) => {
-    localStorage.setItem(STATUS_KEY, `${status}`);
-}
-
-const getTemplate = () => {
-    return localStorage.getItem(CONTENT_KEY) || TEMPLATE;
-}
-
-const setTemplate = (template: string) => {
-    localStorage.setItem(CONTENT_KEY, template);
-}
-
-const getFilter = () => {
-    try {
-        const stored = localStorage.getItem(FILTER_KEY);
-        if(stored) {
-            return JSON.parse(stored);
-        }
-    } catch (error) {
-        console.log(error);
-    }
-    return EMPTY_FILTER;
-}
-
-const setFilter = (filter: Filter) => {
-    localStorage.setItem(FILTER_KEY, JSON.stringify(filter));
 }
