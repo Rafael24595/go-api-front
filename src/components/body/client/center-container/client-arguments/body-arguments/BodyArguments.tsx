@@ -73,9 +73,26 @@ export function BodyArguments() {
         };
     }
 
+    const formatPayload = () => {
+        let prettyPayload = data.payload;
+        if(data.cursor == VIEW_JSON) {
+            try {
+                const jsonObj = JSON.parse(data.payload);
+                prettyPayload = JSON.stringify(jsonObj, null, 2);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        setData((prevData) => ({
+            ...prevData,
+            payload: prettyPayload
+        }));
+    }
+
     return (
         <>
-            <div className="radio-button-group border-bottom">
+            <div id="body-parameters-group" className="border-bottom">
+                <div className="radio-button-group">
                   <input 
                       name="status" 
                       id="body-enable"
@@ -92,6 +109,12 @@ export function BodyArguments() {
                       value={VIEW_JSON} 
                       onChange={cursorChange}/>
                   <label htmlFor="tag-body-json">Json</label>
+                </div>
+                {data.cursor === VIEW_JSON && (
+                    <div>
+                        <button type="button" className="button-tag" onClick={formatPayload}>Format</button>
+                    </div>
+                )}
               </div>
               <div id="client-argument-content">
                   {data.cursor === VIEW_TEXT && <TextData value={data.payload} onValueChange={payloadChange}/>}
