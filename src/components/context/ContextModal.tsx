@@ -113,7 +113,7 @@ interface Payload {
 export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     const { find, findOrDefault, store } = useStoreStatus();
 
-    const { initialHash, actualHash, context, getContext, defineContext, updateContext, fetchContext } = useStoreContext();
+    const { initialHash, actualHash, context, getContext, defineItemContext, updateContext, fetchContext } = useStoreContext();
 
     const { push } = useAlert();
 
@@ -312,7 +312,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         const newContext = getContext();
         const response = await insertContext(newContext);
         context._id = response._id;
-        defineContext(context);
+        defineItemContext(context);
     }
 
     const makeContext = (status: boolean, argument: ItemStatusCategoryKeyValue[]): ItemContext => {

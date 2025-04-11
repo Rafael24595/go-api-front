@@ -7,7 +7,7 @@ import { StatusValue } from "../StatusValue";
 type Status = 'draft' | 'final';
 
 export interface Request {
-  _id?: string;
+  _id: string;
   timestamp: number;
   name: string;
   method: string;
@@ -23,7 +23,7 @@ export interface Request {
 }
 
 export interface ItemRequest {
-  _id?: string;
+  _id: string;
   timestamp: number;
   name: string;
   method: string;

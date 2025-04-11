@@ -5,14 +5,13 @@ import './Details.css';
 
 interface DetailsProps {
   identity: string,
-  summary: string;
-  summaryClassList?: string;
+  summary: React.ReactNode;
   options?: React.ReactNode;
   subsummary?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export const Details: React.FC<DetailsProps> = ({ identity, summary, summaryClassList, options, subsummary, children }) => {
+export const Details: React.FC<DetailsProps> = ({ identity, summary, options, subsummary, children }) => {
   const { findOrDefault, store } = useStoreStatus();
 
   const [isOpen, setIsOpen] = useState(
@@ -39,7 +38,7 @@ export const Details: React.FC<DetailsProps> = ({ identity, summary, summaryClas
             aria-expanded={isOpen}
             aria-controls="details-content">
             <span className="switch-arrow">{isOpen ? "▲" : "▼"}</span>
-            <span className={`summary-text ${summaryClassList}`} title={summary}>{summary}</span>
+            <span className={`summary-text`}>{summary}</span>
           </button>
           {subsummary}
         </div>

@@ -17,6 +17,7 @@
 .details-button {
   display: flex;
   justify-content: flex-start;
+  align-items: center;
   width: 100%;
   font-size: 1em;
   /*font-weight: 600;*/

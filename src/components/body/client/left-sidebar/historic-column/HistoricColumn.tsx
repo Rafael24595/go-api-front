@@ -22,7 +22,7 @@ interface Payload {
 }
 
 export function HistoricColumn({ setCursor }: HistoricColumnProps) {
-    const { fectchUserContext } = useStoreContext();
+    const { fetchContext } = useStoreContext();
     const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
     const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreRequests();
 
@@ -37,7 +37,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
 
     const defineHistoricRequest = async (request: Request) => {
         await fetchRequest(request);
-        await fectchUserContext();
+        await fetchContext();
     }
 
     const insertHistoric = async (request: Request) => {
@@ -57,7 +57,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
 
     const cloneHistoric = (request: Request) => {
         const newRequest = {...request};
-        newRequest._id = undefined;
+        newRequest._id = "";
         defineRequest(newRequest);
     };
     

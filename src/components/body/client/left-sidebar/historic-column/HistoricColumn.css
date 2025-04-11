@@ -19,6 +19,7 @@
 
 .request-sign {
     display: flex;
+    align-items: center;
 }
 
 .request-sign-method {

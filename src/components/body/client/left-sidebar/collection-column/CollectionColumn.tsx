@@ -45,7 +45,7 @@ export function CollectionColumn() {
     const { find, findOrDefault, store } = useStoreStatus();
 
     const { fetchContext } = useStoreContext();
-    const { parent, request, defineRequest, defineRequestFromParent } = useStoreRequest();
+    const { parent, request, defineRequest, fetchRequest, isParentCached, isCached } = useStoreRequest();
     const { collection, fetchStored, fetchCollection } = useStoreRequests();
 
     const { push } = useAlert();
@@ -132,13 +132,13 @@ export function CollectionColumn() {
 
     const defineCollectionRequest = async (collection: ItemCollection, request: Request) => {
         const context = fromContext(collection.context);
-        defineRequestFromParent(collection._id, request);
+        fetchRequest(request, collection._id);
         await fetchContext(context._id);
     }
 
     const cloneFromCollection = (request: Request) => {
         const newRequest = {...request};
-        newRequest._id = undefined;
+        newRequest._id = "";
         newRequest.status = 'draft';
         defineRequest(newRequest);
     };
@@ -376,8 +376,14 @@ export function CollectionColumn() {
                         <Details 
                             key={cursorCollection._id}
                             identity={cursorKey(cursorCollection)}
-                            summary={cursorCollection.name}
-                            summaryClassList={`${ cursorCollection._id == parent && "collection-selected"}`}
+                            summary={
+                                <>
+                                    {isParentCached(cursorCollection._id) && (
+                                        <span className="button-modified-status small visible"></span>
+                                    )}
+                                    <span className={`${ cursorCollection._id == parent && "collection-selected"}`} title={cursorCollection.name}>cursorCollection.name</span>
+                                </>
+                            }
                             options={(
                                 <Combo options={[
                                     {
@@ -428,6 +434,9 @@ export function CollectionColumn() {
                                     <a className="request-link" title={ node.request.uri }
                                         onClick={() => defineCollectionRequest(cursorCollection, node.request)}>
                                         <div className="request-sign">
+                                            {isCached(node.request) && (
+                                                <span className="button-modified-status small visible"></span>
+                                            )}
                                             <span className="request-sign-method">{ node.request.method }</span>
                                             <span className="request-sign-url">{ node.request.name }</span>
                                         </div>

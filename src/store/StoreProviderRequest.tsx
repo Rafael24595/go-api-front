@@ -6,6 +6,8 @@ import { fixOrder } from "../interfaces/StatusKeyValue";
 import { fromResponse, ItemResponse, newItemResponse, Response, toResponse } from "../interfaces/response/Response";
 import { findAction, insertAction } from "../services/api/ServiceStorage";
 import { ResponseExecuteAction } from "../services/api/ResponseExecuteAction";
+import { CacheActionData } from "../interfaces/CacheActionData";
+import { Dict } from "../types/Dict";
 
 interface StoreProviderRequestType {
   initialHash: string;
@@ -16,8 +18,7 @@ interface StoreProviderRequestType {
   response: ItemResponse;
   getRequest: () => Request;
   getResponse: () => Response;
-  defineRequestFromParent: (parent: string, request: Request, response?: Response) => void;
-  defineRequest: (request: Request, response?: Response) => void;
+  defineRequest: (request: Request, response?: Response, parent?: string) => void;
   updateRequest: (request: Request, response?: Response) => void;
   updateName: (name: string) => void;
   updateMethod: (method: string) => void;
@@ -26,12 +27,15 @@ interface StoreProviderRequestType {
   updateHeader: (items: ItemStatusKeyValue[]) => void;
   updateBody: (body: Body) => void;
   updateAuth: (auth: Auths) => void;
-  fetchRequest: (request: Request) => Promise<void>;
+  fetchRequest: (request: Request, parent?: string) => Promise<void>;
   insertRequest: (req: Request, res?: Response) => Promise<ResponseExecuteAction>;
+  isParentCached: (parent: string) => boolean;
+  isCached: (request: Request) => boolean;
   processUri: () => void;
 }
 
 interface Payload {
+  cache: Dict<CacheActionData>
   initialHash: string
   actualHash: string
   parent: string,
@@ -44,6 +48,7 @@ const StoreContext = createContext<StoreProviderRequestType | undefined>(undefin
 
 export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState<Payload>({
+    cache: {},
     initialHash: "",
     actualHash: "",
     parent: "",
@@ -53,24 +58,39 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   });
 
   useEffect(() => {
-    if (data.initialHash == "") {
-      setHash("initialHash", data.backup);
-      setHash("actualHash", data.backup);
-    }
-
-    if (data.request) {
-      setHash("actualHash", data.request);
-    }
-
+    updateStatus(data.request);
   }, [data.request]);
 
-  const setHash = async (key: string, request: ItemRequest) => {
-    const newHash = await generateHash(toRequest(request));
+  const updateStatus = async (request: ItemRequest) => {
+    let initialHash = data.initialHash;
+    if (data.initialHash == "") {
+      initialHash = await calculateHash(data.backup);
+    }
+
+    const actualHash = await calculateHash(data.request);
+
+    const newCache = { ...data.cache };
+    if(actualHash != initialHash) {
+      newCache[request._id] = {
+        parent: data.parent,
+        backup: data.backup,
+        request: request,
+        response: data.response
+      };
+    } else {
+      delete newCache[request._id];
+    }
+
     setData(prevData => ({
       ...prevData,
-      [key]: newHash
+      initialHash,
+      actualHash,
+      cache: newCache
     }));
-    return newHash;
+  }
+
+  const calculateHash = async (request: ItemRequest) => {
+    return await generateHash(toRequest(request));
   }
 
   const getRequest = (): Request => {
@@ -81,31 +101,22 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     return toResponse(data.response);
   }
 
-  const defineRequest = (request: Request, response?: Response) => {
+  const defineRequest = (request: Request, response?: Response, parent?: string) => {
     const itemRequest = fromRequest(request);
     const itemResponse = response ? fromResponse(response) : newItemResponse("anonymous");
-    setData(prevData => ({
-      ...prevData,
-      initialHash: "",
-      actualHash: "",
-      parent: "",
-      backup: itemRequest,
-      request: itemRequest,
-      response: itemResponse
-    }));
+    defineItemRequest(itemRequest, itemRequest, itemResponse, parent);
   }
 
-  const defineRequestFromParent = (parent: string, request: Request, response?: Response) => {
-    const itemRequest = fromRequest(request);
-    const itemResponse = response ? fromResponse(response) : newItemResponse("anonymous");
+  const defineItemRequest = (backup: ItemRequest, request: ItemRequest, response?: ItemResponse, parent?: string) => {
+    response = !response ? newItemResponse("anonymous") : response;
     setData(prevData => ({
       ...prevData,
       initialHash: "",
       actualHash: "",
-      parent: parent,
-      backup: itemRequest,
-      request: itemRequest,
-      response: itemResponse
+      parent: parent || "",
+      backup: backup,
+      request: request,
+      response: response
     }));
   }
 
@@ -191,9 +202,15 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     }));
   };
 
-  const fetchRequest = async (request: Request) => {
+  const fetchRequest = async (request: Request, parent?: string) => {
+    const cached = data.cache[request._id];
+    if(cached != undefined) {
+      defineItemRequest(cached.backup, cached.request, cached.response, cached.parent);
+      return;
+    }
+    
     const apiResponse = await findAction(request);
-    defineRequest(apiResponse.request, apiResponse.response);
+    defineRequest(apiResponse.request, apiResponse.response, parent);
   }
 
   const insertRequest = async (req: Request, res?: Response): Promise<ResponseExecuteAction> => {
@@ -208,7 +225,6 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
         req.name = name;
     }
 
-    //TODO: Manage user session.
     return insertAction(req, res);
   };
 
@@ -238,13 +254,23 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     updateQuery(newQueries);
   }
 
+  const isParentCached = (parent: string) => {
+    return Object.values(data.cache)
+      .find(c => c.parent == parent) != undefined;
+  }
+
+  const isCached = (request: Request) => {
+    return data.cache[request._id] != undefined;
+  }
+
   return (
     <StoreContext.Provider value={{ ...data, 
       getRequest, getResponse, defineRequest, 
-      defineRequestFromParent, updateRequest, updateName, 
+      updateRequest, updateName, 
       updateMethod, updateUri, updateQuery, 
       updateHeader, updateBody, updateAuth,
-      fetchRequest, insertRequest, processUri }}>
+      fetchRequest, insertRequest, processUri,
+      isParentCached, isCached }}>
       {children}
     </StoreContext.Provider>
   );

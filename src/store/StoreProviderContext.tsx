@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../interfaces/context/Context";
 import { findContext, findUserContext } from "../services/api/ServiceStorage";
 import { generateHash } from "../services/Utils";
+import { Dict } from "../types/Dict";
+import { CacheContext } from "../interfaces/CacheContext";
 
 interface StoreProviderContextType {
   initialHash: string;
@@ -9,15 +11,17 @@ interface StoreProviderContextType {
   backup: ItemContext;
   context: ItemContext;
   getContext: () => Context;
-  defineContext: (value: ItemContext) => void;
+  defineContext: (value: Context, parent?: string) => void;
+  defineItemContext: (value: ItemContext, parent?: string) => void;
   updateContext: (value: ItemContext) => void;
-  fetchContext: (id: string) => Promise<void>;
-  fectchUserContext: () => Promise<void>;
+  fetchContext: (id?: string, parent?: string) => Promise<void>;
 }
 
 interface Payload {
-  initialHash: "",
-  actualHash: "",
+  cache: Dict<CacheContext>
+  initialHash: string,
+  actualHash: string,
+  parent: string,
   backup: ItemContext;
   context: ItemContext;
   loading: boolean;
@@ -27,52 +31,78 @@ const StoreContext = createContext<StoreProviderContextType | undefined>(undefin
 
 export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState<Payload>({
+    cache: {},
     initialHash: "",
     actualHash: "",
+    parent: "",
     backup: newItemContext("anonymous"),
     context: newItemContext("anonymous"),
     loading: true,
   });
 
   useEffect(() => {
-    fectchUserContext();
+    fetchContext();
   }, []);
 
   useEffect(() => {
+    updateStatus(data.context);
+  }, [data.context]);
+
+  const updateStatus = async (context: ItemContext) => {
     if (data.loading) {
       return;
     }
 
+    let initialHash = data.initialHash;
     if (data.initialHash == "") {
-      setHash("initialHash", data.backup);
-      setHash("actualHash", data.backup);
+      initialHash = await calculateHash(data.backup);
     }
 
-    if (data.context) {
-      setHash("actualHash", data.context);
+    const actualHash = await calculateHash(data.context);
+
+    const newCache = { ...data.cache };
+    if(actualHash != initialHash) {
+      newCache[context._id] = {
+        parent: data.parent,
+        backup: data.backup,
+        context: context
+      };
+    } else {
+      delete newCache[context._id];
     }
 
-  }, [data.context]);
-
-  const setHash = async (key: string, context: ItemContext) => {
-    const newHash = await generateHash(toContext(context));
     setData(prevData => ({
       ...prevData,
-      [key]: newHash
+      initialHash,
+      actualHash,
+      cache: newCache,
     }));
-    return newHash;
+  }
+
+  const calculateHash = async (context: ItemContext) => {
+    return await generateHash(toContext(context));
   }
 
   const getContext = (): Context => {
     return toContext(data.context);
   }
 
-  const defineContext = (context: ItemContext) => {
+  const defineItemContext = (context: ItemContext, parent?: string) => {
+    defineContextData(context, context, parent);
+  }
+
+  const defineContext = (context: Context, parent?: string) => {
+    const item = fromContext(context);
+    defineContextData(item, item, parent);
+  }
+
+  const defineContextData = (backup: ItemContext, context: ItemContext, parent?: string) => {
     setData(prevData => ({
       ...prevData,
       initialHash: "",
       actualHash: "",
-      backup: context,
+      parent: parent || "",
+      backup: backup,
       context: context,
       loading: false
     }));
@@ -85,22 +115,25 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     }));
   }
 
-  const fectchUserContext = async () => {
-    const context = await findUserContext()
-      .catch(() => newContext("anonymous"));
-    const item = fromContext(context );
-    defineContext(item);
-  };
-  
-  const fetchContext = async (id: string) => {
-    const context = await findContext(id)
-      .catch(() => newContext("anonymous"));
-    const item = fromContext(context );
-    defineContext(item);
+  const fetchContext = async (id?: string, parent?: string) => {
+    const cached = data.cache[id || "anonymous"];
+    if(cached != undefined) {
+      defineContextData(cached.backup, cached.context, cached.parent);
+      return;
+    }
+    
+    const request = id == undefined 
+      ? findUserContext()
+      : findContext(id);
+
+    const context = await request.catch(
+      () => newContext("anonymous"));
+      
+    defineContext(context, parent);
   };
 
   return (
-    <StoreContext.Provider value={{ ...data, getContext, defineContext, updateContext, fetchContext, fectchUserContext }}>
+    <StoreContext.Provider value={{ ...data, getContext, defineContext, defineItemContext, updateContext, fetchContext }}>
       {children}
     </StoreContext.Provider>
   );

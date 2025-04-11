@@ -35,8 +35,8 @@ interface Payload {
 export function StoredColumn() {
     const { find, findOrDefault, store } = useStoreStatus();
 
-    const { fectchUserContext } = useStoreContext();
-    const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
+    const { fetchContext } = useStoreContext();
+    const { request, defineRequest, fetchRequest, insertRequest, isCached } = useStoreRequest();
     const { stored, fetchStored, fetchCollection } = useStoreRequests();
 
     const { push } = useAlert();
@@ -57,7 +57,7 @@ export function StoredColumn() {
 
     const defineHistoricRequest = async (request: Request) => {
         await fetchRequest(request);
-        await fectchUserContext();
+        await fetchContext();
     }
 
     const insertNewRequest = async () => {
@@ -75,7 +75,7 @@ export function StoredColumn() {
 
     const insertStored = async (request: Request) => {
         const newRequest = {...request};
-        newRequest._id = undefined;
+        newRequest._id = "";
         newRequest.status = 'draft';
         await insertRequest(newRequest);
         await fetchStored();
@@ -105,7 +105,7 @@ export function StoredColumn() {
 
     const cloneStored = (request: Request) => {
         const newRequest = {...request};
-        newRequest._id = undefined;
+        newRequest._id = "";
         newRequest.status = 'draft';
         defineRequest(newRequest);
     };
@@ -263,6 +263,9 @@ export function StoredColumn() {
                                 <a className="request-link" title={ cursor.uri }
                                     onClick={() => defineHistoricRequest(cursor)}>
                                     <div className="request-sign">
+                                        {isCached(cursor) && (
+                                            <span className="button-modified-status small visible"></span>
+                                        )}
                                         <span className="request-sign-method">{ cursor.method }</span>
                                         <span className="request-sign-url">{ cursor.name }</span>
                                     </div>
