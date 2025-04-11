@@ -1,4 +1,4 @@
-import { cookieToString } from '../../../../../interfaces/request/Request'
+import { cookieToString } from '../../../../../interfaces/response/Response';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 
 import './CookieColumn.css'

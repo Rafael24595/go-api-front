@@ -25,6 +25,7 @@ interface StoreProviderRequestType {
   updateUri: (uri: string) => void;
   updateQuery: (items: ItemStatusKeyValue[]) => void;
   updateHeader: (items: ItemStatusKeyValue[]) => void;
+  updateCookie: (items: ItemStatusKeyValue[]) => void;
   updateBody: (body: Body) => void;
   updateAuth: (auth: Auths) => void;
   fetchRequest: (request: Request, parent?: string) => Promise<void>;
@@ -182,6 +183,16 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     }));
   };
 
+  const updateCookie = (items: ItemStatusKeyValue[]) => {
+    setData(prevData => ({
+      ...prevData,
+      request: {
+        ...prevData.request,
+        cookie: items
+      }
+    }));
+  };
+
   const updateBody = (body: Body) => {
     setData(prevData => ({
       ...prevData,
@@ -266,9 +277,9 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   return (
     <StoreContext.Provider value={{ ...data, 
       getRequest, getResponse, defineRequest, 
-      updateRequest, updateName, 
-      updateMethod, updateUri, updateQuery, 
-      updateHeader, updateBody, updateAuth,
+      updateRequest, updateName, updateMethod, 
+      updateUri, updateQuery, updateHeader, 
+      updateCookie, updateBody, updateAuth,
       fetchRequest, insertRequest, processUri,
       isParentCached, isCached }}>
       {children}

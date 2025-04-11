@@ -16,9 +16,27 @@ export function detachStatusKeyValue(dict: Dict<StatusValue[]>): StatusKeyValue[
                 status: v.status,
                 key: k,
                 value: v.value
-            })
+            });
         }
     }
+    return vector;
+}
+
+export function collectStatusKeyValue(dict: Dict<StatusValue>): StatusKeyValue[] {
+    const vector: StatusKeyValue[] = [];
+    if(dict == undefined) {
+        return vector;
+    }
+
+    for (const [k, v] of Object.entries(dict)) {
+        vector.push({
+            order: v.order,
+            status: v.status,
+            key: k,
+            value: v.value
+        });
+    }
+
     return vector;
 }
 
@@ -37,6 +55,18 @@ export const mergeStatusKeyValue = (newValues: StatusKeyValue[]): Dict<StatusVal
             continue;
         }
         vector.push(fixValue)
+    }
+    return merge;
+}
+
+export const joinStatusKeyValue = (newValues: StatusKeyValue[]): Dict<StatusValue> => {
+    const merge: Dict<StatusValue> = {};
+    for (const value of newValues) {
+        merge[value.key] = {
+            order: value.order,
+            status: value.status,
+            value: value.value,
+        };
     }
     return merge;
 }

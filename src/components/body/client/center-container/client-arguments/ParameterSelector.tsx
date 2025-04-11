@@ -7,15 +7,17 @@ import { Auths, Body, Headers, Queries } from '../../../../../interfaces/request
 import { ContextModal } from '../../../../context/ContextModal';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
+import { CookieArguments } from './cookie-arguments/CookieArguments';
 
 import './ParameterSelector.css';
 
 const VIEW_QUERY = "query";
 const VIEW_HEADER = "header";
+const VIEW_COOKIE = "cookie";
 const VIEW_AUTH = "auth";
 const VIEW_BODY = "body";
 
-const VALID_CURSORS = [VIEW_QUERY, VIEW_HEADER, VIEW_AUTH, VIEW_BODY];
+const VALID_CURSORS = [VIEW_QUERY, VIEW_HEADER, VIEW_COOKIE, VIEW_AUTH, VIEW_BODY];
 
 const DEFAULT_CURSOR = VIEW_QUERY;
 
@@ -70,6 +72,11 @@ export function ParameterSelector() {
                             value={VIEW_HEADER} 
                             onChange={cursorChange}/>
                         <label htmlFor="tag-client-header" id="client-label-header">Headers</label>
+                        <input type="radio" id="tag-client-cookie" className="client-tag" name="cursor-client"
+                            checked={data.cursor === VIEW_COOKIE} 
+                            value={VIEW_COOKIE} 
+                            onChange={cursorChange}/>
+                        <label htmlFor="tag-client-cookie" id="client-label-cookie">Cookies</label>
                         <input type="radio" id="tag-client-auth" className="client-tag" name="cursor-client"
                             checked={data.cursor === VIEW_AUTH} 
                             value={VIEW_AUTH} 
@@ -92,6 +99,7 @@ export function ParameterSelector() {
             <div id="client-argument-content">
                 {data.cursor === VIEW_QUERY && <QueryArguments/>}
                 {data.cursor === VIEW_HEADER && <HeaderArguments/>}
+                {data.cursor === VIEW_COOKIE && <CookieArguments/>}
                 {data.cursor === VIEW_AUTH && <AuthArguments/>}
                 {data.cursor === VIEW_BODY && <BodyArguments/>}
             </div>

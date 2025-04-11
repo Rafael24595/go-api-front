@@ -1,5 +1,5 @@
 import { HttpMethod } from "../../constants/HttpMethod";
-import { detachStatusKeyValue, mergeStatusKeyValue } from "../../services/Utils";
+import { joinStatusKeyValue, collectStatusKeyValue, detachStatusKeyValue, mergeStatusKeyValue } from "../../services/Utils";
 import { Dict } from "../../types/Dict";
 import { ItemStatusKeyValue, toItem } from "../StatusKeyValue";
 import { StatusValue } from "../StatusValue";
@@ -14,7 +14,7 @@ export interface Request {
   uri: string;
   query: Queries;
   header: Headers;
-  cookie: Cookies;
+  cookie: CookiesClient;
   body: Body;
   auth: Auths;
   owner: string;
@@ -30,7 +30,7 @@ export interface ItemRequest {
   uri: string;
   query: ItemStatusKeyValue[];
   header: ItemStatusKeyValue[];
-  cookie: Cookies;
+  cookie: ItemStatusKeyValue[];
   body: Body;
   auth: Auths;
   owner: string;
@@ -46,11 +46,11 @@ export interface Headers {
   headers: Dict<StatusValue[]>
 }
 
-export interface Cookies {
-  cookies: Dict<Cookie>
+export interface CookiesClient {
+  cookies: Dict<StatusValue>
 }
 
-export interface Cookie {
+export interface CookieClient {
 	status:     boolean,
 	code:       string,
 	value:      string,
@@ -109,53 +109,11 @@ export function newItemRequest(owner: string, name?: string): ItemRequest {
     header: [],
     auth: { status: true, auths: {} },
     body: { status: true, content_type: "", payload: "" },
-    cookie: { cookies: {} },
+    cookie: [],
     owner: owner,
     modified: 0,
     status: "draft"
   }
-}
-
-export const mergeCookies = (newValues: Cookie[]): Dict<Cookie> => {
-    const merge: Dict<Cookie> = {};
-    for (const value of newValues) {
-        merge[value.code] = value;
-    }
-    return merge;
-}
-
-export function cookieToString(cookie: Cookie): string {
-  let cookieString = cookie.value;
-
-  if (cookie.domain) {
-    cookieString += `; Domain=${cookie.domain}`;
-  }
-
-  if (cookie.path) {
-    cookieString += `; Path=${cookie.path}`;
-  }
-
-  if (cookie.expiration) {
-    cookieString += `; Expires=${cookie.expiration}`;
-  }
-
-  if (cookie.maxage !== undefined) {
-    cookieString += `; Max-Age=${cookie.maxage}`;
-  }
-
-  if (cookie.secure) {
-    cookieString += `; Secure`;
-  }
-
-  if (cookie.httponly) {
-    cookieString += `; HttpOnly`;
-  }
-
-  if (cookie.samesite && cookie.samesite !== "None") {
-    cookieString += `; SameSite=${cookie.samesite}`;
-  }
-
-  return cookieString;
 }
 
 export const fromRequest = (request: Request): ItemRequest => {
@@ -167,7 +125,7 @@ export const fromRequest = (request: Request): ItemRequest => {
     uri: request.uri,
     query: toItem(detachStatusKeyValue(request.query.queries)),
     header: toItem(detachStatusKeyValue(request.header.headers)),
-    cookie: request.cookie,
+    cookie: toItem(collectStatusKeyValue(request.cookie.cookies)),
     body: request.body,
     auth: request.auth,
     owner: request.owner,
@@ -185,7 +143,7 @@ export const toRequest = (request: ItemRequest): Request => {
     uri: request.uri,
     query: { queries: mergeStatusKeyValue(request.query) },
     header: { headers: mergeStatusKeyValue(request.header) },
-    cookie: request.cookie,
+    cookie: { cookies: joinStatusKeyValue(request.cookie) },
     body: request.body,
     auth: request.auth,
     owner: request.owner,

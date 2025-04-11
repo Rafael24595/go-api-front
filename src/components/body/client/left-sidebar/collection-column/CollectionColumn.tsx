@@ -381,7 +381,7 @@ export function CollectionColumn() {
                                     {isParentCached(cursorCollection._id) && (
                                         <span className="button-modified-status small visible"></span>
                                     )}
-                                    <span className={`${ cursorCollection._id == parent && "collection-selected"}`} title={cursorCollection.name}>cursorCollection.name</span>
+                                    <span className={`${ cursorCollection._id == parent && "collection-selected"}`} title={cursorCollection.name}>{cursorCollection.name}</span>
                                 </>
                             }
                             options={(
