@@ -4,9 +4,7 @@ import { Body } from '../../../../../../interfaces/request/Request';
 import { JsonData } from './json/JsonData';
 import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
 import { useStoreStatus } from '../../../../../../store/StoreProviderStatus';
-import * as prettier from 'prettier/standalone';
-import * as babelParser from 'prettier/plugins/babel';
-import prettierEstreePlugin  from 'prettier/plugins/estree';
+import { formatJson } from '../../../../../../utils/Formatter';
 
 import './BodyArguments.css'
 
@@ -79,15 +77,17 @@ export function BodyArguments() {
     const formatPayload = async () => {
         let prettyPayload = data.payload;
         if(data.cursor == VIEW_JSON) {
-            prettyPayload = await prettier.format(data.payload || '', {
-                parser: 'json',
-                plugins: [babelParser, prettierEstreePlugin],
-            });
+            prettyPayload = await formatJson(data.payload);
         }
-        setData((prevData) => ({
-            ...prevData,
-            payload: prettyPayload
-        }));
+           
+        setData((prevData) => { 
+            const newData = {
+                ...prevData,
+                payload: prettyPayload
+            };
+            updateBody(makeBody(newData));
+            return newData;
+        });
     }
 
     return (

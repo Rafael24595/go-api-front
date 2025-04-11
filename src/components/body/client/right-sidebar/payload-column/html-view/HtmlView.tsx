@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import CodeMirror, { EditorState } from "@uiw/react-codemirror";
 import { html, } from "@codemirror/lang-html";
 import { lintGutter } from "@codemirror/lint";
-import * as prettier from 'prettier/standalone';
-import * as htmlParser from 'prettier/parser-html';
+import { formatHtml } from "../../../../../../utils/Formatter";
 
 import './HtmlView.css'
 
@@ -16,10 +15,7 @@ export function HtmlView({ value }: HtmlViewProps) {
 
   useEffect(() => {
     const formatData = async () => {
-      const formatted = await prettier.format(value || '', {
-        parser: 'html',
-        plugins: [htmlParser],
-      });
+      const formatted = await formatHtml(value);
       setFormattedValue(formatted);
     };
 
