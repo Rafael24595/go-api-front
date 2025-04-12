@@ -61,16 +61,9 @@ export function StoredColumn() {
     }
 
     const insertNewRequest = async () => {
-        const name = prompt("New request name:");
-        if(name == null) {
-            return;
-        }
-        
-        const request = newRequest("anonymous");
-        request.name = name;
-
-        defineRequest(request);
+        const result = await insertRequest(newRequest("anonymous"));
         await fetchStored();
+        await fetchRequest(result.request);
     }
 
     const insertStored = async (request: Request) => {
