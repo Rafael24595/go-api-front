@@ -18,6 +18,7 @@ import { downloadFile } from '../../../../../services/Utils';
 import { ImportCollectionModal } from '../../../../collection/ImportCollectionModal';
 import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
+import { useStoreSession } from '../../../../../store/StoreProviderSession';
 
 import './CollectionColumn.css';
 
@@ -42,6 +43,7 @@ interface Payload {
 }
 
 export function CollectionColumn() {
+    const { userData } = useStoreSession();
     const { find, findOrDefault, store } = useStoreStatus();
 
     const { fetchContext } = useStoreContext();
@@ -59,7 +61,7 @@ export function CollectionColumn() {
             def: ""
         }),
         move: false,
-        cursorRequest: newRequest("anonymous"),
+        cursorRequest: newRequest(userData.username),
         cursorCollection: undefined,
         modalImportCollection: false,
         modalImportOpenApi: false,
@@ -73,7 +75,7 @@ export function CollectionColumn() {
             return;
         }
         
-        const collection = newCollection("anonymous");
+        const collection = newCollection(userData.username);
         collection.name = name;
 
         await insertCollection(collection);
@@ -120,7 +122,7 @@ export function CollectionColumn() {
         await deleteFromCollection(collection, cursorRequest);
         await fetchCollection();
         if(request._id == cursorRequest._id) {
-            defineRequest(newRequest("anonymous"));
+            defineRequest(newRequest(userData.username));
         }
     }
 

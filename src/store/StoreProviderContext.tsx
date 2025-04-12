@@ -2,8 +2,12 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../interfaces/context/Context";
 import { findContext, findUserContext } from "../services/api/ServiceStorage";
 import { generateHash } from "../services/Utils";
-import { Dict } from "../types/Dict";
 import { CacheContext } from "../interfaces/CacheContext";
+import { useStoreCache } from "./StoreProviderCache";
+import { Optional } from "../types/Optional";
+import { useStoreSession } from "./StoreProviderSession";
+
+const CACHE_KEY = "StoreProviderContextCache";
 
 interface StoreProviderContextType {
   initialHash: string;
@@ -15,10 +19,9 @@ interface StoreProviderContextType {
   defineItemContext: (value: ItemContext, parent?: string) => void;
   updateContext: (value: ItemContext) => void;
   fetchContext: (id?: string, parent?: string) => Promise<void>;
+  cacheLenght: () => number;
 }
-
 interface Payload {
-  cache: Dict<CacheContext>
   initialHash: string,
   actualHash: string,
   parent: string,
@@ -30,13 +33,15 @@ interface Payload {
 const StoreContext = createContext<StoreProviderContextType | undefined>(undefined);
 
 export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { userData } = useStoreSession();
+  const { search, insert, remove, length } = useStoreCache();
+
   const [data, setData] = useState<Payload>({
-    cache: {},
     initialHash: "",
     actualHash: "",
     parent: "",
-    backup: newItemContext("anonymous"),
-    context: newItemContext("anonymous"),
+    backup: newItemContext(userData.username),
+    context: newItemContext(userData.username),
     loading: true,
   });
 
@@ -60,22 +65,20 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
 
     const actualHash = await calculateHash(data.context);
 
-    const newCache = { ...data.cache };
     if(actualHash != initialHash) {
-      newCache[context._id] = {
+      insert(CACHE_KEY, context._id, {
         parent: data.parent,
         backup: data.backup,
         context: context
-      };
+      });
     } else {
-      delete newCache[context._id];
+      remove(CACHE_KEY, context._id);
     }
 
     setData(prevData => ({
       ...prevData,
       initialHash,
       actualHash,
-      cache: newCache,
     }));
   }
 
@@ -116,7 +119,7 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const fetchContext = async (id?: string, parent?: string) => {
-    const cached = data.cache[id || "anonymous"];
+    const cached: Optional<CacheContext> = search(CACHE_KEY, id || userData.username);
     if(cached != undefined) {
       defineContextData(cached.backup, cached.context, cached.parent);
       return;
@@ -127,13 +130,17 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
       : findContext(id);
 
     const context = await request.catch(
-      () => newContext("anonymous"));
+      () => newContext(userData.username));
       
     defineContext(context, parent);
   };
 
+  const cacheLenght = () => {
+    return length(CACHE_KEY);
+  }
+
   return (
-    <StoreContext.Provider value={{ ...data, getContext, defineContext, defineItemContext, updateContext, fetchContext }}>
+    <StoreContext.Provider value={{ ...data, getContext, defineContext, defineItemContext, updateContext, fetchContext, cacheLenght }}>
       {children}
     </StoreContext.Provider>
   );
@@ -142,7 +149,7 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
 export const useStoreContext = (): StoreProviderContextType => {
   const context = useContext(StoreContext);
   if (!context) {
-    throw new Error("useStore must be used within a StoreProviderClient");
+    throw new Error("useStore must be used within a StoreProviderContext");
   }
   return context;
 };

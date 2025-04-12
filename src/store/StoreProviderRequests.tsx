@@ -19,7 +19,7 @@ interface Payload {
   collection: ItemCollection[];
 }
 
-const StoreContext = createContext<StoreProviderRequestsType | undefined>(undefined);
+const StoreRequests = createContext<StoreProviderRequestsType | undefined>(undefined);
 
 export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState<Payload>({
@@ -84,16 +84,16 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
 };
 
   return (
-    <StoreContext.Provider value={{ ...data, fetchAll, fetchHistoric, fetchStored, fetchCollection }}>
+    <StoreRequests.Provider value={{ ...data, fetchAll, fetchHistoric, fetchStored, fetchCollection }}>
       {children}
-    </StoreContext.Provider>
+    </StoreRequests.Provider>
   );
 };
 
 export const useStoreRequests = (): StoreProviderRequestsType => {
-  const context = useContext(StoreContext);
+  const context = useContext(StoreRequests);
   if (!context) {
-    throw new Error("useStore must be used within a StoreProviderClient");
+    throw new Error("useStore must be used within a StoreProviderRequests");
   }
   return context;
 };

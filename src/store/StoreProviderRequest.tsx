@@ -9,6 +9,7 @@ import { ResponseExecuteAction } from "../services/api/ResponseExecuteAction";
 import { useStoreCache } from "./StoreProviderCache";
 import { Optional } from "../types/Optional";
 import { CacheActionData } from "../interfaces/CacheActionData";
+import { useStoreSession } from "./StoreProviderSession";
 
 interface StoreProviderRequestType {
   initialHash: string;
@@ -33,6 +34,7 @@ interface StoreProviderRequestType {
   insertRequest: (req: Request, res?: Response) => Promise<ResponseExecuteAction>;
   isParentCached: (parent: string) => boolean;
   isCached: (request: Request) => boolean;
+  cacheLenght: () => number;
   processUri: () => void;
 }
 
@@ -47,18 +49,20 @@ interface Payload {
   response: ItemResponse;
 }
 
-const StoreContext = createContext<StoreProviderRequestType | undefined>(undefined);
+const StoreRequest = createContext<StoreProviderRequestType | undefined>(undefined);
 
 export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { search, exists, insert, remove } = useStoreCache();
+  const { userData } = useStoreSession();
+
+  const { search, exists, insert, remove, length } = useStoreCache();
 
   const [data, setData] = useState<Payload>({
     initialHash: "",
     actualHash: "",
     parent: "",
-    backup: newItemRequest("anonymous"),
-    request: newItemRequest("anonymous"),
-    response: newItemResponse("anonymous")
+    backup: newItemRequest(userData.username),
+    request: newItemRequest(userData.username),
+    response: newItemResponse(userData.username)
   });
 
   useEffect(() => {
@@ -105,12 +109,12 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   const defineRequest = (request: Request, response?: Response, parent?: string) => {
     const itemRequest = fromRequest(request);
-    const itemResponse = response ? fromResponse(response) : newItemResponse("anonymous");
+    const itemResponse = response ? fromResponse(response) : newItemResponse(userData.username);
     defineItemRequest(itemRequest, itemRequest, itemResponse, parent);
   }
 
   const defineItemRequest = (backup: ItemRequest, request: ItemRequest, response?: ItemResponse, parent?: string) => {
-    response = !response ? newItemResponse("anonymous") : response;
+    response = !response ? newItemResponse(userData.username) : response;
     setData(prevData => ({
       ...prevData,
       initialHash: "",
@@ -124,7 +128,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   const updateRequest = (request: Request, response?: Response) => {
     const itemRequest = fromRequest(request);
-    const itemResponse = response ? fromResponse(response) : newItemResponse("anonymous");
+    const itemResponse = response ? fromResponse(response) : newItemResponse(userData.username);
     setData(prevData => ({
       ...prevData,
       parent: "",
@@ -274,23 +278,27 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     return search(CACHE_KEY, request._id) != undefined;
   }
 
+  const cacheLenght = () => {
+    return length(CACHE_KEY);
+  }
+
   return (
-    <StoreContext.Provider value={{ ...data, 
+    <StoreRequest.Provider value={{ ...data, 
       getRequest, getResponse, defineRequest, 
       updateRequest, updateName, updateMethod, 
       updateUri, updateQuery, updateHeader, 
       updateCookie, updateBody, updateAuth,
       fetchRequest, insertRequest, processUri,
-      isParentCached, isCached }}>
+      isParentCached, isCached, cacheLenght }}>
       {children}
-    </StoreContext.Provider>
+    </StoreRequest.Provider>
   );
 };
 
 export const useStoreRequest = (): StoreProviderRequestType => {
-  const context = useContext(StoreContext);
+  const context = useContext(StoreRequest);
   if (!context) {
-    throw new Error("useStore must be used within a StoreProviderClient");
+    throw new Error("useStore must be used within a StoreProviderRequest");
   }
   return context;
 };

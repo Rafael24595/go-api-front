@@ -15,6 +15,7 @@ import { useAlert } from '../../../../utils/alert/Alert';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 
 import './StoredColumn.css';
+import { useStoreSession } from '../../../../../store/StoreProviderSession';
 
 const FILTER_TARGET_KEY = "CollectionColumnDetailsFilterTarget";
 const FILTER_VALUE_KEY = "CollectionColumnDetailsFilterValue";
@@ -33,6 +34,7 @@ interface Payload {
 }
 
 export function StoredColumn() {
+    const { userData } = useStoreSession();
     const { find, findOrDefault, store } = useStoreStatus();
 
     const { fetchContext } = useStoreContext();
@@ -49,7 +51,7 @@ export function StoredColumn() {
         filterValue: find(FILTER_VALUE_KEY, {
             def: ""
         }),
-        request: newRequest("anonymous"),
+        request: newRequest(userData.username),
         move: false,
         modalImport: false,
         modalMove: false,
@@ -61,7 +63,7 @@ export function StoredColumn() {
     }
 
     const insertNewRequest = async () => {
-        const result = await insertRequest(newRequest("anonymous"));
+        const result = await insertRequest(newRequest(userData.username));
         await fetchStored();
         await fetchRequest(result.request);
     }
@@ -89,7 +91,7 @@ export function StoredColumn() {
             await deleteAction(cursorRequest);
             await fetchStored();
             if(request._id == cursorRequest._id) {
-                defineRequest(newRequest("anonymous"));
+                defineRequest(newRequest(userData.username));
             }
         } catch (error) {
             console.error("Error fetching history:", error);

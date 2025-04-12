@@ -8,6 +8,7 @@ interface StoreProviderCacheType {
     exists: <T>(category: string, predicate: (key: string, item: T) => boolean) => boolean;
     insert: <T>(category: string, key: string, value: T) => Optional<T>;
     remove: <T>(category: string, key: string) => Optional<T>;
+    length: (category: string) => number;
 }
 
 interface Payload {
@@ -71,8 +72,15 @@ export const StoreProviderCache: React.FC<{ children: ReactNode }> = ({ children
       return item;
     }
 
+    const length = (category: string): number => {
+      if(data.cache[category] == undefined) {
+        return 0
+      }
+      return Object.keys(data.cache[category]).length;
+    }
+
     return (
-        <StoreCache.Provider value={{ search, locate, exists, insert, remove }}>
+        <StoreCache.Provider value={{ search, locate, exists, insert, remove, length }}>
           {children}
         </StoreCache.Provider>
       );
@@ -81,7 +89,7 @@ export const StoreProviderCache: React.FC<{ children: ReactNode }> = ({ children
 export const useStoreCache = (): StoreProviderCacheType => {
   const context = useContext(StoreCache);
   if (!context) {
-    throw new Error("useStoreStatus must be used within a StoreProviderStatus");
+    throw new Error("useStoreStatus must be used within a StoreProviderCache");
   }
   return context;
 };

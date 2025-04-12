@@ -11,6 +11,7 @@ import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { RequestPushToCollection } from '../../../../../services/api/RequestPushToCollection';
 
 import './HistoricColumn.css';
+import { useStoreSession } from '../../../../../store/StoreProviderSession';
 
 interface HistoricColumnProps {
     setCursor: (cursor: string) => void;
@@ -22,17 +23,19 @@ interface Payload {
 }
 
 export function HistoricColumn({ setCursor }: HistoricColumnProps) {
+    const { userData } = useStoreSession();
+
     const { fetchContext } = useStoreContext();
     const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
     const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreRequests();
 
     const [data, setData] = useState<Payload>({
-        request: newRequest("anonymous"),
+        request: newRequest(userData.username),
         modal: false,
     });
 
     const resetRequest = () => {
-        defineRequest(newRequest("anonymous"));
+        defineRequest(newRequest(userData.username));
     };
 
     const defineHistoricRequest = async (request: Request) => {
