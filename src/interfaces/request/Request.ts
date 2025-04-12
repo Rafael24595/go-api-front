@@ -1,7 +1,7 @@
 import { HttpMethod } from "../../constants/HttpMethod";
 import { joinStatusKeyValue, collectStatusKeyValue, detachStatusKeyValue, mergeStatusKeyValue } from "../../services/Utils";
 import { Dict } from "../../types/Dict";
-import { ItemStatusKeyValue, toItem } from "../StatusKeyValue";
+import { fixOrder, ItemStatusKeyValue, toItem } from "../StatusKeyValue";
 import { StatusValue } from "../StatusValue";
 
 type Status = 'draft' | 'final';
@@ -123,9 +123,9 @@ export const fromRequest = (request: Request): ItemRequest => {
     name: request.name,
     method: request.method,
     uri: request.uri,
-    query: toItem(detachStatusKeyValue(request.query.queries)),
-    header: toItem(detachStatusKeyValue(request.header.headers)),
-    cookie: toItem(collectStatusKeyValue(request.cookie.cookies)),
+    query: fixOrder(toItem(detachStatusKeyValue(request.query.queries))),
+    header: fixOrder(toItem(detachStatusKeyValue(request.header.headers))),
+    cookie: fixOrder(toItem(collectStatusKeyValue(request.cookie.cookies))),
     body: request.body,
     auth: request.auth,
     owner: request.owner,
