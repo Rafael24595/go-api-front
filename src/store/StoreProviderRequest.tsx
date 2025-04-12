@@ -6,8 +6,9 @@ import { fixOrder } from "../interfaces/StatusKeyValue";
 import { fromResponse, ItemResponse, newItemResponse, Response, toResponse } from "../interfaces/response/Response";
 import { findAction, insertAction } from "../services/api/ServiceStorage";
 import { ResponseExecuteAction } from "../services/api/ResponseExecuteAction";
+import { useStoreCache } from "./StoreProviderCache";
+import { Optional } from "../types/Optional";
 import { CacheActionData } from "../interfaces/CacheActionData";
-import { Dict } from "../types/Dict";
 
 interface StoreProviderRequestType {
   initialHash: string;
@@ -35,8 +36,9 @@ interface StoreProviderRequestType {
   processUri: () => void;
 }
 
+const CACHE_KEY = "StoreProviderRequestCache";
+
 interface Payload {
-  cache: Dict<CacheActionData>
   initialHash: string
   actualHash: string
   parent: string,
@@ -48,8 +50,9 @@ interface Payload {
 const StoreContext = createContext<StoreProviderRequestType | undefined>(undefined);
 
 export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { search, exists, insert, remove } = useStoreCache();
+
   const [data, setData] = useState<Payload>({
-    cache: {},
     initialHash: "",
     actualHash: "",
     parent: "",
@@ -70,23 +73,21 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     const actualHash = await calculateHash(data.request);
 
-    const newCache = { ...data.cache };
     if(actualHash != initialHash) {
-      newCache[request._id] = {
+      insert(CACHE_KEY, request._id, {
         parent: data.parent,
         backup: data.backup,
         request: request,
         response: data.response
-      };
+      });
     } else {
-      delete newCache[request._id];
+      remove(CACHE_KEY, request._id);
     }
 
     setData(prevData => ({
       ...prevData,
       initialHash,
-      actualHash,
-      cache: newCache
+      actualHash
     }));
   }
 
@@ -214,7 +215,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   };
 
   const fetchRequest = async (request: Request, parent?: string) => {
-    const cached = data.cache[request._id];
+    const cached: Optional<CacheActionData> = search(CACHE_KEY, request._id);
     if(cached != undefined) {
       defineItemRequest(cached.backup, cached.request, cached.response, cached.parent);
       return;
@@ -266,12 +267,11 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const isParentCached = (parent: string) => {
-    return Object.values(data.cache)
-      .find(c => c.parent == parent) != undefined;
+    return exists(CACHE_KEY, (_: string, i: CacheActionData) => i.parent == parent);
   }
 
   const isCached = (request: Request) => {
-    return data.cache[request._id] != undefined;
+    return search(CACHE_KEY, request._id) != undefined;
   }
 
   return (
