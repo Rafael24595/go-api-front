@@ -8,3 +8,10 @@
     scrollbar-gutter: stable;
     overflow: auto;
 }
+
+#context-buttons {
+    float: right;
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: flex-end;
+}

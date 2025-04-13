@@ -46,17 +46,17 @@ export function LeftSidebar() {
                     checked={data.cursor === VIEW_HISTORIC} 
                     value={VIEW_HISTORIC} 
                     onChange={cursorChange}/>
-                <label htmlFor="tag-left-sidebar-historic">Historic</label>
+                <label htmlFor="tag-left-sidebar-historic" title="Historic">Historic</label>
                 <input type="radio" id="tag-left-sidebar-stored" className="client-tag" name="cursor-left-sidebar"
                     checked={data.cursor === VIEW_STORED} 
                     value={VIEW_STORED} 
                     onChange={cursorChange}/>
-                <label htmlFor="tag-left-sidebar-stored">Stored</label>
+                <label htmlFor="tag-left-sidebar-stored" title="Stored">Stored</label>
                 <input type="radio" id="tag-left-sidebar-collection" className="client-tag" name="cursor-left-sidebar"
                     checked={data.cursor === VIEW_COLLECTION} 
                     value={VIEW_COLLECTION} 
                     onChange={cursorChange}/>
-                <label htmlFor="tag-left-sidebar-collection">Collection</label>
+                <label htmlFor="tag-left-sidebar-collection" title="Collection">Collection</label>
             </div>
             <div id="request-form-options">
                 {data.cursor === VIEW_HISTORIC && <HistoricColumn setCursor={setCursor}/>}

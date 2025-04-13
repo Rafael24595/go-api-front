@@ -87,12 +87,12 @@ export function ParameterSelector() {
                             value={VIEW_BODY} 
                             onChange={cursorChange}/>
                         <label htmlFor="tag-client-body" id="client-label-body">Body</label>
-                    </div>
-                    <div>
-                        <button type="button" className="button-tag" onClick={() => setModalStatus(true)}>
-                            <span className={`button-modified-status small display ${ initialHash != actualHash && "visible" }`}></span>
-                            Context
-                        </button>
+                        <div id="context-buttons">
+                            <button type="button" className="button-tag" onClick={() => setModalStatus(true)}>
+                                <span className={`button-modified-status small display ${ initialHash != actualHash && "visible" }`}></span>
+                                Context
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
