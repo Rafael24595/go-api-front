@@ -118,6 +118,24 @@ export function CollectionColumn() {
         await fetchCollection();
     }
 
+    const newCollectionRequest = async (collection: ItemCollection) => {
+        const name = prompt("Insert a name: ");
+        if(name == null) {
+            return;
+        }   
+
+        const payload: RequestPushToCollection = {
+            source_id: "",
+            target_id: collection._id,
+            target_name: collection.name,
+            request: newRequest(userData.username, name),
+            request_name: name,
+            move: data.move ? "move" : "clone",
+        };
+        await pushToCollection(payload);
+        await fetchCollection();
+    }
+
     const removeFrom = async (collection: ItemCollection, cursorRequest: Request) => {
         await deleteFromCollection(collection, cursorRequest);
         await fetchCollection();
@@ -405,6 +423,12 @@ export function CollectionColumn() {
                                         label: "Duplicate",
                                         title: "Duplicate collection",
                                         action: () => clone(cursorCollection)
+                                    },
+                                    {
+                                        icon: "💡",
+                                        label: "Request",
+                                        title: "New request",
+                                        action: () => newCollectionRequest(cursorCollection)
                                     },
                                     {
                                         icon: "💾",
