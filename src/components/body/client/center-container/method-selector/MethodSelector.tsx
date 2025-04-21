@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HttpMethod } from '../../../../../constants/HttpMethod';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 
@@ -8,6 +8,10 @@ export function MethodSelector () {
     const {request, updateMethod } = useStoreRequest();
     const methods = Object.values(HttpMethod);
     const [selected, setSelectedMethod] = useState(request.method);
+
+    useEffect(() => {
+        setSelectedMethod(request.method);
+    }, [request.method]);
 
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedMethod(e.target.value);
