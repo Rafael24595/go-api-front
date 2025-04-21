@@ -1,7 +1,7 @@
 import axios from "axios";
 
 function baseURL(): string {
-  const url = import.meta.env.VITE_SERVICE_API_MANAGER;
+  const url = `${window.location.protocol}//${window.location.hostname}:${import.meta.env.VITE_SERVICE_API_MANAGER_PORT}`;
   if(url != undefined) {
     return url
   }
