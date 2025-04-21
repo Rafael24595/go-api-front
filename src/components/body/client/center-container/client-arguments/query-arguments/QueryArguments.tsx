@@ -21,7 +21,7 @@ export function QueryArguments() {
         setData(request.query);
     }, [request.query]);
 
-    const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const statusChange = (/*e: React.ChangeEvent<HTMLInputElement>*/) => {
         //TODO:
     };
 
