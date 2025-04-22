@@ -111,6 +111,8 @@ function viewParse(view: string): string {
         case VIEW_JSON:
             return "Json"
         case VIEW_XML:
+            return "Xtml"
+        case VIEW_HTML:
             return "Html"
         default:
             return "Text"
