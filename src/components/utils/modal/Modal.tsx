@@ -7,13 +7,15 @@ interface ModalProps {
     title?: string | ReactNode
     width?: string
     height?: string
+    minWidth?: string
+    minHeight?: string
     isOpen: boolean,
     onClose: () => void,
     children: ReactNode
     buttons?: ModalButton[]
 }
 
-export function Modal({ title, height, width, isOpen, onClose, children, buttons }: ModalProps) {
+export function Modal({ title, height, width, minHeight, minWidth, isOpen, onClose, children, buttons }: ModalProps) {
     if (!isOpen) {
         return null;
     }
@@ -26,7 +28,12 @@ export function Modal({ title, height, width, isOpen, onClose, children, buttons
   
     return (
       <div id="modal-area" onClick={handleBackgroundClick}>
-        <div id="modal-container" style={{ height: height ? height : "auto", width: width ? width : "" }}>
+        <div id="modal-container" style={{ 
+            height: height ? height : "auto", 
+            width: width ? width : "",
+            minHeight: minHeight ? minHeight : "300px",
+            minWidth: minWidth ? minWidth : "500px",
+          }}>
           {title && (
             <div id="modal-title" className="border-bottom">
               <h3>{ title }</h3>
