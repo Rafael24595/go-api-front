@@ -1,13 +1,24 @@
+import { useState } from 'react';
 import { useStoreContext } from '../../store/StoreProviderContext';
 import { useStoreRequest } from '../../store/StoreProviderRequest';
 import { useStoreSession } from '../../store/StoreProviderSession';
+import { SessionModal } from './session/SessionModal';
+import { ProfileImage } from './session/ProfileImage';
 
-import './Header.css'
+import './Header.css';
+
+interface Payload {
+    modalSession: boolean;
+}
 
 export function Header() {
     const { userData } = useStoreSession();
     const request = useStoreRequest();
     const context = useStoreContext();
+
+    const [data, setData] = useState<Payload>({
+        modalSession: false,
+    });
 
     const makeUnsavedTitle = () => {
         let title = "";
@@ -22,6 +33,20 @@ export function Header() {
         return title;
     };
 
+    const openSessionModal = () => {
+        setData((prevData) => ({
+            ...prevData,
+            modalSession: true
+        }));
+    };
+
+    const closeSessionModal = () => {
+        setData((prevData) => ({
+            ...prevData,
+            modalSession: false
+        }));
+    };
+
     return (
         <div id="header-container">
             <div id="user-container">
@@ -30,8 +55,15 @@ export function Header() {
                         <span className="button-modified-status visible" title={makeUnsavedTitle()}></span>
                     </div>
                 )}
-                <span>{userData.username}</span>
+                <button id="session-preview" className="button-div" type="button" onClick={openSessionModal}>
+                    <span id="username-preview">{userData.username}</span>
+                    <ProfileImage size="small"/>
+                </button>
             </div>
+            <SessionModal
+                isOpen={data.modalSession}
+                onClose={closeSessionModal}
+            />
         </div>
     )
 }

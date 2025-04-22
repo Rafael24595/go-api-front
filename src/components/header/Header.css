@@ -16,3 +16,15 @@
     margin-left: 10px;
     margin-right: 10px;
 }
+
+#session-preview {
+    display: flex;
+    align-items: center;
+}
+
+#username-preview {
+    text-decoration: underline;
+    font-weight: 600;
+    margin-left: 10px;
+    margin-right: 10px;
+}

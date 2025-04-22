@@ -227,6 +227,22 @@ button:hover {
   cursor: pointer;
 }
 
+.button-anchor.small {
+  font-size: 0.85em;
+}
+
 .button-anchor:hover {
+  background-color: transparent;
+}
+
+.button-div {
+  background-color: transparent;
+  border: 0px;
+  font-weight: 600;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.button-div:hover {
   background-color: transparent;
 }
