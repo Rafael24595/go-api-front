@@ -4,7 +4,6 @@ import { fromContext } from '../../../../../interfaces/context/Context';
 import { ItemRequest, newRequest, Request } from '../../../../../interfaces/request/Request';
 import { cloneCollection, deleteCollection, deleteFromCollection, imporOpenApi, importCollections, importToCollection, insertCollection, pushToCollection, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 import { CollectionModal } from '../../../../collection/CollectionModal';
@@ -46,8 +45,7 @@ export function CollectionColumn() {
     const { userData } = useStoreSession();
     const { find, findOrDefault, store } = useStoreStatus();
 
-    const { fetchContext } = useStoreContext();
-    const { parent, request, defineRequest, fetchRequest, isParentCached, isCached } = useStoreRequest();
+    const { parent, request, cleanRequest, defineRequest, fetchRequest, isParentCached, isCached } = useStoreRequest();
     const { collection, fetchStored, fetchCollection } = useStoreRequests();
 
     const { push } = useAlert();
@@ -140,7 +138,7 @@ export function CollectionColumn() {
         await deleteFromCollection(collection, cursorRequest);
         await fetchCollection();
         if(request._id == cursorRequest._id) {
-            defineRequest(newRequest(userData.username));
+            cleanRequest();
         }
     }
 
@@ -152,8 +150,7 @@ export function CollectionColumn() {
 
     const defineCollectionRequest = async (collection: ItemCollection, request: Request) => {
         const context = fromContext(collection.context);
-        fetchRequest(request, collection._id);
-        await fetchContext(context._id);
+        fetchRequest(request, collection._id, context._id);
     }
 
     const cloneFromCollection = (request: Request) => {

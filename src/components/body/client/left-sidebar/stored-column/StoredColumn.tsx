@@ -37,8 +37,7 @@ export function StoredColumn() {
     const { userData } = useStoreSession();
     const { find, findOrDefault, store } = useStoreStatus();
 
-    const { fetchContext } = useStoreContext();
-    const { request, defineRequest, fetchRequest, insertRequest, isCached } = useStoreRequest();
+    const { request, cleanRequest, defineRequest, fetchRequest, insertRequest, isCached } = useStoreRequest();
     const { stored, fetchStored, fetchCollection } = useStoreRequests();
 
     const { push } = useAlert();
@@ -59,7 +58,6 @@ export function StoredColumn() {
 
     const defineHistoricRequest = async (request: Request) => {
         await fetchRequest(request);
-        await fetchContext();
     }
 
     const insertNewRequest = async () => {
@@ -91,7 +89,7 @@ export function StoredColumn() {
             await deleteAction(cursorRequest);
             await fetchStored();
             if(request._id == cursorRequest._id) {
-                defineRequest(newRequest(userData.username));
+                cleanRequest();
             }
         } catch (error) {
             console.error("Error fetching history:", error);

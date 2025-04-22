@@ -25,8 +25,7 @@ interface Payload {
 export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const { userData } = useStoreSession();
 
-    const { fetchContext } = useStoreContext();
-    const { request, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
+    const { request, cleanRequest, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
     const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreRequests();
 
     const [data, setData] = useState<Payload>({
@@ -34,13 +33,8 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
         modal: false,
     });
 
-    const resetRequest = () => {
-        defineRequest(newRequest(userData.username));
-    };
-
     const defineHistoricRequest = async (request: Request) => {
         await fetchRequest(request);
-        await fetchContext();
     }
 
     const insertHistoric = async (request: Request) => {
@@ -94,7 +88,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
             <button 
                 type="button"
                 className="column-option option-button border-bottom"
-                onClick={resetRequest}>
+                onClick={cleanRequest}>
                 <span>Clean</span>
             </button>
             <div id="actions-container">
