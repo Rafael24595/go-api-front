@@ -1,4 +1,5 @@
 export interface UserData {
+  picture: ""
 	username:  string
 	timestamp: number
 	context:   string
@@ -6,6 +7,7 @@ export interface UserData {
 
 export function newUserData(): UserData {
   return {
+    picture: "",
     username: "",
     timestamp: 0,
     context: "",

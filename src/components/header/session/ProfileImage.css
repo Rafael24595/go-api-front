@@ -1,0 +1,18 @@
+#profile-image {
+    display: flex;
+    border: 1px solid;
+    border-radius: 50%;
+    height: 50px;
+    width: 50px;
+    align-items: center;
+    justify-content: center;
+}
+
+#profile-image.small {
+    height: 35px;
+    width: 35px;
+}
+
+#profile-image span {
+    font-weight: bold;
+}
