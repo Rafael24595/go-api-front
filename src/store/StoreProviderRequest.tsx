@@ -40,6 +40,7 @@ interface StoreProviderRequestType {
   processUri: () => void;
 }
 
+const TRIGGER_KEY = "StoreProviderRequestTrigger";
 const CACHE_KEY = "StoreProviderRequestCache";
 
 interface Payload {
@@ -54,7 +55,7 @@ interface Payload {
 const StoreRequest = createContext<StoreProviderRequestType | undefined>(undefined);
 
 export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData } = useStoreSession();
+  const { userData, pushTrigger } = useStoreSession();
   const { fetchContext } = useStoreContext();
 
   const { search, exists, insert, remove, length } = useStoreCache();
@@ -67,6 +68,11 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     request: newItemRequest(userData.username),
     response: newItemResponse(userData.username)
   });
+  
+  
+  useEffect(() => {
+    pushTrigger(TRIGGER_KEY, cleanRequest);
+  }, []);
 
   useEffect(() => {
     updateStatus(data.request);

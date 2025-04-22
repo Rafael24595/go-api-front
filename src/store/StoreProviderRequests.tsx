@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { findAllAction, findAllCollection, findAllHistoric } from "../services/api/ServiceStorage";
 import { Request } from "../interfaces/request/Request";
 import { ItemCollection } from "../interfaces/collection/Collection";
+import { useStoreSession } from "./StoreProviderSession";
 
 interface StoreProviderRequestsType {
   historic: Request[];
@@ -19,9 +20,13 @@ interface Payload {
   collection: ItemCollection[];
 }
 
+const TRIGGER_KEY = "StoreRequestsTrigger";
+
 const StoreRequests = createContext<StoreProviderRequestsType | undefined>(undefined);
 
 export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { pushTrigger } = useStoreSession();
+
   const [data, setData] = useState<Payload>({
     historic: [],
     stored: [],
@@ -34,6 +39,8 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
     const interval = setInterval(() => {
       fetchAll();
     }, 10000);
+
+    pushTrigger(TRIGGER_KEY, fetchAll);
 
     return () => clearInterval(interval);
   }, []);
