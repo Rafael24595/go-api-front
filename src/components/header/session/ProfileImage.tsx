@@ -21,7 +21,7 @@ export function ProfileImage({ size }: ProfileImageProps) {
 
     const backgroundColor = () => {
         const timestamp = userData.timestamp;
-        const input = timestamp.toString();
+        const input = `${userData.username}-${timestamp.toString()}`;
 
         let hash = 0;
         for (let i = 0; i < input.length; i++) {
