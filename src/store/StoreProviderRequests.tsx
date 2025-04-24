@@ -40,16 +40,30 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
       fetchAll();
     }, 10000);
 
-    pushTrigger(TRIGGER_KEY, fetchAll);
+    pushTrigger(TRIGGER_KEY, cleanFetchAll);
 
     return () => clearInterval(interval);
   }, []);
+
+  const cleanFetchAll = async () => {
+    clean();
+    fetchAll();
+  };
+
+  const clean = async () => {
+    setData((prevData) => ({
+      ...prevData,
+      historic: [],
+      stored: [],
+      collection: [],
+    }));
+  };
 
   const fetchAll = async () => {
     fetchHistoric();
     fetchStored();
     fetchCollection();
-};
+  };
 
   const fetchHistoric = async () => {
       try {
