@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { fetchLogin, fetchLogout, fetchUserData } from "../services/api/ServiceManager";
+import { fetchAuthenticate, fetchLogin, fetchLogout, fetchRemove, fetchSignin, fetchUserData } from "../services/api/ServiceManager";
 import { newUserData, UserData } from "../interfaces/UserData";
-import { pushInterceptor } from "../services/api/ApiManager";
 import { Dict } from "../types/Dict";
 
 interface StoreProviderSessionType {
@@ -9,7 +8,10 @@ interface StoreProviderSessionType {
   loaded: boolean;
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  signin: (username: string, password1: string, password2: string, isAdmin: boolean) => Promise<void>
+  remove: () => Promise<void>
   fetchUser: () => Promise<void>
+  authenticate: (oldPassword: string, newPassword1: string, newPassword2: string) => Promise<void>
   pushTrigger: (key: string, trigger: Trigger) => Promise<void>
 }
 
@@ -37,19 +39,8 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       fetchUser();
     }, 10000);
 
-    pushInterceptor(
-      (response) => response,
-      valideSession
-    )
-
     return () => clearInterval(interval);
   }, []);
-
-  const valideSession = (e: any) => {
-    if (e.response && e.response.status === 401) {
-      fetchLogout();
-    }
-  }
 
   const login = async (username: string, password: string) => {
     const userData = await fetchLogin(username, password);
@@ -63,6 +54,30 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
 
   const logout = async () => {
     const userData = await fetchLogout();
+    setData(prevData => ({
+      ...prevData,
+      userData: userData,
+      loaded: true
+    }));
+    executeTriggers();
+  };
+
+  const authenticate = async (oldPassword: string, newPassword1: string, newPassword2: string) => {
+    const userData = await fetchAuthenticate(oldPassword, newPassword1, newPassword2);
+    setData(prevData => ({
+      ...prevData,
+      userData: userData,
+      loaded: true
+    }));
+    executeTriggers();
+  };
+
+  const signin = async (username: string, password1: string, password2: string, isAdmin: boolean) => {
+    await fetchSignin(username, password1, password2, isAdmin);
+  };
+
+  const remove = async () => {
+    const userData = await fetchRemove();
     setData(prevData => ({
       ...prevData,
       userData: userData,
@@ -92,7 +107,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
   };
 
   return (
-    <StoreSession.Provider value={{ ...data, login, logout, fetchUser, pushTrigger }}>
+    <StoreSession.Provider value={{ ...data, login, logout, signin, remove, fetchUser, authenticate, pushTrigger }}>
       {data.loaded ? children : 
         <>
           <span className="loader"></span>
