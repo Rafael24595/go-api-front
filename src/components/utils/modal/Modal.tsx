@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { ModalButton } from '../../../interfaces/ModalButton';
 
 import './Modal.css';
@@ -25,15 +25,19 @@ export function Modal({ title, height, width, minHeight, minWidth, isOpen, onClo
         onClose();
       }
     };
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+  };
   
     return (
       <div id="modal-area" onClick={handleBackgroundClick}>
-        <div id="modal-container" style={{ 
+        <form id="modal-container" style={{ 
             height: height ? height : "auto", 
             width: width ? width : "",
             minHeight: minHeight ? minHeight : "300px",
             minWidth: minWidth ? minWidth : "500px",
-          }}>
+          }} onSubmit={handleSubmit}>
           {title && (
             <div id="modal-title" className="border-bottom">
               <h3>{ title }</h3>
@@ -47,7 +51,7 @@ export function Modal({ title, height, width, minHeight, minWidth, isOpen, onClo
               buttons.map(b => (
                 <button
                   key={b.title}
-                  type="button"
+                  type={b.type || 'button'}
                   onClick={() => b.callback.func(b.callback.args)}>
                     {b.title}
                 </button>  
@@ -61,7 +65,7 @@ export function Modal({ title, height, width, minHeight, minWidth, isOpen, onClo
             )}
             
           </div>
-        </div>
+        </form>
       </div>
     );
 }
