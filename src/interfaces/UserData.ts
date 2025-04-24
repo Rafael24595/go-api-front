@@ -3,6 +3,9 @@ export interface UserData {
 	username:  string
 	timestamp: number
 	context:   string
+  is_protected: boolean
+  is_admin: boolean
+  first_time: boolean
 }
 
 export function newUserData(): UserData {
@@ -11,5 +14,8 @@ export function newUserData(): UserData {
     username: "",
     timestamp: 0,
     context: "",
+    is_protected: false,
+    is_admin: false,
+    first_time: false,
   }
 }
