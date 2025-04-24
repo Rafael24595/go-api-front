@@ -49,6 +49,9 @@ export function Header() {
 
     return (
         <div id="header-container">
+            <div id="logo-container">
+                <img src="/GoApiLogo.png" title="GoApi logo" alt="GoApi logo"/>
+            </div>
             <div id="user-container">
                 {(request.cacheLenght() > 0 || context.cacheLenght() > 0) && (
                     <div id="unsafe-container">
@@ -61,7 +64,7 @@ export function Header() {
                 </button>
             </div>
             <SessionModal
-                isOpen={data.modalSession}
+                isOpen={data.modalSession || userData.first_time}
                 onClose={closeSessionModal}
             />
         </div>
