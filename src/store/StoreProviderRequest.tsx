@@ -22,8 +22,8 @@ interface StoreProviderRequestType {
   getRequest: () => Request;
   getResponse: () => Response;
   cleanRequest: ()=> void;
-  defineRequest: (request: Request, response?: Response, parent?: string) => void;
-  updateRequest: (request: Request, response?: Response) => void;
+  defineRequest: (request: Request, response?: Response, parent?: string, oldRequest?: Request) => void;
+  updateRequest: (newRequest: Request, newResponse?: Response, oldRequest?: Request) => void;
   updateName: (name: string) => void;
   updateMethod: (method: string) => void;
   updateUri: (uri: string) => void;
@@ -36,6 +36,7 @@ interface StoreProviderRequestType {
   insertRequest: (req: Request, res?: Response) => Promise<ResponseExecuteAction>;
   isParentCached: (parent: string) => boolean;
   isCached: (request: Request) => boolean;
+  cacheComments: () => string[];
   cacheLenght: () => number;
   processUri: () => void;
 }
@@ -58,7 +59,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const { userData, pushTrigger } = useStoreSession();
   const { fetchContext } = useStoreContext();
 
-  const { search, exists, insert, remove, length } = useStoreCache();
+  const { gather, search, exists, insert, remove, length } = useStoreCache();
 
   const [data, setData] = useState<Payload>({
     initialHash: "",
@@ -117,39 +118,56 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const cleanRequest = () => {
-    defineRequest(newRequest(userData.username));
+    defineRequestFromRequest(newRequest(userData.username));
   }
 
-  const defineRequest = (request: Request, response?: Response, parent?: string, context?: string) => {
-    const itemRequest = fromRequest(request);
-    const itemResponse = response ? fromResponse(response) : newItemResponse(userData.username);
-    defineItemRequest(itemRequest, itemRequest, itemResponse, parent, context);
+  const defineRequest = (newRequest: Request, newResponse?: Response, parent?: string, oldRequest?: Request) => {
+    defineRequestFromRequest(newRequest, newResponse, parent, undefined, oldRequest);
   }
 
-  const defineItemRequest = (backup: ItemRequest, request: ItemRequest, response?: ItemResponse, parent?: string, context?: string) => {
-    response = !response ? newItemResponse(userData.username) : response;
-    setData(prevData => ({
-      ...prevData,
-      initialHash: "",
-      actualHash: "",
-      parent: parent || "",
-      backup: backup,
-      request: request,
-      response: response
-    }));
+  const defineRequestFromRequest = (newRequest: Request, newResponse?: Response, parent?: string, context?: string, oldRequest?: Request) => {
+    const itemRequest = fromRequest(newRequest);
+    const itemResponse = newResponse ? fromResponse(newResponse) : newItemResponse(userData.username);
+    defineRequestData(itemRequest, itemRequest, itemResponse, parent, context, oldRequest);
+  }
+
+  const defineRequestData = (backup: ItemRequest, newRequest: ItemRequest, newResponse?: ItemResponse, parent?: string, context?: string, oldRequest?: Request) => {
+    newResponse = !newResponse ? newItemResponse(userData.username) : newResponse;
+    setData(prevData => {
+      if(oldRequest && oldRequest._id != newRequest._id) {
+        remove(CACHE_KEY, oldRequest._id)
+      }
+      
+      return {
+        ...prevData,
+        initialHash: "",
+        actualHash: "",
+        parent: parent || "",
+        backup: { ...backup },
+        request: { ...newRequest },
+        response: { ...newResponse }
+      }
+    });
     fetchContext(context, parent);
   }
 
-  const updateRequest = (request: Request, response?: Response) => {
-    const itemRequest = fromRequest(request);
-    const itemResponse = response ? fromResponse(response) : newItemResponse(userData.username);
-    setData(prevData => ({
-      ...prevData,
-      parent: "",
-      backup: itemRequest,
-      request: itemRequest,
-      response: itemResponse
-    }));
+  const updateRequest = (newRequest: Request, newResponse?: Response, oldRequest?: Request) => {
+    const itemRequest = fromRequest(newRequest);
+    const itemResponse = newResponse ? fromResponse(newResponse) : newItemResponse(userData.username);
+    
+    setData(prevData => {   
+      if(oldRequest && oldRequest._id != newRequest._id) {
+        remove(CACHE_KEY, oldRequest._id)
+      }
+
+      return {
+        ...prevData,
+        parent: prevData.parent,
+        backup: prevData.backup,
+        request: itemRequest,
+        response: itemResponse
+      }
+    });
   }
 
   const updateName = (name: string) => {
@@ -235,12 +253,12 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const fetchRequest = async (request: Request, parent?: string, context?: string) => {
     const cached: Optional<CacheActionData> = search(CACHE_KEY, request._id);
     if(cached != undefined) {
-      defineItemRequest(cached.backup, cached.request, cached.response, cached.parent, context);
+      defineRequestData(cached.backup, cached.request, cached.response, cached.parent, context);
       return;
     }
     
     const apiResponse = await findAction(request);
-    defineRequest(apiResponse.request, apiResponse.response, parent, context);
+    defineRequestFromRequest(apiResponse.request, apiResponse.response, parent, context);
   }
 
   const insertRequest = async (req: Request, res?: Response): Promise<ResponseExecuteAction> => {
@@ -255,7 +273,9 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
         req.name = name;
     }
 
-    return insertAction(req, res);
+    const result = await insertAction(req, res);
+
+    return result;
   };
 
   const processUri = () => {
@@ -292,6 +312,25 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     return search(CACHE_KEY, request._id) != undefined;
   }
 
+  const cacheComments = () => {
+    const requests: CacheActionData[] = gather(CACHE_KEY);
+    return requests.map(cacheComment);
+  }
+
+  const cacheComment = (cached: CacheActionData) => {
+    let collected = " ";
+    if(cached.parent != undefined && cached.parent != "") {
+      collected = " collected ";
+    }
+
+    let name = cached.request.name;
+    if(name == undefined || name == "") {
+      name = `${cached.request.method} ${cached.request.uri}`;
+    }
+
+    return `Unsafe${collected}request '${name}'.`;
+  }
+
   const cacheLenght = () => {
     return length(CACHE_KEY);
   }
@@ -304,7 +343,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       updateHeader, updateCookie, updateBody,
       updateAuth, fetchRequest, insertRequest,
       processUri, isParentCached, isCached,
-      cacheLenght }}>
+      cacheComments, cacheLenght }}>
       {children}
     </StoreRequest.Provider>
   );

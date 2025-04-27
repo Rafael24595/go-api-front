@@ -3,6 +3,7 @@ import { Dict } from "../types/Dict";
 import { Optional } from "../types/Optional";
 
 interface StoreProviderCacheType {
+    gather: <T>(category: string) => T[];
     search: <T>(category: string, key: string) => Optional<T>;
     locate: <T>(category: string, predicate: (key: string, item: T) => boolean) => Optional<T>;
     exists: <T>(category: string, predicate: (key: string, item: T) => boolean) => boolean;
@@ -21,6 +22,13 @@ export const StoreProviderCache: React.FC<{ children: ReactNode }> = ({ children
     const [data, setData] = useState<Payload>({
         cache: {}
     });
+
+    const gather = <T,>(category: string): T[] => {
+      if(data.cache[category] == undefined) {
+        return []
+      }
+      return Object.values(data.cache[category]);
+    }
     
     const search = <T,>(category: string, key: string): Optional<T> => {
       if(data.cache[category] == undefined) {
@@ -80,7 +88,7 @@ export const StoreProviderCache: React.FC<{ children: ReactNode }> = ({ children
     }
 
     return (
-        <StoreCache.Provider value={{ search, locate, exists, insert, remove, length }}>
+        <StoreCache.Provider value={{ gather, search, locate, exists, insert, remove, length }}>
           {children}
         </StoreCache.Provider>
       );

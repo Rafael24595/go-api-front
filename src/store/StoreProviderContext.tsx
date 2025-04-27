@@ -15,10 +15,12 @@ interface StoreProviderContextType {
   backup: ItemContext;
   context: ItemContext;
   getContext: () => Context;
-  defineContext: (value: Context, parent?: string) => void;
-  defineItemContext: (value: ItemContext, parent?: string) => void;
-  updateContext: (value: ItemContext) => void;
+  defineContext: (context: Context, parent?: string) => void;
+  defineItemContext: (context: ItemContext, parent?: string) => void;
+  updateContext: (context: ItemContext) => void;
   fetchContext: (id?: string, parent?: string) => Promise<void>;
+  isParentCached: (parent: string) => boolean;
+  cacheComments: () => string[];
   cacheLenght: () => number;
 }
 interface Payload {
@@ -34,7 +36,7 @@ const StoreContext = createContext<StoreProviderContextType | undefined>(undefin
 
 export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { userData } = useStoreSession();
-  const { search, insert, remove, length } = useStoreCache();
+  const { gather, search, exists, insert, remove, length } = useStoreCache();
 
   const [data, setData] = useState<Payload>({
     initialHash: "",
@@ -105,8 +107,8 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
       initialHash: "",
       actualHash: "",
       parent: parent || "",
-      backup: backup,
-      context: context,
+      backup: { ...backup },
+      context: { ...context },
       loading: false
     }));
   }
@@ -135,12 +137,30 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     defineContext(context, parent);
   };
 
+  const isParentCached = (parent: string) => {
+    return exists(CACHE_KEY, (_: string, i: CacheContext) => i.parent == parent);
+  }
+
+  const cacheComments = () => {
+    const contexts: CacheContext[] = gather(CACHE_KEY);
+    return contexts.map(cacheComment);
+  }
+
+  const cacheComment = (cached: CacheContext) => {
+    let collected = "global";
+    if(cached.parent != undefined && cached.parent != "") {
+      collected = "collected";
+    }
+
+    return `Unsafe ${collected} context.`;
+  }
+
   const cacheLenght = () => {
     return length(CACHE_KEY);
   }
 
   return (
-    <StoreContext.Provider value={{ ...data, getContext, defineContext, defineItemContext, updateContext, fetchContext, cacheLenght }}>
+    <StoreContext.Provider value={{ ...data, getContext, defineContext, defineItemContext, updateContext, fetchContext, isParentCached, cacheComments, cacheLenght }}>
       {children}
     </StoreContext.Provider>
   );

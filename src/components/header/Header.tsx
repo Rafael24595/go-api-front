@@ -22,13 +22,13 @@ export function Header() {
 
     const makeUnsavedTitle = () => {
         let title = "";
-        const requests = request.cacheLenght();
-        if(requests > 0) {
-            title += `Unsafe requests: ${requests}`;
+        const requests = request.cacheComments();
+        if(requests.length > 0) {
+            title += requests.join("\n");
         }
-        const contexts = context.cacheLenght();
-        if(contexts > 0) {
-            title += `\nUnsafe contexts: ${contexts}`;
+        const contexts = context.cacheComments();
+        if(contexts.length > 0) {
+            title += contexts.join("\n");
         }
         return title;
     };

@@ -20,13 +20,13 @@
 }
 
 #unsafe-container {
-    margin-left: 10px;
-    margin-right: 10px;
+    margin: 0px;
 }
 
 #session-preview {
     display: flex;
     align-items: center;
+    padding: 0px;
 }
 
 #username-preview {
