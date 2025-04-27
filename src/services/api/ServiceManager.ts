@@ -3,7 +3,7 @@ import { Request } from "../../interfaces/request/Request";
 import { UserData } from "../../interfaces/UserData";
 import apiManager from "./ApiManager";
 import { RequestAuthentication, RequestLogin, RequestSignin } from "./Requests";
-import { ResponseExecuteAction } from "./ResponseExecuteAction";
+import { ResponseExecuteAction } from "./Responses";
 
 export const executeFormAction = async (request: Request, context: Context): Promise<ResponseExecuteAction> => {
   try {

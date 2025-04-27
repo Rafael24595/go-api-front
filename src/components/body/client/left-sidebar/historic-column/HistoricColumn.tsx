@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { newRequest, Request } from '../../../../../interfaces/request/Request';
-import { deleteAction, pushToCollection } from '../../../../../services/api/ServiceStorage';
+import { deleteHistoric as fetchDeleteHistoric, requestCollect } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 import { CollectionModal } from '../../../../collection/CollectionModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';
-import { useStoreContext } from '../../../../../store/StoreProviderContext';
-import { RequestPushToCollection } from '../../../../../services/api/RequestPushToCollection';
+import { useStoreSession } from '../../../../../store/StoreProviderSession';
+import { RequestRequestCollect } from '../../../../../services/api/Requests';
 
 import './HistoricColumn.css';
-import { useStoreSession } from '../../../../../store/StoreProviderSession';
 
 interface HistoricColumnProps {
     setCursor: (cursor: string) => void;
@@ -45,7 +44,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
 
     const deleteHistoric = async (request: Request) => {
         try {
-            await deleteAction(request);
+            await fetchDeleteHistoric(request);
             await fetchHistoric();
         } catch (error) {
             console.error("Error fetching history:", error);
@@ -71,7 +70,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     };
 
     const submitModal = async (collectionId: string, collectionName: string, request: Request, requestName: string) => {
-        const payload: RequestPushToCollection = {
+        const payload: RequestRequestCollect = {
             source_id: "",
             target_id: collectionId,
             target_name: collectionName,
@@ -79,7 +78,8 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
             request_name: requestName,
             move: 'clone',
         };
-        await pushToCollection(payload);
+
+        await requestCollect(payload);
         await fetchCollection();
     }
 
