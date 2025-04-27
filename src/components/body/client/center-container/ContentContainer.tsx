@@ -12,7 +12,7 @@ import './ContentContainer.css';
 
 export function ContentContainer() {
     const { getContext } = useStoreContext();
-    const { initialHash, actualHash, request, getRequest, getResponse, defineRequest, updateRequest, updateName, updateUri, insertRequest } = useStoreRequest();
+    const { initialHash, actualHash, request, parent, getRequest, getResponse, defineRequest, updateRequest, updateUri, insertRequest } = useStoreRequest();
     const { fetchAll } = useStoreRequests();
 
     const { push } = useAlert();
@@ -26,13 +26,15 @@ export function ContentContainer() {
 
         const req = getRequest();
 
-        if(req.name == "") {
+        const newReq = {...req};
+        if(newReq.name == "") {
             const name = `temp-${req.method}-${req.timestamp}`;
-            req.name = name;
-            updateName(name);
+            newReq.name = name;
         }
 
-        let apiResponse = await executeFormAction(req, getContext()).catch(e =>
+        updateRequest(newReq);
+
+        let apiResponse = await executeFormAction(newReq, getContext()).catch(e =>
             push({
                 title: `[${e.statusCode}] ${e.statusText}`,
                 category: EAlertCategory.ERRO,
@@ -43,13 +45,12 @@ export function ContentContainer() {
             return;
         }
 
-        updateRequest(req, apiResponse.response);
+        updateRequest(newReq, apiResponse.response);
 
-        //TODO: Manage user session.
         apiResponse = await pushHistoric(req, apiResponse.response);
-
-        req._id = apiResponse.request._id;
-        updateRequest(req, apiResponse.response);
+        
+        newReq._id = apiResponse.request._id;
+        updateRequest(newReq, apiResponse.response, req);
 
         fetchAll();
     };
@@ -60,15 +61,16 @@ export function ContentContainer() {
         const req = getRequest();
         const res = getResponse();
 
-        //TODO: Manage user session.
         let apiResponse = await insertRequest(req, res);
 
-        req._id = apiResponse.request._id;
-        req.name = apiResponse.request.name;
+        const newReq = {...req};
+        const newRes = {...res};
 
-        defineRequest(req, res)
+        newReq._id = apiResponse.request._id;
+        newReq.name = apiResponse.request.name;
 
-        //TODO: Manage user session.
+        defineRequest(newReq, newRes, parent, req);
+
         apiResponse = await pushHistoric(apiResponse.request, apiResponse.response);
 
         fetchAll();
@@ -76,11 +78,11 @@ export function ContentContainer() {
 
     return (
         <div id='content-container'>
-            <form id="client-form" onSubmit={executeAction}>
+            <div id="client-form">
                 <div id="client-bar">
                     <MethodSelector/>
                     <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={urlChange} value={request.uri}/>
-                    <button type="submit" id="client-button-send" className="client-bar-component section-header-element">Send</button>
+                    <button id="client-button-send" className="client-bar-component section-header-element" onClick={executeAction}>Send</button>
                 </div>
                 <div id="client-content">
                     <ParameterSelector/>
@@ -90,7 +92,7 @@ export function ContentContainer() {
                     <button type="submit" onClick={insertFormAction}>Save</button>
                     <span className={`button-modified-status ${ initialHash != actualHash && "visible" }`}></span>
                 </div>
-            </form>
+            </div>
         </div>
     )
 }
