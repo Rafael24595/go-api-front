@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { ItemCollection, newCollection, newItemCollection, toCollection } from '../../../../../interfaces/collection/Collection';
 import { fromContext } from '../../../../../interfaces/context/Context';
 import { ItemRequest, newRequest, Request } from '../../../../../interfaces/request/Request';
-import { cloneCollection, deleteCollection, deleteFromCollection, imporOpenApi, importCollections, importToCollection, insertCollection, pushToCollection, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
+import { cloneCollection, deleteCollection, deleteFromCollection, imporOpenApi, importCollections, importToCollection, insertCollection, requestCollect, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 import { CollectionModal } from '../../../../collection/CollectionModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { Details } from '../../../../utils/details/Details';
-import { RequestPushToCollection } from '../../../../../services/api/RequestPushToCollection';
 import { ImportOpenApiModal } from '../../../../collection/ImportOpenApiModal';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
@@ -18,6 +17,8 @@ import { ImportCollectionModal } from '../../../../collection/ImportCollectionMo
 import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useStoreSession } from '../../../../../store/StoreProviderSession';
+import { useStoreContext } from '../../../../../store/StoreProviderContext';
+import { RequestRequestCollect } from '../../../../../services/api/Requests';
 
 import './CollectionColumn.css';
 
@@ -45,6 +46,7 @@ export function CollectionColumn() {
     const { userData } = useStoreSession();
     const { find, findOrDefault, store } = useStoreStatus();
 
+    const context = useStoreContext();
     const { parent, request, cleanRequest, defineRequest, fetchRequest, isParentCached, isCached } = useStoreRequest();
     const { collection, fetchStored, fetchCollection } = useStoreRequests();
 
@@ -82,6 +84,9 @@ export function CollectionColumn() {
 
     const remove = async (collection: ItemCollection) => {
         await deleteCollection(collection);
+        if(parent == collection._id) {
+            cleanRequest();
+        }
         await fetchCollection();
     }
 
@@ -122,7 +127,7 @@ export function CollectionColumn() {
             return;
         }   
 
-        const payload: RequestPushToCollection = {
+        const payload: RequestRequestCollect = {
             source_id: "",
             target_id: collection._id,
             target_name: collection.name,
@@ -130,22 +135,26 @@ export function CollectionColumn() {
             request_name: name,
             move: data.move ? "move" : "clone",
         };
-        await pushToCollection(payload);
+
+        await requestCollect(payload);
         await fetchCollection();
     }
 
     const removeFrom = async (collection: ItemCollection, cursorRequest: Request) => {
         await deleteFromCollection(collection, cursorRequest);
         await fetchCollection();
-        if(request._id == cursorRequest._id) {
+        if(cursorRequest._id == request._id) {
             cleanRequest();
         }
     }
 
-    const takeFrom = async (collection: ItemCollection, request: Request) => {
-        await takeFromCollection(collection, request);
+    const takeFrom = async (collection: ItemCollection, cursorRequest: Request) => {
+        await takeFromCollection(collection, cursorRequest);
         await fetchCollection();
         await fetchStored();
+        if(cursorRequest._id == request._id) {
+            cleanRequest();
+        }
     }
 
     const defineCollectionRequest = async (collection: ItemCollection, request: Request) => {
@@ -188,7 +197,7 @@ export function CollectionColumn() {
     };
 
     const submitCollectionModal = async (collectionId: string, collectionName: string, request: Request, requestName: string) => {
-        const payload: RequestPushToCollection = {
+        const payload: RequestRequestCollect = {
             source_id: data.cursorCollection ? data.cursorCollection?._id : "",
             target_id: collectionId,
             target_name: collectionName,
@@ -196,7 +205,8 @@ export function CollectionColumn() {
             request_name: requestName,
             move: data.move ? "move" : "clone",
         };
-        await pushToCollection(payload);
+
+        await requestCollect(payload);
         await fetchCollection();
     }
 
@@ -336,7 +346,7 @@ export function CollectionColumn() {
     }
 
     const makeKey = (collection: ItemCollection, request: Request): string => {
-        return `${collection.name}-${request.timestamp}-${request.method}-${request.uri}`;
+        return `${collection.name}-${request.timestamp}-${request._id}-${request.method}-${request.uri}`;
     }
 
     const exportAll = () => {
@@ -395,7 +405,7 @@ export function CollectionColumn() {
                             identity={cursorKey(cursorCollection)}
                             summary={
                                 <>
-                                    {isParentCached(cursorCollection._id) && (
+                                    {(isParentCached(cursorCollection._id) || context.isParentCached(cursorCollection._id)) && (
                                         <span className="button-modified-status small visible"></span>
                                     )}
                                     <span className={`${ cursorCollection._id == parent && "collection-selected"}`} title={cursorCollection.name}>{cursorCollection.name}</span>
@@ -451,6 +461,7 @@ export function CollectionColumn() {
                                     <span className="request-sign-timestamp" title={millisecondsToDate(cursorCollection.timestamp)}>{ millisecondsToDate(cursorCollection.timestamp) }</span>
                                 </div>
                             )}
+                            isEmpty={ () => cursorCollection.nodes.length == 0 }
                             >
                             {cursorCollection.nodes.map((node) => (
                                 <div key={ makeKey(cursorCollection, node.request) } className={`request-preview ${ node.request._id == request._id && "request-selected"}`}>
