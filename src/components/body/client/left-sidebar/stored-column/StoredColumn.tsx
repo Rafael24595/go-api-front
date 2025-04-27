@@ -1,21 +1,21 @@
-import { deleteAction, importRequests, pushToCollection, updateAction } from '../../../../../services/api/ServiceStorage';
+import { deleteAction, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
 import { ItemRequest, newRequest, Request } from '../../../../../interfaces/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 import { Combo } from '../../../../utils/combo/Combo';
-import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { useState } from 'react';
 import { CollectionModal } from '../../../../collection/CollectionModal';
-import { RequestPushToCollection } from '../../../../../services/api/RequestPushToCollection';
 import { downloadFile } from '../../../../../services/Utils';
 import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
+import { useStoreSession } from '../../../../../store/StoreProviderSession';
+import { VerticalDragDrop, PositionWrapper } from '../../../../utils/drag/VerticalDragDrop';
+import { RequestCollectionNode, RequestRequestCollect } from '../../../../../services/api/Requests';
 
 import './StoredColumn.css';
-import { useStoreSession } from '../../../../../store/StoreProviderSession';
 
 const FILTER_TARGET_KEY = "CollectionColumnDetailsFilterTarget";
 const FILTER_VALUE_KEY = "CollectionColumnDetailsFilterValue";
@@ -38,7 +38,7 @@ export function StoredColumn() {
     const { find, findOrDefault, store } = useStoreStatus();
 
     const { request, cleanRequest, defineRequest, fetchRequest, insertRequest, isCached } = useStoreRequest();
-    const { stored, fetchStored, fetchCollection } = useStoreRequests();
+    const { stored, fetchStored, fetchCollection, updateStoredOrder } = useStoreRequests();
 
     const { push } = useAlert();
 
@@ -129,7 +129,7 @@ export function StoredColumn() {
     };
 
     const submitModal = async (collectionId: string, collectionName: string, request: Request, requestName: string) => {
-        const payload: RequestPushToCollection = {
+        const payload: RequestRequestCollect = {
             source_id: "",
             target_id: collectionId,
             target_name: collectionName,
@@ -137,7 +137,8 @@ export function StoredColumn() {
             request_name: requestName,
             move: data.move ? "move" : "clone",
         };
-        await pushToCollection(payload);
+
+        await requestCollect(payload);
         await fetchStored();
         await fetchCollection();
     }
@@ -225,6 +226,15 @@ export function StoredColumn() {
         return `${request.timestamp}-${request.method}-${request.uri}`;
     }
 
+    const updateOrder = async (items: PositionWrapper<Request>[]) => {
+        const ordered: RequestCollectionNode[] = items.map(e => ({
+            order: e.index,
+            request: e.item._id
+        }));
+        updateStoredOrder(ordered);
+        await fetchStored()
+    };
+
     return (
             <>
                 <div className="column-option options border-bottom">
@@ -249,73 +259,77 @@ export function StoredColumn() {
                         ]}/>
                     </div>
                 </div>
-                <div id="actions-container">
-                    {stored.length > 0 ? (
-                        stored.filter(applyFilter).map((cursor) => (
-                            <div key={ makeKey(cursor) } className={`request-preview ${ cursor._id == request._id && "request-selected"}`}>
-                                <a className="request-link" title={ cursor.uri }
-                                    onClick={() => defineHistoricRequest(cursor)}>
-                                    <div className="request-sign">
-                                        {isCached(cursor) && (
-                                            <span className="button-modified-status small visible"></span>
-                                        )}
-                                        <span className="request-sign-method">{ cursor.method }</span>
-                                        <span className="request-sign-url">{ cursor.name }</span>
-                                    </div>
-                                    <div className="request-sign-date">
-                                        <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{ millisecondsToDate(cursor.timestamp) }</span>
-                                    </div>
-                                </a>
-                                <Combo options={[
-                                    {
-                                        icon: "🗑️",
-                                        label: "Delete",
-                                        title: "Delete request",
-                                        action: () => deleteStored(cursor)
-                                    },
-                                    {
-                                        icon: "✏️",
-                                        label: "Rename",
-                                        title: "Rename request",
-                                        action: () => renameStored(cursor)
-                                    },
-                                    {
-                                        icon: "🐑",
-                                        label: "Clone",
-                                        title: "Clone request",
-                                        action: () => cloneStored(cursor)
-                                    },
-                                    {
-                                        icon: "🐏",
-                                        label: "Duplicate",
-                                        title: "Duplicate request",
-                                        action: () => insertStored(cursor)
-                                    },
-                                    {
-                                        icon: "📚",
-                                        label: "Collect",
-                                        title: "Copy to collection",
-                                        action: () => openCollectModal(cursor)
-                                    },
-                                    {
-                                        icon: "📦",
-                                        label: "Move",
-                                        title: "Move to collection",
-                                        action: () => openMoveModal(cursor)
-                                    },
-                                    {
-                                        icon: "💾",
-                                        label: "Export",
-                                        title: "Export request",
-                                        action: () => exportRequest(cursor)
-                                    },
-                                ]}/>
-                            </div>
-                        ))
-                    ) : (
+                <VerticalDragDrop
+                    id="actions-container"
+                    items={stored}
+                    applyFilter={applyFilter}
+                    itemId={makeKey}
+                    onItemsChange={updateOrder}
+                    renderItem={(cursor) => (
+                        <div key={ makeKey(cursor) } className={`request-preview ${ cursor._id == request._id && "request-selected"}`}>
+                            <a className="request-link" title={ cursor.uri }
+                                onClick={() => defineHistoricRequest(cursor)}>
+                                <div className="request-sign">
+                                    {isCached(cursor) && (
+                                        <span className="button-modified-status small visible"></span>
+                                    )}
+                                    <span className="request-sign-method">{ cursor.method }</span>
+                                    <span className="request-sign-url">{ cursor.name }</span>
+                                </div>
+                                <div className="request-sign-date">
+                                    <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{ millisecondsToDate(cursor.timestamp) }</span>
+                                </div>
+                            </a>
+                            <Combo options={[
+                                {
+                                    icon: "🗑️",
+                                    label: "Delete",
+                                    title: "Delete request",
+                                    action: () => deleteStored(cursor)
+                                },
+                                {
+                                    icon: "✏️",
+                                    label: "Rename",
+                                    title: "Rename request",
+                                    action: () => renameStored(cursor)
+                                },
+                                {
+                                    icon: "🐑",
+                                    label: "Clone",
+                                    title: "Clone request",
+                                    action: () => cloneStored(cursor)
+                                },
+                                {
+                                    icon: "🐏",
+                                    label: "Duplicate",
+                                    title: "Duplicate request",
+                                    action: () => insertStored(cursor)
+                                },
+                                {
+                                    icon: "📚",
+                                    label: "Collect",
+                                    title: "Copy to collection",
+                                    action: () => openCollectModal(cursor)
+                                },
+                                {
+                                    icon: "📦",
+                                    label: "Move",
+                                    title: "Move to collection",
+                                    action: () => openMoveModal(cursor)
+                                },
+                                {
+                                    icon: "💾",
+                                    label: "Export",
+                                    title: "Export request",
+                                    action: () => exportRequest(cursor)
+                                },
+                            ]}/>
+                        </div>
+                    )}
+                    emptyTemplate={(
                         <p className="no-data"> - No requests found - </p>
                     )}
-                </div>
+                />
                 <div id="search-box">
                     <button title="Clean filter" onClick={onFilterValueClean}></button>
                     <input id="search-input" type="text" value={data.filterValue} onChange={onFilterValueChange}/>

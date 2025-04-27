@@ -1,12 +1,10 @@
-import { Collection, ItemCollection } from "../../interfaces/collection/Collection";
+import { Collection, ItemCollection, ItemNode } from "../../interfaces/collection/Collection";
 import { Context } from "../../interfaces/context/Context";
 import { ItemRequest, Request } from "../../interfaces/request/Request";
 import { Response } from "../../interfaces/response/Response";
 import apiManager from "./ApiManager";
-import { RequestCloneCollection } from "./RequestCloneCollection";
-import { RequestImportContext } from "./RequestImportContext";
-import { RequestPushToCollection } from "./RequestPushToCollection";
-import { ResponseExecuteAction } from "./ResponseExecuteAction";
+import { RequestCloneCollection, RequestCollectionNode, RequestImportContext, RequestRequestCollect, RequestSortCollection } from "./Requests";
+import { ResponseExecuteAction } from "./Responses";
 
 export const findUserContext = async (): Promise<Context> => {
   try {
@@ -28,7 +26,7 @@ export const findContext = async (id: string): Promise<Context> => {
 
 export const insertContext = async (context: Context): Promise<Context> => {
   try {
-    const apiResponse = await apiManager.post(`/api/v1/context`, context);
+    const apiResponse = await apiManager.put(`/api/v1/context`, context);
     return apiResponse.data;
   } catch (error) {
     throw error;
@@ -44,7 +42,7 @@ export const findAction = async (request: Request): Promise<ResponseExecuteActio
   }
 };
 
-export const findAllAction = async (): Promise<Request[]> => {
+export const findAllAction = async (): Promise<ItemNode[]> => {
   try {
     const apiResponse = await apiManager.get(`/api/v1/request`);
     return apiResponse.data;
@@ -72,6 +70,16 @@ export const updateAction = async (request: Request): Promise<ResponseExecuteAct
   }
 };
 
+export const sortRequests = async (nodes: RequestCollectionNode[]): Promise<ItemCollection> => {
+  try {
+    const payload: RequestSortCollection = { nodes };
+    const apiResponse = await apiManager.put(`/api/v1/sort/request`, payload);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const deleteAction = async (request: Request): Promise<ResponseExecuteAction> => {
   try {
     const apiResponse = await apiManager.delete(`/api/v1/request/${request._id}`);
@@ -81,7 +89,7 @@ export const deleteAction = async (request: Request): Promise<ResponseExecuteAct
   }
 };
 
-export const findAllHistoric = async (): Promise<Request[]> => {
+export const findAllHistoric = async (): Promise<ItemNode[]> => {
   try {
     const apiResponse = await apiManager.get(`/api/v1/historic`);
     return apiResponse.data;
@@ -100,6 +108,15 @@ export const pushHistoric = async (request: Request, response?: Response): Promi
   }
 };
 
+export const deleteHistoric = async (request: Request): Promise<ResponseExecuteAction> => {
+  try {
+    const apiResponse = await apiManager.delete(`/api/v1/historic/${request._id}`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const findAllCollection = async (): Promise<ItemCollection[]> => {
   try {
     const apiResponse = await apiManager.get(`/api/v1/collection`);
@@ -109,7 +126,7 @@ export const findAllCollection = async (): Promise<ItemCollection[]> => {
   }
 };
 
-export const insertCollection = async (collection: Collection): Promise<ResponseExecuteAction> => {
+export const insertCollection = async (collection: Collection): Promise<ItemCollection> => {
   try {
     const apiResponse = await apiManager.post(`/api/v1/collection`, collection);
     return apiResponse.data;
@@ -118,7 +135,7 @@ export const insertCollection = async (collection: Collection): Promise<Response
   }
 };
 
-export const pushToCollection = async (payload: RequestPushToCollection): Promise<ResponseExecuteAction> => {
+export const requestCollect = async (payload: RequestRequestCollect): Promise<ItemCollection> => {
   try {
     const apiResponse = await apiManager.put(`/api/v1/collection`, payload);
     return apiResponse.data;
@@ -127,7 +144,7 @@ export const pushToCollection = async (payload: RequestPushToCollection): Promis
   }
 };
 
-export const deleteCollection = async (collection: ItemCollection): Promise<ResponseExecuteAction> => {
+export const deleteCollection = async (collection: ItemCollection): Promise<ItemCollection> => {
   try {
     const apiResponse = await apiManager.delete(`/api/v1/collection/${collection._id}`);
     return apiResponse.data;
@@ -136,7 +153,7 @@ export const deleteCollection = async (collection: ItemCollection): Promise<Resp
   }
 };
 
-export const cloneCollection = async (collection: ItemCollection, name: string): Promise<ResponseExecuteAction> => {
+export const cloneCollection = async (collection: ItemCollection, name: string): Promise<ItemCollection> => {
   try {
     const payload: RequestCloneCollection = {
       collection_name: name,
@@ -148,18 +165,18 @@ export const cloneCollection = async (collection: ItemCollection, name: string):
   }
 };
 
-export const deleteFromCollection = async (collection: ItemCollection, request: Request): Promise<ResponseExecuteAction> => {
+export const takeFromCollection = async (collection: ItemCollection, request: Request): Promise<ResponseExecuteAction> => {
   try {
-    const apiResponse = await apiManager.delete(`/api/v1/collection/${collection._id}/request/${request._id}`);
+    const apiResponse = await apiManager.put(`/api/v1/collection/${collection._id}/request/${request._id}`);
     return apiResponse.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const takeFromCollection = async (collection: ItemCollection, request: Request): Promise<ResponseExecuteAction> => {
+export const deleteFromCollection = async (collection: ItemCollection, request: Request): Promise<ResponseExecuteAction> => {
   try {
-    const apiResponse = await apiManager.put(`/api/v1/collection/${collection._id}/request/${request._id}`);
+    const apiResponse = await apiManager.delete(`/api/v1/collection/${collection._id}/request/${request._id}`);
     return apiResponse.data;
   } catch (error) {
     throw error;

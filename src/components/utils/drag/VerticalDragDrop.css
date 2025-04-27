@@ -1,0 +1,27 @@
+.vertical-drag-container {
+    position: relative;
+    cursor: move;
+}
+
+.vertical-drag-item {
+    position: relative;
+    transition: transform 0.3s ease;
+    width: 100%;
+}
+
+.vertical-drag-item.cursor {
+    position: absolute;
+    transition: none;
+    z-index: 2;
+}
+
+.landing-area {
+    display: none;
+    height: 2px;
+    width: 100%;
+    background-color: black;
+}
+
+.landing-area.show {
+    display: block;
+}

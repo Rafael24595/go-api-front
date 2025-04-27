@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { findAllAction, findAllCollection, findAllHistoric } from "../services/api/ServiceStorage";
+import { findAllAction, findAllCollection, findAllHistoric, sortRequests } from "../services/api/ServiceStorage";
 import { Request } from "../interfaces/request/Request";
 import { ItemCollection } from "../interfaces/collection/Collection";
 import { useStoreSession } from "./StoreProviderSession";
+import { RequestCollectionNode } from "../services/api/Requests";
 
 interface StoreProviderRequestsType {
   historic: Request[];
@@ -12,6 +13,7 @@ interface StoreProviderRequestsType {
   fetchHistoric: () => Promise<void>;
   fetchStored: () => Promise<void>;
   fetchCollection: () => Promise<void>;
+  updateStoredOrder: (nodes: RequestCollectionNode[]) => Promise<void>;
 }
 
 interface Payload {
@@ -66,46 +68,61 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
   };
 
   const fetchHistoric = async () => {
-      try {
-          const data = (await findAllHistoric())
-              .sort((a, b) => a.timestamp - b.timestamp);
-          setData((prevData) => ({
-            ...prevData,
-            historic: data
-          }));
-      } catch (error) {
-          console.error("Error fetching history:", error);
-      }
+    try {
+      const data = (await findAllHistoric())
+        .sort((a, b) => b.order - a.order)
+        .map(n => n.request);
+      setData((prevData) => ({
+        ...prevData,
+        historic: data
+      }));
+    } catch (error) {
+      console.error("Error fetching history:", error);
+    }
   };
 
   const fetchStored = async () => {
-      try {
-          const data = (await findAllAction())
-              .sort((a, b) => a.timestamp - b.timestamp);
-          setData((prevData) => ({
-            ...prevData,
-            stored: data
-          }));
-      } catch (error) {
-          console.error("Error fetching stored:", error);
-      }
+    try {
+      const data = (await findAllAction())
+        .sort((a, b) => a.order - b.order)
+        .map(n => n.request);
+      setData((prevData) => ({
+        ...prevData,
+        stored: data
+      }));
+    } catch (error) {
+      console.error("Error fetching stored:", error);
+    }
   };
 
   const fetchCollection = async () => {
     try {
-        const data = (await findAllCollection())
-            .sort((a, b) => a.timestamp - b.timestamp);
-        setData((prevData) => ({
-          ...prevData,
-          collection: data
-        }));
+      const data = (await findAllCollection())
+        .sort((a, b) => a.timestamp - b.timestamp);
+      setData((prevData) => ({
+        ...prevData,
+        collection: data
+      }));
     } catch (error) {
-        console.error("Error fetching collection:", error);
+      console.error("Error fetching collection:", error);
     }
-};
+  };
+
+  const updateStoredOrder = async (nodes: RequestCollectionNode[]) => {
+    setData((prevData) => {
+      const stored = nodes
+        .map(n => data.stored.find(r => r._id == n.request))
+        .filter(r => r != undefined);
+      return {
+        ...prevData,
+        stored
+      }
+    })
+    await sortRequests(nodes)
+  }
 
   return (
-    <StoreRequests.Provider value={{ ...data, fetchAll, fetchHistoric, fetchStored, fetchCollection }}>
+    <StoreRequests.Provider value={{ ...data, fetchAll, fetchHistoric, fetchStored, fetchCollection, updateStoredOrder }}>
       {children}
     </StoreRequests.Provider>
   );
