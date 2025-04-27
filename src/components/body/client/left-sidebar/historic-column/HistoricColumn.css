@@ -20,6 +20,7 @@
 .request-sign {
     display: flex;
     align-items: center;
+    cursor: pointer;
 }
 
 .request-sign-method {
