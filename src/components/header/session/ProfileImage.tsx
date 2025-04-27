@@ -26,8 +26,9 @@ export function ProfileImage({ size }: ProfileImageProps) {
         let hash = 0;
         for (let i = 0; i < input.length; i++) {
             hash = input.charCodeAt(i) + ((hash << 5) - hash);
-            hash = hash & hash;
         }
+        
+        hash = hash | 0;
 
         let color = '#';
         for (let i = 0; i < 3; i++) {

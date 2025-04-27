@@ -1,7 +1,7 @@
 import { Client } from './client/Client'
 import { StoreProviderRequests } from '../../store/StoreProviderRequests'
 
-import './Body.css'
+import './Body.css';
 
 export function Body() {
     return (
