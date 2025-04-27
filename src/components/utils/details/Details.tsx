@@ -9,9 +9,10 @@ interface DetailsProps {
   options?: React.ReactNode;
   subsummary?: React.ReactNode;
   children: React.ReactNode;
+  isEmpty?: () => boolean
 }
 
-export const Details: React.FC<DetailsProps> = ({ identity, summary, options, subsummary, children }) => {
+export const Details: React.FC<DetailsProps> = ({ identity, summary, options, subsummary, children, isEmpty }) => {
   const { findOrDefault, store } = useStoreStatus();
 
   const [isOpen, setIsOpen] = useState(
@@ -37,7 +38,7 @@ export const Details: React.FC<DetailsProps> = ({ identity, summary, options, su
             className="details-button"
             aria-expanded={isOpen}
             aria-controls="details-content">
-            <span className="switch-arrow">{isOpen ? "▲" : "▼"}</span>
+            <span className={`switch-arrow ${ isEmpty && isEmpty() ? "disabled" : "" }`}>{isOpen ? "▲" : "▼"}</span>
             <span className={`summary-text`}>{summary}</span>
           </button>
           {subsummary}
