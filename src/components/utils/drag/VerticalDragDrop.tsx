@@ -73,7 +73,7 @@ export const VerticalDragDrop = <T,>({ items, emptyTemplate, applyFilter, onItem
         }
 
         const top = containerRef.current.getBoundingClientRect().top;
-        const bottom = containerRef.current.getBoundingClientRect().bottom;
+        const height = containerRef.current.getBoundingClientRect().height;
         const position = e.clientY - top;
 
         if(position < 0) {
@@ -81,8 +81,8 @@ export const VerticalDragDrop = <T,>({ items, emptyTemplate, applyFilter, onItem
             return;
         }
 
-        if(position > bottom) {
-            setDraggingPosition(top - bottom);
+        if(position > height) {
+            setDraggingPosition(top - height);
             return;
         }
 
