@@ -161,6 +161,10 @@ button:hover {
   font-weight: 500;
 }
 
+.request-float {
+  border-bottom: none !important;
+}
+
 /* ----------------------- */
 
 .title {

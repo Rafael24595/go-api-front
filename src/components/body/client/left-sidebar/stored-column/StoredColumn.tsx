@@ -13,9 +13,10 @@ import { useAlert } from '../../../../utils/alert/Alert';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useStoreSession } from '../../../../../store/StoreProviderSession';
 import { VerticalDragDrop, PositionWrapper } from '../../../../utils/drag/VerticalDragDrop';
-import { RequestCollectionNode, RequestRequestCollect } from '../../../../../services/api/Requests';
+import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
 
 import './StoredColumn.css';
+import { Optional } from '../../../../../types/Optional';
 
 const FILTER_TARGET_KEY = "CollectionColumnDetailsFilterTarget";
 const FILTER_VALUE_KEY = "CollectionColumnDetailsFilterValue";
@@ -28,6 +29,7 @@ interface Payload {
     filterTarget: keyof Request;
     filterValue: string;
     request: Request;
+    dragRequest: Optional<Request>;
     move: boolean;
     modalImport: boolean;
     modalMove: boolean;
@@ -51,6 +53,7 @@ export function StoredColumn() {
             def: ""
         }),
         request: newRequest(userData.username),
+        dragRequest: undefined,
         move: false,
         modalImport: false,
         modalMove: false,
@@ -226,13 +229,38 @@ export function StoredColumn() {
         return `${request.timestamp}-${request.method}-${request.uri}`;
     }
 
-    const updateOrder = async (items: PositionWrapper<Request>[]) => {
-        const ordered: RequestCollectionNode[] = items.map(e => ({
-            order: e.index,
-            request: e.item._id
+    const isRequestSelected = (cursor: Request) => {
+        return cursor._id == request._id;
+    }
+
+    const isRequestDrag = (cursor: Request) => {
+        if(!data.dragRequest) {
+            return false
+        }
+        return cursor._id == data.dragRequest._id;
+    }
+
+     const onRequestDrag = async (item: PositionWrapper<Request>) => {
+        setData((prevData) => ({
+            ...prevData,
+            dragRequest: item.item,
         }));
-        updateStoredOrder(ordered);
-        await fetchStored()
+    };
+
+    const onRequestDrop = async () => {
+        setData((prevData) => ({
+            ...prevData,
+            dragRequest: undefined,
+        }));
+    };
+
+    const updateOrder = async (items: PositionWrapper<Request>[]) => {
+        const ordered: RequestNode[] = items.map(e => ({
+            order: e.index,
+            item: e.item._id
+        }));
+        await updateStoredOrder(ordered);
+        await fetchStored();
     };
 
     return (
@@ -264,9 +292,11 @@ export function StoredColumn() {
                     items={stored}
                     applyFilter={applyFilter}
                     itemId={makeKey}
+                    onItemDrag={onRequestDrag}
+                    onItemDrop={onRequestDrop}
                     onItemsChange={updateOrder}
                     renderItem={(cursor) => (
-                        <div key={ makeKey(cursor) } className={`request-preview ${ cursor._id == request._id && "request-selected"}`}>
+                        <div key={ makeKey(cursor) } className={`request-preview ${ isRequestSelected(cursor) && "request-selected" } ${ isRequestDrag(cursor) && "request-float" }`}>
                             <a className="request-link" title={ cursor.uri }
                                 onClick={() => defineHistoricRequest(cursor)}>
                                 <div className="request-sign">

@@ -15,6 +15,10 @@
     z-index: 2;
 }
 
+.vertical-drag-item.cursor:not(.landing-area) {
+    opacity: 0.65;
+}
+
 .landing-area {
     display: none;
     height: 2px;
@@ -24,4 +28,8 @@
 
 .landing-area.show {
     display: block;
+}
+
+.landing-area.original {
+    background-color: cornflowerblue;
 }

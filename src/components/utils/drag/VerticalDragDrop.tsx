@@ -13,16 +13,19 @@ interface Position {
     view: number;
 }
 
-interface DragDropProps<T> extends React.HTMLAttributes<HTMLDivElement> {
+interface DragDropProps<T, K> extends React.HTMLAttributes<HTMLDivElement> {
     items: T[];
+    parameters?: K;
     applyFilter?: (value: T) => boolean;
-    onItemsChange: (items: PositionWrapper<T>[]) => void;
+    onItemDrag?: (item: PositionWrapper<T>) => void;
+    onItemDrop?: (item: PositionWrapper<T>) => void;
+    onItemsChange: (items: PositionWrapper<T>[], parameters?: K) => void;
     renderItem: (item: T) => React.ReactNode;
     emptyTemplate?: React.ReactNode;
     itemId: (item: T) => string | number;
 }
 
-export const VerticalDragDrop = <T,>({ items, emptyTemplate, applyFilter, onItemsChange, renderItem, itemId, ...rest }: DragDropProps<T>) => {
+export const VerticalDragDrop = <T, K>({ items, parameters, emptyTemplate, applyFilter, onItemDrag, onItemDrop, onItemsChange, renderItem, itemId, ...rest }: DragDropProps<T, K>) => {
     const [wrappedItems, setWrappedItems] = useState<PositionWrapper<T>[]>([]);
 
     const dragItemRef = useRef<PositionWrapper<T> | null>(null);
@@ -56,13 +59,17 @@ export const VerticalDragDrop = <T,>({ items, emptyTemplate, applyFilter, onItem
     const handleDragStart = (e: React.DragEvent, index: number) => {
         e.preventDefault();
 
-        if(!containerRef.current) {
+        if(!containerRef.current || e.target != containerRef.current.children[index]) {
             return;
         }
-
+        
         e.dataTransfer.effectAllowed = 'move';
 
         dragItemRef.current = wrappedItems[index];
+
+        if(onItemDrag) {
+            onItemDrag(dragItemRef.current);
+        }
 
         setDraggingPosition(e.clientY - containerRef.current.getBoundingClientRect().top);
     };
@@ -95,6 +102,10 @@ export const VerticalDragDrop = <T,>({ items, emptyTemplate, applyFilter, onItem
             return;
         }
 
+        if(onItemDrop) {
+            onItemDrop(dragItemRef.current);
+        }
+
         const from = dragItemRef.current.index;
         const to = calculateDrop().view;
 
@@ -105,7 +116,7 @@ export const VerticalDragDrop = <T,>({ items, emptyTemplate, applyFilter, onItem
 
         newWrappedItems.forEach((v, i) => v.index = i);
 
-        onItemsChange(newWrappedItems);
+        onItemsChange(newWrappedItems, parameters);
 
         resetStatus();
     };
@@ -174,6 +185,13 @@ export const VerticalDragDrop = <T,>({ items, emptyTemplate, applyFilter, onItem
         return calculateDrop().real == index;
     }
 
+    const isCurrentItem = (item: PositionWrapper<T>) => {
+        if(!dragItemRef.current) {
+            return false;
+        }
+        return itemId(dragItemRef.current.item) == itemId(item.item)
+    }
+
     return (
         <div
             ref={containerRef}
@@ -192,8 +210,9 @@ export const VerticalDragDrop = <T,>({ items, emptyTemplate, applyFilter, onItem
                                     style={{
                                         top: calculateCursorPosition(index),
                                     }}>
-                                    <div className={`landing-area ${ isLandPosition(index) && "show"}` }></div>
+                                    <div className={`landing-area ${ isLandPosition(index) && "show"} ${ isCurrentItem(item) && "original" }` }></div>
                                     {renderItem(item.item)}
+                                    <div className={`landing-area ${ isLandPosition(index) && isCurrentItem(item) && "show original" }` }></div>
                                 </div>
                             ))
                         }
