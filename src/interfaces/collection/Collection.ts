@@ -21,14 +21,19 @@ export interface ItemCollection {
     name: string;
     timestamp: number;
     context: Context;
-    nodes: ItemNode[];
+    nodes: ItemNodeRequest[];
     owner: string;
     modified: number;
 }
 
-export interface ItemNode {
+export interface ItemNodeRequest {
     order: number;
     request: Request;
+}
+
+export interface ItemNodeCollection {
+  order: number;
+  collection: ItemCollection;
 }
 
 export function newCollection(owner: string): Collection {
@@ -85,7 +90,7 @@ export const cleanItemCollection = (item: ItemCollection): ItemCollection => {
   return itemClone;
 }
 
-const cleanItemNode = (item: ItemNode): ItemNode => {
+const cleanItemNode = (item: ItemNodeRequest): ItemNodeRequest => {
   const itemClone = structuredClone(item);
   itemClone.request._id = "";
   return itemClone;

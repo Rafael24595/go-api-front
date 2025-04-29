@@ -39,11 +39,11 @@ export interface RequestRequestCollect {
 	move: Movement;
 }
 
-export interface RequestSortCollection {
-	nodes: RequestCollectionNode[]
+export interface RequestSortNodes {
+	nodes: RequestNode[]
 }
 
-export interface RequestCollectionNode {
+export interface RequestNode {
 	order: number
-	request: string
+	item: string
 }

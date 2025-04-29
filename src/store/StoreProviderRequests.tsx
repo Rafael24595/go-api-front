@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { findAllAction, findAllCollection, findAllHistoric, sortRequests } from "../services/api/ServiceStorage";
+import { findAllAction, findAllCollection, findAllHistoric, sortCollectionRequests, sortCollections, sortRequests } from "../services/api/ServiceStorage";
 import { Request } from "../interfaces/request/Request";
 import { ItemCollection } from "../interfaces/collection/Collection";
 import { useStoreSession } from "./StoreProviderSession";
-import { RequestCollectionNode } from "../services/api/Requests";
+import { RequestNode } from "../services/api/Requests";
 
 interface StoreProviderRequestsType {
   historic: Request[];
@@ -13,7 +13,9 @@ interface StoreProviderRequestsType {
   fetchHistoric: () => Promise<void>;
   fetchStored: () => Promise<void>;
   fetchCollection: () => Promise<void>;
-  updateStoredOrder: (nodes: RequestCollectionNode[]) => Promise<void>;
+  updateStoredOrder: (nodes: RequestNode[]) => Promise<void>;
+  updateCollectionsOrder: (nodes: RequestNode[]) => Promise<void>;
+  updateCollectionRequestsOrder: (collection: ItemCollection, nodes: RequestNode[]) => Promise<void>;
 }
 
 interface Payload {
@@ -98,7 +100,8 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
   const fetchCollection = async () => {
     try {
       const data = (await findAllCollection())
-        .sort((a, b) => a.timestamp - b.timestamp);
+        .sort((a, b) => a.order - b.order)
+        .map(n => n.collection);
       setData((prevData) => ({
         ...prevData,
         collection: data
@@ -108,10 +111,10 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
     }
   };
 
-  const updateStoredOrder = async (nodes: RequestCollectionNode[]) => {
+  const updateStoredOrder = async (nodes: RequestNode[]) => {
     setData((prevData) => {
       const stored = nodes
-        .map(n => data.stored.find(r => r._id == n.request))
+        .map(n => data.stored.find(r => r._id == n.item))
         .filter(r => r != undefined);
       return {
         ...prevData,
@@ -121,8 +124,40 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
     await sortRequests(nodes)
   }
 
+  const updateCollectionsOrder = async (nodes: RequestNode[]) => {
+    setData((prevData) => {
+      const collection = nodes
+        .map(n => data.collection.find(r => r._id == n.item))
+        .filter(r => r != undefined);
+      return {
+        ...prevData,
+        collection
+      }
+    })
+    await sortCollections(nodes)
+  }
+
+  const updateCollectionRequestsOrder = async (collection: ItemCollection, nodes: RequestNode[]) => {
+    setData((prevData) => {
+      const newCollection = [...prevData.collection];
+      for (let i = 0; i < newCollection.length; i++) {
+        const cursor = newCollection[i];
+        if(cursor._id = collection._id) {
+          newCollection[i].nodes = nodes
+            .map(n => cursor.nodes.find(r => r.request._id == n.item))
+            .filter(r => r != undefined);
+        } 
+      }
+      return {
+        ...prevData,
+        collection: newCollection
+      }
+    })
+    await sortCollectionRequests(collection._id, nodes)
+  }
+
   return (
-    <StoreRequests.Provider value={{ ...data, fetchAll, fetchHistoric, fetchStored, fetchCollection, updateStoredOrder }}>
+    <StoreRequests.Provider value={{ ...data, fetchAll, fetchHistoric, fetchStored, fetchCollection, updateStoredOrder, updateCollectionsOrder, updateCollectionRequestsOrder }}>
       {children}
     </StoreRequests.Provider>
   );

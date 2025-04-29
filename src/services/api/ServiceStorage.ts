@@ -1,9 +1,9 @@
-import { Collection, ItemCollection, ItemNode } from "../../interfaces/collection/Collection";
+import { Collection, ItemCollection, ItemNodeCollection, ItemNodeRequest } from "../../interfaces/collection/Collection";
 import { Context } from "../../interfaces/context/Context";
 import { ItemRequest, Request } from "../../interfaces/request/Request";
 import { Response } from "../../interfaces/response/Response";
 import apiManager from "./ApiManager";
-import { RequestCloneCollection, RequestCollectionNode, RequestImportContext, RequestRequestCollect, RequestSortCollection } from "./Requests";
+import { RequestCloneCollection, RequestImportContext, RequestNode, RequestRequestCollect, RequestSortNodes } from "./Requests";
 import { ResponseExecuteAction } from "./Responses";
 
 export const findUserContext = async (): Promise<Context> => {
@@ -42,7 +42,7 @@ export const findAction = async (request: Request): Promise<ResponseExecuteActio
   }
 };
 
-export const findAllAction = async (): Promise<ItemNode[]> => {
+export const findAllAction = async (): Promise<ItemNodeRequest[]> => {
   try {
     const apiResponse = await apiManager.get(`/api/v1/request`);
     return apiResponse.data;
@@ -70,9 +70,9 @@ export const updateAction = async (request: Request): Promise<ResponseExecuteAct
   }
 };
 
-export const sortRequests = async (nodes: RequestCollectionNode[]): Promise<ItemCollection> => {
+export const sortRequests = async (nodes: RequestNode[]): Promise<ItemCollection> => {
   try {
-    const payload: RequestSortCollection = { nodes };
+    const payload: RequestSortNodes = { nodes };
     const apiResponse = await apiManager.put(`/api/v1/sort/request`, payload);
     return apiResponse.data;
   } catch (error) {
@@ -89,7 +89,7 @@ export const deleteAction = async (request: Request): Promise<ResponseExecuteAct
   }
 };
 
-export const findAllHistoric = async (): Promise<ItemNode[]> => {
+export const findAllHistoric = async (): Promise<ItemNodeRequest[]> => {
   try {
     const apiResponse = await apiManager.get(`/api/v1/historic`);
     return apiResponse.data;
@@ -117,9 +117,29 @@ export const deleteHistoric = async (request: Request): Promise<ResponseExecuteA
   }
 };
 
-export const findAllCollection = async (): Promise<ItemCollection[]> => {
+export const findAllCollection = async (): Promise<ItemNodeCollection[]> => {
   try {
     const apiResponse = await apiManager.get(`/api/v1/collection`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sortCollections = async (nodes: RequestNode[]): Promise<ItemCollection> => {
+  try {
+    const payload: RequestSortNodes = { nodes };
+    const apiResponse = await apiManager.put(`/api/v1/sort/collection`, payload);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sortCollectionRequests = async (id: string, nodes: RequestNode[]): Promise<ItemCollection> => {
+  try {
+    const payload: RequestSortNodes = { nodes };
+    const apiResponse = await apiManager.put(`/api/v1/sort/collection/${id}/request`, payload);
     return apiResponse.data;
   } catch (error) {
     throw error;
