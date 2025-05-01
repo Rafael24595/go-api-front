@@ -89,7 +89,7 @@ export const VerticalDragDrop = <T, K>({ items, parameters, emptyTemplate, apply
         }
 
         if(position > height) {
-            setDraggingPosition(top - height);
+            setDraggingPosition(height);
             return;
         }
 
