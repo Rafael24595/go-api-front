@@ -250,3 +250,30 @@ button:hover {
 .button-div:hover {
   background-color: transparent;
 }
+
+.custom-input-file {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.custom-input-file input {
+  display: none;
+}
+
+.custom-input-file button {
+  display: flex;
+  white-space: nowrap;
+}
+
+.custom-input-file span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.input-file-preview {
+  margin-right: 5px;
+}

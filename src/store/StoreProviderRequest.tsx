@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { generateHash } from "../services/Utils";
-import { Auths, Body, fromRequest, ItemRequest, newItemRequest, newRequest, Request, toRequest } from "../interfaces/request/Request";
+import { Auths, fromRequest, ItemBody, ItemRequest, newItemRequest, newRequest, Request, toRequest } from "../interfaces/request/Request";
 import { cleanCopy, ItemStatusKeyValue } from "../interfaces/StatusKeyValue";
 import { fixOrder } from "../interfaces/StatusKeyValue";
 import { fromResponse, ItemResponse, newItemResponse, Response, toResponse } from "../interfaces/response/Response";
@@ -30,7 +30,7 @@ interface StoreProviderRequestType {
   updateQuery: (items: ItemStatusKeyValue[]) => void;
   updateHeader: (items: ItemStatusKeyValue[]) => void;
   updateCookie: (items: ItemStatusKeyValue[]) => void;
-  updateBody: (body: Body) => void;
+  updateBody: (body: ItemBody) => void;
   updateAuth: (auth: Auths) => void;
   fetchRequest: (request: Request, parent?: string, context?: string) => Promise<void>;
   insertRequest: (req: Request, res?: Response) => Promise<ResponseExecuteAction>;
@@ -230,7 +230,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     }));
   };
 
-  const updateBody = (body: Body) => {
+  const updateBody = (body: ItemBody) => {
     setData(prevData => ({
       ...prevData,
       request: {

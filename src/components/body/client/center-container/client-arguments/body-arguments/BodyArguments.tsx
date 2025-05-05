@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react';
 import { TextData } from './text/TextData';
-import { Body } from '../../../../../../interfaces/request/Request';
+import { ItemBody, ItemBodyParameter, orderItemBodyParameter } from '../../../../../../interfaces/request/Request';
 import { JsonData } from './json/JsonData';
 import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
 import { useStoreStatus } from '../../../../../../store/StoreProviderStatus';
 import { formatJson } from '../../../../../../utils/Formatter';
+import { FormData } from './form-data/FormData';
+import { Dict } from '../../../../../../types/Dict';
 
-import './BodyArguments.css'
+import './BodyArguments.css';
+
+export const DOCUMENT_PARAM = "document";
+export const PAYLOAD_PARAM = "payload";
+export const FORM_DATA_PARAM = "form-data";
 
 const VIEW_TEXT = "text";
 const VIEW_JSON = "json";
+const VIEW_FORM = "form";
 
 const VALID_CURSORS = [VIEW_TEXT, VIEW_JSON];
 
@@ -21,7 +28,7 @@ interface Payload {
     cursor: string;
     status: boolean;
     content: string;
-    payload: string;
+    parameters: Dict<ItemBodyParameter[]>;
 }
 
 export function BodyArguments() {
@@ -36,7 +43,7 @@ export function BodyArguments() {
         }),
         status: request.body.status, 
         content: request.body.content_type,
-        payload: request.body.payload,
+        parameters: request.body.parameters,
     });
 
     useEffect(() => {
@@ -44,46 +51,95 @@ export function BodyArguments() {
             ...prevData,
             status: request.body.status, 
             content: request.body.content_type,
-            payload: request.body.payload,
+            parameters: request.body.parameters,
         }));
     }, [request.body]);
     
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newData = {
+            ...data, 
+            content: e.target.value,
+            cursor: e.target.value
+        };
         store(CURSOR_KEY, e.target.value);
-        setData({...data, cursor: e.target.value});
-    };
-
-    const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let newData = {...data, status: e.target.checked};
         setData(newData);
         updateBody(makeBody(newData));
     };
 
-    const payloadChange = (content: string, payload: string) => {
-        content = payload == "" ? "" : content;
-        let newData = {...data, content: content, payload: payload};
+    const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newData = {
+            ...data, 
+            status: e.target.checked
+        };
+        setData(newData);
+        updateBody(makeBody(newData));
+    };
+
+    const documentChange = (content: string, document: ItemBodyParameter) => {
+        const newParameters = { ...data.parameters };
+
+        delete newParameters[DOCUMENT_PARAM];
+        
+        if (document.value != "") {
+            document.key = PAYLOAD_PARAM;
+            newParameters[DOCUMENT_PARAM] = orderItemBodyParameter([document]);
+        }
+
+        const newData = {
+            ...data,
+            content: content,
+            parameters: newParameters
+        };
+
         setData(newData);
         updateBody(makeBody(newData));
     }
 
-    const makeBody = (payload: Payload): Body => {
+    const formDataChange = (content: string, parameters: ItemBodyParameter[]) => {
+        const newParameters = { ...data.parameters };
+
+        newParameters[FORM_DATA_PARAM] = orderItemBodyParameter(parameters);
+
+        const newData = {
+            ...data,
+            content: content,
+            parameters: newParameters
+        };
+
+        setData(newData);
+        updateBody(makeBody(newData));
+    }
+
+    const makeBody = (payload: Payload): ItemBody => {
         return {
             status: payload.status,
             content_type: payload.content,
-            payload: payload.payload
+            parameters: payload.parameters
         };
     }
 
     const formatPayload = async () => {
-        let prettyPayload = data.payload;
+        let category = data.parameters[DOCUMENT_PARAM];
+        if(!category) {
+            return;
+        }
+
+        let document = category.find(p => p.key == PAYLOAD_PARAM);
+        if(!document) {
+            return;
+        }
+
         if(data.cursor == VIEW_JSON) {
-            prettyPayload = await formatJson(data.payload);
+            document.value = await formatJson(document.value);
         }
            
         setData((prevData) => { 
             const newData = {
                 ...prevData,
-                payload: prettyPayload
+                parameters: { 
+                    ...prevData.parameters, 
+                    [DOCUMENT_PARAM]: [document] 
+                }
             };
             updateBody(makeBody(newData));
             return newData;
@@ -110,6 +166,11 @@ export function BodyArguments() {
                       value={VIEW_JSON} 
                       onChange={cursorChange}/>
                   <label htmlFor="tag-body-json">Json</label>
+                  <input type="radio" id="tag-body-form" className="client-tag" name="cursor-body" 
+                      checked={data.cursor === VIEW_FORM} 
+                      value={VIEW_FORM} 
+                      onChange={cursorChange}/>
+                  <label htmlFor="tag-body-form">Form</label>
                 </div>
                 {data.cursor === VIEW_JSON && (
                     <div>
@@ -118,8 +179,9 @@ export function BodyArguments() {
                 )}
               </div>
               <div id="client-argument-content">
-                  {data.cursor === VIEW_TEXT && <TextData value={data.payload} onValueChange={payloadChange}/>}
-                  {data.cursor === VIEW_JSON && <JsonData value={data.payload} onValueChange={payloadChange}/>}
+                  {data.cursor === VIEW_TEXT && <TextData onValueChange={documentChange}/>}
+                  {data.cursor === VIEW_JSON && <JsonData onValueChange={documentChange}/>}
+                  {data.cursor === VIEW_FORM && <FormData onValueChange={formDataChange}/>}
               </div>
         </>
     )
