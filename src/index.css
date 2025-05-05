@@ -277,3 +277,7 @@ button:hover {
 .input-file-preview {
   margin-right: 5px;
 }
+
+.gray-scale {
+  filter: grayscale(1);
+}

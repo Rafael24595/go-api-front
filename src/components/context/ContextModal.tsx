@@ -459,13 +459,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                                     key={`context-param-${item.id}`}
                                     order={i}
                                     focus={item.focus}
-                                    value={{
-                                        order: item.order,
-                                        status: item.status,
-                                        category: item.category,
-                                        key: item.key,
-                                        value: item.value
-                                    }}
+                                    value={item}
                                     definition={{ 
                                         ...ROW_DEFINITION, 
                                         disabled: false}}

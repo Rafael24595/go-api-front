@@ -1,13 +1,13 @@
 import { detachStatusCategoryKeyValue, mergeStatusCategoryKeyValue } from "../../services/Utils";
 import { Dict } from "../../types/Dict";
 import { ItemStatusCategoryKeyValue, toItem } from "../StatusCategoryKeyValue";
-import { StatusValue } from "../StatusValue";
+import { PrivateStatusValue } from "../StatusValue";
 
 export type Context = {
   _id: string;
   status: boolean;
   timestamp: number;
-  dictionary: Dict<Dict<StatusValue>>;
+  dictionary: Dict<Dict<PrivateStatusValue>>;
   owner: string;
   modified: number;
   domain: string;

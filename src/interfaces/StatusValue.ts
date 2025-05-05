@@ -10,3 +10,10 @@ export interface ItemStatusValue {
     status: boolean
     value: string
 }
+
+export interface PrivateStatusValue {
+    order: number
+    private: boolean
+    status: boolean
+    value: string
+}

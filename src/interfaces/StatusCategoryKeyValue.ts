@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export interface StatusCategoryKeyValue {
     order: number
+    private: boolean
     status: boolean
     category: string
     key: string
@@ -11,6 +12,7 @@ export interface StatusCategoryKeyValue {
 export interface ItemStatusCategoryKeyValue {
     id: string
     order: number
+    private: boolean
     status: boolean
     category: string
     key: string

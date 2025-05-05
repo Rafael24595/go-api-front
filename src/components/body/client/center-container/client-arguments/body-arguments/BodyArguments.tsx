@@ -18,11 +18,9 @@ const VIEW_TEXT = "text";
 const VIEW_JSON = "json";
 const VIEW_FORM = "form";
 
-const VALID_CURSORS = [VIEW_TEXT, VIEW_JSON];
-
 const DEFAULT_CURSOR = VIEW_TEXT;
 
-const CURSOR_KEY = "BodyArgumentsCursor";
+//const CURSOR_KEY = "BodyArgumentsCursor";
 
 interface Payload {
     cursor: string;
@@ -32,15 +30,12 @@ interface Payload {
 }
 
 export function BodyArguments() {
-    const { find, store } = useStoreStatus();
+    //const { find, store } = useStoreStatus();
 
     const { request, updateBody } = useStoreRequest();
 
     const [data, setData] = useState<Payload>({
-        cursor: find(CURSOR_KEY, {
-            def: DEFAULT_CURSOR,
-            range: VALID_CURSORS
-        }),
+        cursor: request.body.content_type || DEFAULT_CURSOR,
         status: request.body.status, 
         content: request.body.content_type,
         parameters: request.body.parameters,
@@ -49,6 +44,7 @@ export function BodyArguments() {
     useEffect(() => {
         setData(prevData => ({
             ...prevData,
+            cursor: request.body.content_type || DEFAULT_CURSOR,
             status: request.body.status, 
             content: request.body.content_type,
             parameters: request.body.parameters,
@@ -61,8 +57,9 @@ export function BodyArguments() {
             content: e.target.value,
             cursor: e.target.value
         };
-        store(CURSOR_KEY, e.target.value);
+        //store(CURSOR_KEY, e.target.value);
         setData(newData);
+        //TODO: Find another solution, one more elegant.
         updateBody(makeBody(newData));
     };
 

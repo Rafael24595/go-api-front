@@ -18,20 +18,13 @@ interface StatusCategoryKeyValueProps {
     rowTrim: (order: number) => void;
 }
 
-interface Payload {
-    order: number;
-    status: boolean;
-    category: string;
-    key: string;
-    value: string;
-}
-
 export function StatusCategoryKeyValue({order, focus, value, definition, rowPush, rowTrim}: StatusCategoryKeyValueProps) {
     const inputKey = useRef<HTMLInputElement>(null);
     const inputValue = useRef<HTMLInputElement>(null);
 
-    const [row, setRow] = useState<Payload>({
+    const [row, setRow] = useState<StatusCategoryKeyValue>({
         order: order || 0,
+        private: value ? value.private: false,
         status: value ? value.status : false,
         category: value ? value.category : 
             definition.categories.length > 0 ? definition.categories[0].value : "",
@@ -54,19 +47,58 @@ export function StatusCategoryKeyValue({order, focus, value, definition, rowPush
             const category = definition.categories.length > 0 ? definition.categories[0].value : "";
             const key = e.target.name == "key" ? e.target.value : "";
             const value = e.target.name == "value" ? e.target.value : "";
-            rowPush({ order: 0, status: true, category: category, key: key, value: value },  e.target.name, order)    
+            rowPush({ 
+                order: 0, 
+                private: false,
+                status: true, 
+                category: category, 
+                key: key, 
+                value: value 
+            },  e.target.name, order);
             return;
         }
 
-        let newRow = {...row,  [e.target.name]: e.target.value };
+        const newRow = {
+            ...row, 
+            [e.target.name]: e.target.value 
+        };
         setRow(newRow)
         rowPush(newRow, e.target.name, order)
     };
 
+    const handlePrivacityChange = () => {
+        if(definition.disabled) {
+            rowPush({ 
+                order: 0, 
+                private: false,
+                status: true, 
+                category: "", 
+                key: "", 
+                value: "" 
+            },  "", order);
+            return;
+        }
+
+        const newRow = {
+            ...row, 
+            private: !row.private
+        };
+
+        setRow(newRow);
+        rowPush(newRow, "", order);
+    }
+
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         if(definition.disabled) {
             const category = e.target.name == "category" ? e.target.value : "";
-            rowPush({ order: 0, status: true, category: category, key: "", value: "" }, "key", order)    
+            rowPush({ 
+                order: 0,
+                private: false,
+                status: true, 
+                category: category, 
+                key: "", 
+                value: "" 
+            }, "key", order)    
             return;
         }
 
@@ -96,13 +128,18 @@ export function StatusCategoryKeyValue({order, focus, value, definition, rowPush
         <>
             <div className="parameter-container">{}
                 <input name="status" type="checkbox" onChange={handleChecked} disabled={definition.disabled} checked={row.status}/>
+                <button 
+                    className={`button-div ${row.private ? "gray-scale" : ""}`} 
+                    type="button" 
+                    title={`${ row.private ? "Show value" : "hide value" }`}
+                    onClick={handlePrivacityChange}>👁️</button>
                 <select className="parameter-input secondary" name="category" onChange={handleCategoryChange}>
                     {definition.categories.map(c => (
                         <option key={c.value} value={c.value} selected={c.value == row.category}>{c.key}</option>
                     ))}
                 </select>
                 <input className="parameter-input" ref={inputKey} name="key" type="text" onChange={handleChange} placeholder={definition.key} value={row.key}/>
-                <input className="parameter-input" ref={inputValue} name="value" type="text" onChange={handleChange} placeholder={definition.value} value={row.value}/>
+                <input className="parameter-input" ref={inputValue} name="value" type={`${row.private ? "password" : "text"}`} onChange={handleChange} placeholder={definition.value} value={row.value}/>
                 <button type="button" className={`remove-button ${!definition.disabled ? "show" : ''}`} onClick={handleDelete} disabled={definition.disabled}></button>
             </div>
         </>

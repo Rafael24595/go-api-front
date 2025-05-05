@@ -1,6 +1,6 @@
 import { ItemStatusCategoryKeyValue, StatusCategoryKeyValue } from "../interfaces/StatusCategoryKeyValue";
 import { StatusKeyValue } from "../interfaces/StatusKeyValue";
-import { ItemStatusValue, StatusValue } from "../interfaces/StatusValue";
+import { ItemStatusValue, PrivateStatusValue, StatusValue } from "../interfaces/StatusValue";
 import { Dict } from "../types/Dict";
 
 export function detachStatusKeyValue(dict: Dict<StatusValue[]>): StatusKeyValue[] {
@@ -71,7 +71,7 @@ export const joinStatusKeyValue = (newValues: StatusKeyValue[]): Dict<StatusValu
     return merge;
 }
 
-export function detachStatusCategoryKeyValue(dict: Dict<Dict<StatusValue>>): StatusCategoryKeyValue[] {
+export function detachStatusCategoryKeyValue(dict: Dict<Dict<PrivateStatusValue>>): StatusCategoryKeyValue[] {
     const vector: StatusCategoryKeyValue[] = [];
     if(dict == undefined) {
         return vector;
@@ -81,6 +81,7 @@ export function detachStatusCategoryKeyValue(dict: Dict<Dict<StatusValue>>): Sta
         for (const [k, v] of Object.entries(vs)) {
             vector.push({
                 order: v.order,
+                private: v.private,
                 status: v.status,
                 category: c,
                 key: k,
@@ -91,14 +92,15 @@ export function detachStatusCategoryKeyValue(dict: Dict<Dict<StatusValue>>): Sta
     return vector;
 }
 
-export const mergeStatusCategoryKeyValue = (newValues: StatusCategoryKeyValue[]): Dict<Dict<StatusValue>> => {
-    const merge: Dict<Dict<StatusValue>> = {};
+export const mergeStatusCategoryKeyValue = (newValues: StatusCategoryKeyValue[]): Dict<Dict<PrivateStatusValue>> => {
+    const merge: Dict<Dict<PrivateStatusValue>> = {};
     for (const value of newValues) {
         if(!merge[value.category]) {
             merge[value.category] = {};
         }
         merge[value.category][value.key] = {
             order: value.order,
+            private: value.private,
             status: value.status,
             value: value.value,
         };
