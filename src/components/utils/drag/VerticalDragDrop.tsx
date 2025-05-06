@@ -20,13 +20,17 @@ interface DragDropProps<T, K> extends React.HTMLAttributes<HTMLDivElement> {
     onItemDrag?: (item: PositionWrapper<T>) => void;
     onItemDrop?: (item: PositionWrapper<T>) => void;
     onItemsChange: (items: PositionWrapper<T>[], parameters?: K) => void;
-    renderItem: (item: T) => React.ReactNode;
+    renderItem: (item: T, index: number) => React.ReactNode;
     emptyTemplate?: React.ReactNode;
+    beforeTemplate?: React.ReactNode;
+    afterTemplate?: React.ReactNode;
     itemId: (item: T) => string | number;
 }
 
-export const VerticalDragDrop = <T, K>({ items, parameters, emptyTemplate, applyFilter, onItemDrag, onItemDrop, onItemsChange, renderItem, itemId, ...rest }: DragDropProps<T, K>) => {
+export const VerticalDragDrop = <T, K>({ items, parameters, emptyTemplate, beforeTemplate, afterTemplate, applyFilter, onItemDrag, onItemDrop, onItemsChange, renderItem, itemId, ...rest }: DragDropProps<T, K>) => {
     const [wrappedItems, setWrappedItems] = useState<PositionWrapper<T>[]>([]);
+
+    const [dragFormElement, setDragFormElement] = useState(false);
 
     const dragItemRef = useRef<PositionWrapper<T> | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -59,7 +63,7 @@ export const VerticalDragDrop = <T, K>({ items, parameters, emptyTemplate, apply
     const handleDragStart = (e: React.DragEvent, index: number) => {
         e.preventDefault();
 
-        if(!containerRef.current || e.target != containerRef.current.children[index]) {
+        if(dragFormElement || !containerRef.current || e.target != containerRef.current.children[index]) {
             return;
         }
         
@@ -192,11 +196,22 @@ export const VerticalDragDrop = <T, K>({ items, parameters, emptyTemplate, apply
         return itemId(dragItemRef.current.item) == itemId(item.item)
     }
 
+    const handleMouseDown = (e: React.MouseEvent) => {
+        const target = e.target as HTMLElement;
+        const isFormElement = target.closest('input, textarea, button');
+        setDragFormElement(!!isFormElement);
+    };
+
     return (
         <div
             ref={containerRef}
             {...rest}
-            className={`${rest.className} vertical-drag-container`}>
+            className={`${ rest.className ? rest.className : "" } vertical-drag-container`}>
+                {beforeTemplate && (
+                    <>
+                        { beforeTemplate }
+                    </>
+                )}
                 {wrappedItems.length > 0 ? (
                     <>
                         {
@@ -204,6 +219,7 @@ export const VerticalDragDrop = <T, K>({ items, parameters, emptyTemplate, apply
                                 <div
                                     key={item.index}
                                     draggable
+                                    onMouseDown={handleMouseDown}
                                     onDragStart={(e) => handleDragStart(e, index)}
                                     onDragOver={(e) => e.preventDefault()}
                                     className={`vertical-drag-item ${ isCursor(index) && "cursor"}` }
@@ -211,16 +227,21 @@ export const VerticalDragDrop = <T, K>({ items, parameters, emptyTemplate, apply
                                         top: calculateCursorPosition(index),
                                     }}>
                                     <div className={`landing-area ${ isLandPosition(index) && "show"} ${ isCurrentItem(item) && "original" }` }></div>
-                                    {renderItem(item.item)}
+                                    {renderItem(item.item, index)}
                                     <div className={`landing-area ${ isLandPosition(index) && isCurrentItem(item) && "show original" }` }></div>
                                 </div>
                             ))
                         }
                         <div className={`landing-area ${ isLandPosition(wrappedItems.length) && "show"}` }></div>
                     </>
-                ) : (
+                ) : emptyTemplate && (
                     <>
                         {emptyTemplate}
+                    </>
+                )}
+                {afterTemplate && (
+                    <>
+                        { afterTemplate }
                     </>
                 )}
         </div>

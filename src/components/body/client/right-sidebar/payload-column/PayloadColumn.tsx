@@ -78,7 +78,7 @@ export function PayloadColumn() {
             <div id="response-payload-bytes">
                 <div id="response-content-types">
                     <div id="detect-container">
-                        <label htmlFor="detect-format">Detect: </label>
+                        <label htmlFor="detect-format" className="select-none">Detect: </label>
                         <input 
                             name="status" 
                             id="detect-format" 
@@ -86,7 +86,7 @@ export function PayloadColumn() {
                             checked={data.autoFormat}
                             onChange={autoFormatChange}/>
                     </div>
-                    <span>{ viewParse(response.body.content_type) }</span>
+                    <span className="select-none">{ viewParse(response.body.content_type) }</span>
                 </div>
                 <div id="response-content-bytes">
                     {cusorIs(VIEW_TEXT) && <TextView value={response.body.payload}/>}

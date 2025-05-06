@@ -1,12 +1,12 @@
 .vertical-drag-container {
     position: relative;
-    cursor: move;
 }
 
 .vertical-drag-item {
     position: relative;
     transition: transform 0.3s ease;
     width: 100%;
+    cursor: move;
 }
 
 .vertical-drag-item.cursor {

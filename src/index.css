@@ -22,6 +22,10 @@ button {
   cursor: pointer;
 }
 
+.select-none, select, button, img {
+  user-select: none;
+}
+
 button:hover {
   background-color: #d1d1d1;
 }
@@ -72,6 +76,7 @@ button:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   transition: background-color 0.3s, color 0.3s;
+  user-select: none;
 }
 
 .radio-button-group label:hover, .button-tag:hover {
@@ -174,6 +179,16 @@ button:hover {
 .no-data {
   text-align: center;
   font-weight: 500;
+}
+
+.button-modified-container {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.button-modified-container.visible {
+  visibility: visible;
+  pointer-events: all;
 }
 
 .button-modify {

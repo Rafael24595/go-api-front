@@ -41,15 +41,15 @@ export function TextData({ onValueChange }: Payload) {
     };
 
     return (
-      <>
-          <CodeMirror
-              value={ data != undefined ? data.value : "" }
-              height="300px"
-              extensions={[lintGutter()]}
-              onChange={onChange}
-              theme="light"
-          />
-      </>
+      <div id="sub-argument-content">
+        <CodeMirror
+            value={ data != undefined ? data.value : "" }
+            height="300px"
+            extensions={[lintGutter()]}
+            onChange={onChange}
+            theme="light"
+        />
+      </div>
     )
 }
 

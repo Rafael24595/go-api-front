@@ -113,7 +113,7 @@ export function FieldFormData({order, focus, value, disabled, rowPush, rowTrim}:
         }
     };
 
-    function extractFileInfo(file: File): Promise<{ name: string; mimeType: string, content: string }> {
+    const extractFileInfo = (file: File): Promise<{ name: string; mimeType: string, content: string }> => {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
       
@@ -150,7 +150,7 @@ export function FieldFormData({order, focus, value, disabled, rowPush, rowTrim}:
         });
     }
 
-    function previewFile(row: CleanItemBodyParameter) {
+    const previewFile = (row: CleanItemBodyParameter) => {
         const byteChars = atob(row.value);
         const byteArrays = [];
       
@@ -162,8 +162,17 @@ export function FieldFormData({order, focus, value, disabled, rowPush, rowTrim}:
       
         const blob = new Blob(byteArrays, { type: row.fileType });
         const url = URL.createObjectURL(blob);
-        window.open(url);
-      }
+        window.open(url, "_blank", windowPreferences(500, 500));
+    }
+
+    const windowPreferences = (width: number, height: number) => {
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        const left = (screenWidth / 2) - (width / 2);
+        const top = (screenHeight / 2) - (height / 2);
+    
+        return `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`;
+    }
 
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const isFile = e.target.value == BINARY;

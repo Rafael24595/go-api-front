@@ -14,9 +14,9 @@ import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useStoreSession } from '../../../../../store/StoreProviderSession';
 import { VerticalDragDrop, PositionWrapper } from '../../../../utils/drag/VerticalDragDrop';
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
+import { Optional } from '../../../../../types/Optional';
 
 import './StoredColumn.css';
-import { Optional } from '../../../../../types/Optional';
 
 const FILTER_TARGET_KEY = "CollectionColumnDetailsFilterTarget";
 const FILTER_VALUE_KEY = "CollectionColumnDetailsFilterValue";
@@ -240,7 +240,7 @@ export function StoredColumn() {
         return cursor._id == data.dragRequest._id;
     }
 
-     const onRequestDrag = async (item: PositionWrapper<Request>) => {
+    const onRequestDrag = async (item: PositionWrapper<Request>) => {
         setData((prevData) => ({
             ...prevData,
             dragRequest: item.item,

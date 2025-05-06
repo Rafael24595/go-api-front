@@ -36,6 +36,13 @@ export const fixOrder = (argument: ItemStatusCategoryKeyValue[]) => {
     });
 }
 
+export const cleanCopy = (argument: ItemStatusCategoryKeyValue[]): ItemStatusCategoryKeyValue[] => {
+    return [...argument].map((r, i) => ({...r, 
+        order: i,
+        focus: "",
+    }));
+}
+
 const makeKey = (argument: ItemStatusCategoryKeyValue | StatusCategoryKeyValue) => {
     return `${argument.category}-${argument.order}-${uuidv4()}`;
 }

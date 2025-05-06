@@ -69,6 +69,7 @@ export function CollectionModal({ isOpen, request, onSubmit, onClose }: Collecti
             buttons={[
                 {
                     title: "Save",
+                    type: "submit",
                     callback: {
                         func: submitChanges
                     }

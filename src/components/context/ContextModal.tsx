@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal } from '../utils/modal/Modal';
 import { v4 as uuidv4 } from 'uuid';
-import { fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
+import { cleanCopy, fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
 import { StatusCategoryKeyValue } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
 import { Context, ItemContext, toContext } from '../../interfaces/context/Context';
 import { importContext, insertContext } from '../../services/api/ServiceStorage';
@@ -11,6 +11,8 @@ import { ImportContext } from './ImportContext';
 import { EAlertCategory } from '../../interfaces/AlertData';
 import { useAlert } from '../utils/alert/Alert';
 import { useStoreStatus } from '../../store/StoreProviderStatus';
+import { PositionWrapper, VerticalDragDrop } from '../utils/drag/VerticalDragDrop';
+import { Combo } from '../utils/combo/Combo';
 
 import './ContextModal.css';
 
@@ -100,6 +102,7 @@ interface Filter {
 }
 
 interface Payload {
+    empty: string
     categoryPreview: string;
     template: string;
     preview: string;
@@ -113,11 +116,12 @@ interface Payload {
 export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     const { find, findOrDefault, store } = useStoreStatus();
 
-    const { initialHash, actualHash, context, getContext, defineItemContext, updateContext, fetchContext } = useStoreContext();
+    const { initialHash, actualHash, context, getContext, discardContext, defineItemContext, updateContext, fetchContext } = useStoreContext();
 
     const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({
+        empty: uuidv4(),
         categoryPreview: find(PREVIEW_CATEGORY_KEY, {
             def: "global"
         }),
@@ -148,6 +152,10 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         }));
         updatePreview(context.status, data.template, data.categoryPreview, context.dictionary);
     }, [context]);
+
+    const makeKey = (request: ItemStatusCategoryKeyValue): string => {
+        return `context-param-${request.id}`;
+    }
 
     const onFilterStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         onFilterChange("status", e.target.value);
@@ -210,37 +218,43 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
             return;
         }
 
-        let newArgument = copyRows();
-        newArgument.splice(order, 1);
+        let newRows = cleanCopy(data.argument);
+        newRows.splice(order, 1);
 
-        newArgument = fixOrder(newArgument);
+        newRows = fixOrder(newRows);
 
-        updatePreview(data.status, data.template, data.categoryPreview, newArgument);
-        updateContext(makeContext(data.status, newArgument));
+        updatePreview(data.status, data.template, data.categoryPreview, newRows);
+        updateContext(makeContext(data.status, newRows));
     }
 
     const rowPush = (row: StrStatusCategoryKeyValue, focus: string, order?: number) => {
-        let newArgument = copyRows();
+        let newEmpty= data.empty;
+        let newRows = cleanCopy(data.argument);
+        
         if(order != undefined && 0 <= order && data.argument.length >= order) {
-            newArgument[order] = {
+            newRows[order] = {
                 ...row, 
-                id: newArgument[order].id, 
-                focus: ""};
+                id: newRows[order].id, 
+                focus: ""
+            };
         } else {
-            newArgument.push({
+            newEmpty = uuidv4();
+            newRows.push({
                 ...row, 
                 id: uuidv4(), 
-                focus: focus});
+                focus: focus
+            });
         }
 
-        newArgument = fixOrder(newArgument);
+        newRows = fixOrder(newRows);
 
-        updatePreview(data.status, data.template, data.categoryPreview, newArgument);
-        updateContext(makeContext(data.status, newArgument));
-    }
+        setData(prevData => ({
+            ...prevData,
+            empty: newEmpty
+        }));
 
-    const copyRows = (): ItemStatusCategoryKeyValue[] => {
-        return [...data.argument].map(r => ({...r, focus: ""}));
+        updatePreview(data.status, data.template, data.categoryPreview, newRows);
+        updateContext(makeContext(data.status, newRows));
     }
 
     const switchPreview = () => {
@@ -347,11 +361,21 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         await fetchContext(result._id);
     }
 
+    const updateOrder = async (items: PositionWrapper<ItemStatusCategoryKeyValue>[]) => {
+        const newRows = cleanCopy(items.map(i => i.item));
+        setData((prevData) => ({
+            ...prevData,
+            items: newRows
+        }));
+        updateContext(makeContext(data.status, newRows));
+    };
+
     return (
         <Modal 
             buttons={[
                 {
                     title: "Save",
+                    type: "submit",
                     callback: {
                         func: submitContext
                     }
@@ -366,7 +390,27 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
             title={
                 <span id="context-title-container">
                     <span>{translateDomain(context.domain)} Context</span>
-                    <span className={`button-modified-status ${ initialHash != actualHash && "visible" }`}></span>
+                    <div className={`button-modified-container ${ initialHash != actualHash ? "visible" : "" }`}>
+                        <Combo 
+                            custom={(
+                                <span className={`button-modified-status ${ initialHash != actualHash ? "visible" : "" }`}></span>
+                            )}
+                            options={[
+                                {
+                                    icon: "🗑️",
+                                    label: "Discard",
+                                    title: "Discard context",
+                                    action: discardContext
+                                },
+                                {
+                                    icon: "💾",
+                                    label: "Save",
+                                    title: "Save context",
+                                    action: submitContext
+                                },
+                            ]}
+                        />
+                    </div>
                 </span>
             }
             width="70%"
@@ -453,10 +497,15 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                                 </div>
                             </div>
                         </div>
-                        <div id="context-dictionary-content">
-                            {data.argument.filter(filterContext).map((item, i) => (
+                        <VerticalDragDrop
+                            id="context-dictionary-content"
+                            items={data.argument}
+                            applyFilter={filterContext}
+                            itemId={makeKey}
+                            onItemsChange={updateOrder}
+                            renderItem={(item, i) => (
                                 <StatusCategoryKeyValue
-                                    key={`context-param-${item.id}`}
+                                    key={makeKey(item)}
                                     order={i}
                                     focus={item.focus}
                                     value={item}
@@ -466,14 +515,16 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                                     rowPush={rowPush}
                                     rowTrim={rowTrim}
                                 />
-                            ))}
-                            <StatusCategoryKeyValue 
-                                key={uuidv4()}
-                                definition={ ROW_DEFINITION }
-                                rowPush={rowPush}
-                                rowTrim={rowTrim}
-                            />
-                        </div>
+                            )}
+                            afterTemplate={(
+                                <StatusCategoryKeyValue 
+                                    key={data.empty}
+                                    definition={ ROW_DEFINITION }
+                                    rowPush={rowPush}
+                                    rowTrim={rowTrim}
+                                />
+                            )}
+                        />
                     </>
                 )}
         </Modal>

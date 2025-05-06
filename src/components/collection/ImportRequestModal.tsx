@@ -152,6 +152,7 @@ export function ImportRequestModal({ isOpen, onSubmit, onClose }: ImportRequestM
             buttons={[
                 {
                     title: "Submit",
+                    type: "submit",
                     callback: {
                         func: submitOpenaApiModal
                     }

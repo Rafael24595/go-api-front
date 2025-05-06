@@ -152,6 +152,7 @@ export function ImportCollectionModal({ isOpen, onSubmit, onClose }: ImportColle
             buttons={[
                 {
                     title: "Submit",
+                    type: "submit",
                     callback: {
                         func: submitOpenaApiModal
                     }

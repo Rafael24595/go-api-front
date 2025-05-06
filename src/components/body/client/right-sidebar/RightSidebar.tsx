@@ -38,9 +38,9 @@ export function RightSidebar() {
     return (
         <div id='right-sidebar'>
             <div id="response-metadata">
-                <span className="section-header-element">Status: { response.status }</span>
-                <span className="section-header-element">Time: { millisecondsToTime(response.time) }</span>
-                <span className="section-header-element">Size: { formatBytes(response.size) }</span>
+                <span className="section-header-element"><span className="select-none">Status:</span> { response.status }</span>
+                <span className="section-header-element"><span className="select-none">Time:</span> { millisecondsToTime(response.time) }</span>
+                <span className="section-header-element"><span className="select-none">Size:</span> { formatBytes(response.size) }</span>
             </div>
             <div className="radio-button-group border-bottom">
                 <input type="radio" id="tag-right-sidebar-payload" className="client-tag" name="cursor-right-sidebar"

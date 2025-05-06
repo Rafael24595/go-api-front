@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { fixOrder, ItemStatusKeyValue, StatusKeyValue as StrStatusKeyValue } from '../../../../../../interfaces/StatusKeyValue';
+import { cleanCopy, fixOrder, ItemStatusKeyValue, StatusKeyValue as StrStatusKeyValue } from '../../../../../../interfaces/StatusKeyValue';
 import { StatusKeyValue } from '../status-key-value/StatusKeyValue';
 import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
+import { PositionWrapper, VerticalDragDrop } from '../../../../../utils/drag/VerticalDragDrop';
 
-import './CookieArguments.css'
+import './CookieArguments.css';
 
 const ROW_DEFINITION = { 
     key: "Cookie", 
@@ -12,58 +13,95 @@ const ROW_DEFINITION = {
     disabled: true 
 }
 
+interface Payload {
+    empty: string
+    items: ItemStatusKeyValue[]
+}
+
 export function CookieArguments() {
     const { request, updateCookie } = useStoreRequest();
 
-    const [data, setData] = useState<ItemStatusKeyValue[]>(request.cookie);
+    const [data, setData] = useState<Payload>({
+        empty: uuidv4(),
+        items: request.cookie
+    });
 
     useEffect(() => {
-        setData(request.cookie);
+        setData((prevData) => ({
+            ...prevData,
+            items: request.cookie
+        }));
     }, [request.cookie]);
 
+    const makeKey = (request: ItemStatusKeyValue): string => {
+        return `cookie-param-${request.id}`;
+    }
+
     const rowTrim = (order: number) => {
-        if(order < 0 || data.length < order ) {
+        if(order < 0 || data.items.length < order ) {
             return;
         }
 
-        let newArgument = copyRows();
-        newArgument.splice(order, 1);
+        let newRows = cleanCopy(data.items);
+        newRows.splice(order, 1);
 
-        newArgument = fixOrder(newArgument);
+        newRows = fixOrder(newRows);
         
-        setData(newArgument);
-        updateCookie(newArgument);
+        setData((prevData) => ({
+            ...prevData,
+            items: newRows
+        }));
+
+        updateCookie(newRows);
     }
 
     const rowPush = (row: StrStatusKeyValue, focus: string, order?: number) => {
-        let newArgument = copyRows();
-        if(order != undefined && 0 <= order && data.length >= order) {
-            newArgument[order] = {
+        let newEmpty= data.empty;
+        let newRows = cleanCopy(data.items);
+
+        if(order != undefined && 0 <= order && data.items.length >= order) {
+            newRows[order] = {
                 ...row, 
-                id: newArgument[order].id, 
-                focus: ""};
+                id: newRows[order].id, 
+                focus: ""
+            };
         } else {
-            newArgument.push({
+            newEmpty = uuidv4();
+            newRows.push({
                 ...row, 
                 id: uuidv4(), 
-                focus: focus});
+                focus: focus
+            });
         }
 
-        newArgument = fixOrder(newArgument);
+        newRows = fixOrder(newRows);
+        
+        setData({
+            empty: newEmpty,
+            items: newRows
+        });
 
-        setData(newArgument);
-        updateCookie(newArgument);
+        updateCookie(newRows);
     }
 
-    const copyRows = (): ItemStatusKeyValue[] => {
-        return [...data].map(r => ({...r, focus: ""}));
-    }
+    const updateOrder = async (items: PositionWrapper<ItemStatusKeyValue>[]) => {
+        const newRows = cleanCopy(items.map(i => i.item));
+        setData((prevData) => ({
+            ...prevData,
+            items: newRows
+        }));
+        updateCookie(newRows);
+    };
 
     return (
-        <>
-            {data.map((item, i) => (
+        <VerticalDragDrop
+            id="client-argument-content"
+            items={data.items}
+            itemId={makeKey}
+            onItemsChange={updateOrder}
+            renderItem={(item, i) => (
                 <StatusKeyValue
-                    key={`query-param-${item.id}`}
+                    key={makeKey(item)}
                     order={i}
                     focus={item.focus}
                     value={{
@@ -78,13 +116,15 @@ export function CookieArguments() {
                     rowPush={rowPush}
                     rowTrim={rowTrim}
                 />
-            ))}
-            <StatusKeyValue 
-                key={uuidv4()}
-                definition={ ROW_DEFINITION }
-                rowPush={rowPush}
-                rowTrim={rowTrim}
-            />
-        </>
+            )}
+            afterTemplate={(
+                <StatusKeyValue 
+                    key={data.empty}
+                    definition={ ROW_DEFINITION }
+                    rowPush={rowPush}
+                    rowTrim={rowTrim}
+                />
+            )}
+        />
     )
 }

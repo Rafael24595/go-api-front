@@ -3,8 +3,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { cleanCopy, fixOrder, ItemStatusKeyValue, StatusKeyValue as StrStatusKeyValue } from '../../../../../../interfaces/StatusKeyValue';
 import { StatusKeyValue } from '../status-key-value/StatusKeyValue';
 import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
+import { PositionWrapper, VerticalDragDrop } from '../../../../../utils/drag/VerticalDragDrop';
 
-import './QueryArguments.css'
+import './QueryArguments.css';
 
 const ROW_DEFINITION = { 
     key: "Parameter", 
@@ -12,91 +13,136 @@ const ROW_DEFINITION = {
     disabled: true 
 }
 
+interface Payload {
+    empty: string
+    items: ItemStatusKeyValue[]
+}
+
 export function QueryArguments() {
     const { request, updateQuery, processUri } = useStoreRequest();
 
-    const [data, setData] = useState<ItemStatusKeyValue[]>(request.query);
+    const [data, setData] = useState<Payload>({
+            empty: uuidv4(),
+            items: request.query
+        });
 
     useEffect(() => {
-        setData(request.query);
+        setData((prevData) => ({
+            ...prevData,
+            items: request.query
+        }));
     }, [request.query]);
+
+    const makeKey = (request: ItemStatusKeyValue): string => {
+        return `query-param-${request.id}`;
+    }
 
     const statusChange = (/*e: React.ChangeEvent<HTMLInputElement>*/) => {
         //TODO:
     };
 
     const rowTrim = (order: number) => {
-        if(order < 0 || data.length < order ) {
+        if(order < 0 || data.items.length < order ) {
             return;
         }
 
-        let newArgument = cleanCopy(data);
-        newArgument.splice(order, 1);
-        
-        newArgument = fixOrder(newArgument);
+        let newRows = cleanCopy(data.items);
+        newRows.splice(order, 1);
 
-        setData(newArgument);
-        updateQuery(newArgument);
+        newRows = fixOrder(newRows);
+        
+        setData((prevData) => ({
+            ...prevData,
+            items: newRows
+        }));
+        
+        updateQuery(newRows);
     }
 
     const rowPush = (row: StrStatusKeyValue, focus: string, order?: number) => {
-        let newArgument = cleanCopy(data);
-        if(order != undefined && 0 <= order && data.length >= order) {
-            newArgument[order] = {
+        let newEmpty= data.empty;
+        let newRows = cleanCopy(data.items);
+
+        if(order != undefined && 0 <= order && data.items.length >= order) {
+            newRows[order] = {
                 ...row, 
-                id: newArgument[order].id, 
-                focus: ""};
+                id: newRows[order].id, 
+                focus: ""
+            };
         } else {
-            newArgument.push({
+            newEmpty = uuidv4();
+            newRows.push({
                 ...row, 
                 id: uuidv4(), 
-                focus: focus});
+                focus: focus
+            });
         }
 
-        newArgument = fixOrder(newArgument);
+        newRows = fixOrder(newRows);
+        
+        setData({
+            empty: newEmpty,
+            items: newRows
+        });
 
-        setData(newArgument);
-        updateQuery(newArgument);
+        updateQuery(newRows);
     }
 
+    const updateOrder = async (items: PositionWrapper<ItemStatusKeyValue>[]) => {
+        const newRows = cleanCopy(items.map(i => i.item));
+        setData((prevData) => ({
+            ...prevData,
+            items: newRows
+        }));
+        updateQuery(newRows);
+    };
+    
     return (
         <>
-            <div id="query-process-group" className="border-bottom">
-                <div>
-                    <label htmlFor="process-uri">Auto: </label>
-                    <input 
-                        name="status" 
-                        id="process-uri" 
-                        type="checkbox" 
-                        checked={false}
-                        onChange={statusChange}/>
-                </div>
-                <button type="button" className="button-tag" onClick={processUri}>Process</button>
-            </div>
             <div id="client-argument-content">
-                {data.map((item, i) => (
-                    <StatusKeyValue
-                        key={`query-param-${item.id}`}
-                        order={i}
-                        focus={item.focus}
-                        value={{
-                            order: item.order,
-                            status: item.status,
-                            key: item.key,
-                            value: item.value
-                        }}
-                        definition={{ 
-                            ...ROW_DEFINITION, 
-                            disabled: false}}
-                        rowPush={rowPush}
-                        rowTrim={rowTrim}
-                    />
-                ))}
-                <StatusKeyValue 
-                    key={uuidv4()}
-                    definition={ ROW_DEFINITION }
-                    rowPush={rowPush}
-                    rowTrim={rowTrim}
+                <div id="query-process-group" className="border-bottom">
+                    <div>
+                        <label htmlFor="process-uri">Auto: </label>
+                        <input 
+                            name="status" 
+                            id="process-uri" 
+                            type="checkbox" 
+                            checked={false}
+                            onChange={statusChange}/>
+                    </div>
+                    <button type="button" className="button-tag" onClick={processUri}>Process</button>
+                </div>
+                <VerticalDragDrop
+                    id="sub-argument-content"
+                    items={data.items}
+                    itemId={makeKey}
+                    onItemsChange={updateOrder}
+                    renderItem={(item, i) => (
+                        <StatusKeyValue
+                            key={makeKey(item)}
+                            order={i}
+                            focus={item.focus}
+                            value={{
+                                order: item.order,
+                                status: item.status,
+                                key: item.key,
+                                value: item.value
+                            }}
+                            definition={{ 
+                                ...ROW_DEFINITION, 
+                                disabled: false}}
+                            rowPush={rowPush}
+                            rowTrim={rowTrim}
+                        />
+                    )}
+                    afterTemplate={(
+                        <StatusKeyValue 
+                            key={data.empty}
+                            definition={ ROW_DEFINITION }
+                            rowPush={rowPush}
+                            rowTrim={rowTrim}
+                        />
+                    )}
                 />
             </div>
         </>

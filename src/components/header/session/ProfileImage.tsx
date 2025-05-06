@@ -42,17 +42,17 @@ export function ProfileImage({ size }: ProfileImageProps) {
     const color = () => {
         const hex = backgroundColor().replace('#', '');
 
-        const r = parseInt(hex.slice(0, 2), 16);
-        const g = parseInt(hex.slice(2, 2), 16);
-        const b = parseInt(hex.slice(4, 2), 16);
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
 
         const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
 
-        return luminance < 128 ? "white" : "black";
+        return luminance < 128 ? "#ebebeb" : "black";
     }
 
     return (
-        <div id="profile-image" className={size} style={{ backgroundColor: backgroundColor(), color: color() }}>
+        <div id="profile-image" className={`select-none ${size ? size : ""}`} style={{ backgroundColor: backgroundColor(), color: color() }}>
             {!userData.picture && (
                 <span>{initials()}</span>
             )}

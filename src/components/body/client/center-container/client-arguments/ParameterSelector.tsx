@@ -96,13 +96,11 @@ export function ParameterSelector() {
                     </div>
                 </div>
             </div>
-            <div id="client-argument-content">
-                {data.cursor === VIEW_QUERY && <QueryArguments/>}
-                {data.cursor === VIEW_HEADER && <HeaderArguments/>}
-                {data.cursor === VIEW_COOKIE && <CookieArguments/>}
-                {data.cursor === VIEW_AUTH && <AuthArguments/>}
-                {data.cursor === VIEW_BODY && <BodyArguments/>}
-            </div>
+            {data.cursor === VIEW_QUERY && <QueryArguments/>}
+            {data.cursor === VIEW_HEADER && <HeaderArguments/>}
+            {data.cursor === VIEW_COOKIE && <CookieArguments/>}
+            {data.cursor === VIEW_AUTH && <AuthArguments/>}
+            {data.cursor === VIEW_BODY && <BodyArguments/>}
             <ContextModal
                 isOpen={data.modalStatus}
                 onClose={() => setModalStatus(false)}/>

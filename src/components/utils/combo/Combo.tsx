@@ -4,10 +4,11 @@ import { ComboOption } from "../../../interfaces/ComboOption";
 import './Combo.css';
 
 interface OptionsMenuProps {
+  custom?: React.ReactNode;
   options: ComboOption[];
 }
 
-export const Combo: React.FC<OptionsMenuProps> = ({ options }) => {
+export const Combo = ({ custom, options }: OptionsMenuProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [yAxis, setYAxis] = useState<"bottom" | "top">("bottom");
   const [xAxis, setXAxis] = useState<"left" | "right">("left");
@@ -53,11 +54,17 @@ export const Combo: React.FC<OptionsMenuProps> = ({ options }) => {
         onClick={() => setIsOpen(!isOpen)}
         className="options-button"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="12" cy="5" r="2" />
-          <circle cx="12" cy="12" r="2" />
-          <circle cx="12" cy="19" r="2" />
-        </svg>
+        {custom ? (
+          <>
+            { custom }
+          </>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="5" r="2" />
+            <circle cx="12" cy="12" r="2" />
+            <circle cx="12" cy="19" r="2" />
+          </svg>
+        )}
       </button>
       {isOpen && (
         <div

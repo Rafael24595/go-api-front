@@ -7,12 +7,13 @@ import { useStoreRequest } from "../../../../store/StoreProviderRequest";
 import { useAlert } from "../../../utils/alert/Alert";
 import { EAlertCategory } from "../../../../interfaces/AlertData";
 import { useStoreRequests } from "../../../../store/StoreProviderRequests";
+import { Combo } from "../../../utils/combo/Combo";
 
 import './ContentContainer.css';
 
 export function ContentContainer() {
     const { getContext } = useStoreContext();
-    const { initialHash, actualHash, request, parent, getRequest, getResponse, defineRequest, updateRequest, updateUri, insertRequest } = useStoreRequest();
+    const { initialHash, actualHash, request, parent, getRequest, getResponse, discardRequest, defineRequest, updateRequest, updateUri, insertRequest } = useStoreRequest();
     const { fetchAll } = useStoreRequests();
 
     const { push } = useAlert();
@@ -55,9 +56,7 @@ export function ContentContainer() {
         fetchAll();
     };
 
-    const insertFormAction = async (e: { preventDefault: () => void; }) => {
-        e.preventDefault();
-
+    const insertFormAction = async () => {
         const req = getRequest();
         const res = getResponse();
 
@@ -90,7 +89,27 @@ export function ContentContainer() {
                 <div id="client-buttons" className="border-top">
                     <span className="button-modified-status"></span>
                     <button type="submit" onClick={insertFormAction}>Save</button>
-                    <span className={`button-modified-status ${ initialHash != actualHash && "visible" }`}></span>
+                    <div className={`button-modified-container ${ initialHash != actualHash ? "visible" : "" }`}>
+                        <Combo 
+                            custom={(
+                                <span className={`button-modified-status ${ initialHash != actualHash ? "visible" : "" }`}></span>
+                            )}
+                            options={[
+                                {
+                                    icon: "🗑️",
+                                    label: "Discard",
+                                    title: "Discard request",
+                                    action: discardRequest
+                                },
+                                {
+                                    icon: "💾",
+                                    label: "Save",
+                                    title: "Save request",
+                                    action: insertFormAction
+                                },
+                            ]}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

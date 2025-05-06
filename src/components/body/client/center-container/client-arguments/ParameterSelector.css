@@ -3,10 +3,13 @@
     justify-content: space-between;
 }
 
-#client-argument-content {
+#client-argument-content, #sub-argument-content {
+    display: flex;
+    flex-direction: column;
     padding: 10px;
     scrollbar-gutter: stable;
     overflow: auto;
+    height: 100%;
 }
 
 #context-buttons {

@@ -145,41 +145,41 @@ export function BodyArguments() {
 
     return (
         <>
-            <div id="body-parameters-group" className="border-bottom">
-                <div className="radio-button-group">
-                  <input 
-                      name="status" 
-                      id="body-enable"
-                      type="checkbox" 
-                      checked={data.status}
-                      onChange={statusChange}/>
-                  <input type="radio" id="tag-body-text" className="client-tag" name="cursor-body" 
-                      checked={data.cursor === VIEW_TEXT} 
-                      value={VIEW_TEXT} 
-                      onChange={cursorChange}/>
-                  <label htmlFor="tag-body-text">Text</label>
-                  <input type="radio" id="tag-body-json" className="client-tag" name="cursor-body" 
-                      checked={data.cursor === VIEW_JSON} 
-                      value={VIEW_JSON} 
-                      onChange={cursorChange}/>
-                  <label htmlFor="tag-body-json">Json</label>
-                  <input type="radio" id="tag-body-form" className="client-tag" name="cursor-body" 
-                      checked={data.cursor === VIEW_FORM} 
-                      value={VIEW_FORM} 
-                      onChange={cursorChange}/>
-                  <label htmlFor="tag-body-form">Form</label>
-                </div>
-                {data.cursor === VIEW_JSON && (
-                    <div>
-                        <button type="button" className="button-tag" onClick={formatPayload}>Format</button>
+            <div id="client-argument-content">
+                <div id="body-parameters-group" className="border-bottom">
+                    <div className="radio-button-group">
+                    <input 
+                        name="status" 
+                        id="body-enable"
+                        type="checkbox" 
+                        checked={data.status}
+                        onChange={statusChange}/>
+                    <input type="radio" id="tag-body-text" className="client-tag" name="cursor-body" 
+                        checked={data.cursor === VIEW_TEXT} 
+                        value={VIEW_TEXT} 
+                        onChange={cursorChange}/>
+                    <label htmlFor="tag-body-text">Text</label>
+                    <input type="radio" id="tag-body-json" className="client-tag" name="cursor-body" 
+                        checked={data.cursor === VIEW_JSON} 
+                        value={VIEW_JSON} 
+                        onChange={cursorChange}/>
+                    <label htmlFor="tag-body-json">Json</label>
+                    <input type="radio" id="tag-body-form" className="client-tag" name="cursor-body" 
+                        checked={data.cursor === VIEW_FORM} 
+                        value={VIEW_FORM} 
+                        onChange={cursorChange}/>
+                    <label htmlFor="tag-body-form">Form</label>
                     </div>
-                )}
-              </div>
-              <div id="client-argument-content">
-                  {data.cursor === VIEW_TEXT && <TextData onValueChange={documentChange}/>}
-                  {data.cursor === VIEW_JSON && <JsonData onValueChange={documentChange}/>}
-                  {data.cursor === VIEW_FORM && <FormData onValueChange={formDataChange}/>}
-              </div>
+                    {data.cursor === VIEW_JSON && (
+                        <div>
+                            <button type="button" className="button-tag" onClick={formatPayload}>Format</button>
+                        </div>
+                    )}
+                </div>
+                {data.cursor === VIEW_TEXT && <TextData onValueChange={documentChange}/>}
+                {data.cursor === VIEW_JSON && <JsonData onValueChange={documentChange}/>}
+                {data.cursor === VIEW_FORM && <FormData onValueChange={formDataChange}/>}
+            </div>
         </>
     )
 }

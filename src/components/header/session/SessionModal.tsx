@@ -346,7 +346,7 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     return (
         <Modal 
             buttons={loadButtons()}  
-            title={ <span>{loadTitle()}</span> }
+            title={ <span className="select-none">{ loadTitle() }</span> }
             height="400px"
             width="250px"
             minHeight="350px"

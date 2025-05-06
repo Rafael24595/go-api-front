@@ -22,6 +22,7 @@ interface StoreProviderRequestType {
   getRequest: () => Request;
   getResponse: () => Response;
   cleanRequest: ()=> void;
+  discardRequest: ()=> void;
   defineRequest: (request: Request, response?: Response, parent?: string, oldRequest?: Request) => void;
   updateRequest: (newRequest: Request, newResponse?: Response, oldRequest?: Request) => void;
   updateName: (name: string) => void;
@@ -119,6 +120,10 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   const cleanRequest = () => {
     defineRequestFromRequest(newRequest(userData.username));
+  }
+
+  const discardRequest = () => {
+    defineRequestData(data.backup, data.backup, data.response, data.parent, undefined);
   }
 
   const defineRequest = (newRequest: Request, newResponse?: Response, parent?: string, oldRequest?: Request) => {
@@ -338,12 +343,12 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   return (
     <StoreRequest.Provider value={{ ...data, 
       getRequest, getResponse, cleanRequest,
-      defineRequest, updateRequest, updateName,
-      updateMethod, updateUri, updateQuery,
-      updateHeader, updateCookie, updateBody,
-      updateAuth, fetchRequest, insertRequest,
-      processUri, isParentCached, isCached,
-      cacheComments, cacheLenght }}>
+      discardRequest, defineRequest, updateRequest,
+      updateName, updateMethod, updateUri,
+      updateQuery, updateHeader, updateCookie,
+      updateBody, updateAuth, fetchRequest,
+      insertRequest, processUri, isParentCached,
+      isCached, cacheComments, cacheLenght }}>
       {children}
     </StoreRequest.Provider>
   );

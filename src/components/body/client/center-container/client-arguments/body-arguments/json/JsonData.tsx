@@ -42,15 +42,15 @@ export function JsonData({ onValueChange }: Payload) {
     };
 
     return (
-        <>
-            <CodeMirror
-                value={ data != undefined ? data.value : "" }
-                height="300px"
-                extensions={[json(), linter(jsonParseLinter()), lintGutter()]}
-                onChange={onChange}
-                theme="light"
-            />
-        </>
+      <div id="sub-argument-content">
+        <CodeMirror
+            value={ data != undefined ? data.value : "" }
+            height="300px"
+            extensions={[json(), linter(jsonParseLinter()), lintGutter()]}
+            onChange={onChange}
+            theme="light"
+        />
+      </div>
     )
 }
 
