@@ -85,12 +85,15 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
 
     return (
         <>
-            <button 
-                type="button"
-                className="column-option option-button border-bottom"
-                onClick={cleanRequest}>
-                <span>Clean</span>
-            </button>
+            <div className="column-option options border-bottom">
+                <div id="left-options">
+                    <Combo options={[]}/>
+                </div>
+                <button type="button" className="button-anchor" onClick={cleanRequest}>Clean</button>
+                <div id="right-options">
+                    <Combo options={[]}/>
+                </div>
+            </div>
             <div id="actions-container">
                 {historic.length > 0 ? (
                     historic.map((cursor) => (
@@ -98,7 +101,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                             <a className="request-link" title={ cursor.uri }
                                 onClick={() => defineHistoricRequest(cursor)}>
                                 <div className="request-sign">
-                                    <span className="request-sign-method">{ cursor.method }</span>
+                                    <span className={`request-sign-method ${cursor.method}`}>{ cursor.method }</span>
                                     <span className="request-sign-url">{ cursor.uri }</span>
                                 </div>
                                 <div className="request-sign-date">

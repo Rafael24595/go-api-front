@@ -42,10 +42,11 @@ export function JsonData({ onValueChange }: Payload) {
     };
 
     return (
-      <div id="sub-argument-content">
+      <div id="sub-argument-content" className="grid">
         <CodeMirror
             value={ data != undefined ? data.value : "" }
-            height="300px"
+            height="100%"
+            width="100%"
             extensions={[json(), linter(jsonParseLinter()), lintGutter()]}
             onChange={onChange}
             theme="light"

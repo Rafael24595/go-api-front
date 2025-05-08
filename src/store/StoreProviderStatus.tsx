@@ -17,10 +17,17 @@ interface FindOptionsDefault<T> {
     parser?: (value: string) => T;
 }
 
+interface FindAllOptions<T> {
+    prefix?: boolean;
+    sufix?: boolean;
+    parser?: (value: string) => T | null;
+}
+
 interface StoreProviderStatusType {
     store: <T>(key: string, value: T, options?: StoreOptions<T>) => T;
     find: <T>(key: string, options?: FindOptions<T>) => T | string;
     findOrDefault: <T>(key: string, options: FindOptionsDefault<T>) => T;
+    findAll: <T>(key: string, options: FindAllOptions<T>) => T[];
 }
 
 interface Payload {
@@ -74,6 +81,32 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
         return parsed;
     }
 
+    const findAll = <T,>(key: string, options?: FindAllOptions<T>): T[] => {
+        const result = [];
+        for (const [k, v] of Object.entries(data.status)) {
+            let coindidence = null
+            if(options?.prefix && k.startsWith(key)) {
+                coindidence = v;
+            }
+
+            if(options?.sufix && k.endsWith(key)) {
+                coindidence = v;
+            }
+
+            if(k == key) {
+                coindidence = v;
+            }
+
+            if(coindidence != null && options?.parser) {
+                const parsed = options.parser(v);
+                if(parsed != null) {
+                    result.push(parsed)
+                }
+            }
+        }
+        return result;
+    }
+
     const store = <T,>(key: string, value: T, options?: StoreOptions<T>): T => {
         const valueString = options && options.stringifier 
             ? options.stringifier(value) 
@@ -97,7 +130,7 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
     }
 
     return (
-        <StoreStatus.Provider value={{ find, findOrDefault, store }}>
+        <StoreStatus.Provider value={{ find, findOrDefault, findAll, store }}>
           {children}
         </StoreStatus.Provider>
       );

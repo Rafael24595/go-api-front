@@ -1,7 +1,7 @@
 import CodeMirror, { EditorState } from "@uiw/react-codemirror";
 import { lintGutter } from "@codemirror/lint";
 
-import './TextView.css'
+import './TextView.css';
 
 interface TextViewProps {
   value?: string;
@@ -15,6 +15,7 @@ export function TextView({value}: TextViewProps) {
             <CodeMirror
                 value={data}
                 height="100%"
+                width="100%"
                 extensions={[
                   lintGutter(), 
                   EditorState.readOnly.of(true)

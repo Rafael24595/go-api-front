@@ -21,9 +21,10 @@
 
 .landing-area {
     display: none;
+    margin-bottom: 5px;
     height: 2px;
     width: 100%;
-    background-color: black;
+    background-color: var(--landing-area-color);
 }
 
 .landing-area.show {

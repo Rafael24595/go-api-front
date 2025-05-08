@@ -1,3 +1,7 @@
+#modal-container select {
+    background-color: var(--modal-button-color);
+}
+
 #context-title-container {
     display: flex;
     align-items: center;
@@ -24,7 +28,7 @@
     width: 50%;
     height: 85px;
     resize: none;
-    background-color: #e3e3e3;
+    background-color: var(--input-color);
     box-sizing: border-box;
     padding: 7px;
     font-style: italic;
@@ -83,9 +87,12 @@
     padding: 10px;
 }
 
+.filter-fragment {
+    padding-left: 12px;
+}
+
 .filter-fragment label {
     font-weight: 500;
-    padding-left: 12px;
     padding-right: 3px;
 }
 

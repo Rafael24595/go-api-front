@@ -4,7 +4,7 @@
     flex: 1 1 auto;
     min-width: 350px;
     width: 40%;
-    border: 1px solid lightgray;
+    border: 1px solid var(--border-color);
     overflow: hidden;
 }
 
@@ -34,20 +34,10 @@
     padding-right: 10px;
 }
 
-#client-button-send:hover {
-    background-color: #c1d7e4;
-}
-
 .client-bar-component {
     box-sizing: border-box;
-    border: 1px solid #9b9b9b;
+    border: 1px solid var(--button-border-color);
     cursor: pointer;
-}
-
-select.client-bar-component:focus, input.client-bar-component:focus {
-    outline: solid;
-    outline-color: #9b9b9b;
-    outline-width: 1px;
 }
 
 #client-content {

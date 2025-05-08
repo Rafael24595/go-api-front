@@ -26,13 +26,14 @@
 .options-button {
     display: flex;
     align-items: center;
+    height: 100%;
     background: none;
     border: none;
     cursor: pointer;
 }
 
 .options-button:hover {
-    background-color: initial;
+    background-color: initial
 }
 
 .options-menu {
@@ -41,8 +42,8 @@
     right: 0;
     margin-top: 5px;
     padding: 5px;
-    background: #efefef;
-    box-shadow: 2px 2px 2px 0px darkgrey;
+    background: var(--combo-color);
+    box-shadow: 2px 2px 2px 0px var(--combo-shadow-color);
     z-index: 10;
 }
 
@@ -58,9 +59,22 @@
 }
 
 .options-menu button:hover {
-    background: #f8f8f8;
+    background: var(--combo-hover-color);
 }
 
 .option-icon {
     margin-right: 7px;
 }
+
+.combo-svg {
+    color: var(--text-color);
+}
+
+.selected-combo-option {
+    background: var(--combo-hover-color) !important;
+}
+
+.selected-combo-option::before {
+    content: "► ";
+}
+

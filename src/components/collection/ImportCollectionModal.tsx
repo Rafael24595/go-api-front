@@ -193,7 +193,6 @@ export function ImportCollectionModal({ isOpen, onSubmit, onClose }: ImportColle
                                     </>
                                 )}
                             </div>
-                            
                         </div>
                     </div>
                     { data.file && (

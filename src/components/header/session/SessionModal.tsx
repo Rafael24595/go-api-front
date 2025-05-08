@@ -6,6 +6,7 @@ import { ProfileImage } from './ProfileImage';
 import { fetchAuthenticate } from '../../../services/api/ServiceManager';
 import { EAlertCategory } from '../../../interfaces/AlertData';
 import { useAlert } from '../../utils/alert/Alert';
+import { useStoreTheme } from '../../../store/StoreProviderTheme';
 
 import './SessionModal.css';
 
@@ -25,6 +26,7 @@ interface Payload {
 
 export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     const { userData, login, logout, signin, remove } = useStoreSession();
+    const { isDark, toggleDefaultThemes } = useStoreTheme();
 
     const { push } = useAlert();
 
@@ -346,7 +348,12 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     return (
         <Modal 
             buttons={loadButtons()}  
-            title={ <span className="select-none">{ loadTitle() }</span> }
+            title={ 
+                <div id="session-title-container">
+                    <span className="select-none">{ loadTitle() }</span>
+                    <button className={`toggle-theme-button ${ isDark() ? "off" : ""}`} onClick={toggleDefaultThemes} onDoubleClickCapture={() => console.log("ci")}></button>
+                </div>
+             }
             height="400px"
             width="250px"
             minHeight="350px"

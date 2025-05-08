@@ -11,7 +11,7 @@
     padding: 10px;
     align-items: center;
     justify-content: space-between;
-    background-color: white;
+    background-color: var(--bg-color);
 }
 
 .request-link {
@@ -27,6 +27,30 @@
 .request-sign-method {
     font-weight: bold;
     margin-right: 5px;
+}
+
+.request-sign-method.GET {
+    color: #0091e6;
+}
+
+.request-sign-method.POST {
+    color: #34b279;
+}
+
+.request-sign-method.PUT {
+    color: #fa9005;
+}
+
+.request-sign-method.PATCH {
+    color: #24dbb4;
+}
+
+.request-sign-method.DELETE {
+    color: #f82020;
+}
+
+.request-sign-method.HEAD {
+    color: #c624db;
 }
 
 .request-sign-url {

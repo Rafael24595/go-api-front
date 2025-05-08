@@ -12,6 +12,12 @@
     padding: 10px;
 }
 
+#selector-container.extend {
+    padding: 0px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
 #metadata-container {
     display: flex;
 }

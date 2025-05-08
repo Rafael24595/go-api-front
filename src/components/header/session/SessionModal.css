@@ -1,3 +1,12 @@
+@keyframes glow-pulse {
+    0%, 100% {
+      text-shadow: 0 0 7px #ff8d00;
+    }
+    50% {
+      text-shadow: 0 0 15px #ff8d00;
+    }
+}
+
 #form-group {
     padding-left: 20px;
     padding-right: 20px;
@@ -74,4 +83,35 @@
 
 #admin-fragment {
     margin-top: 20px;
+}
+
+#session-title-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.toggle-theme-button {
+    filter: grayscale(1);
+    text-shadow: none;
+    border: none;
+    background-color: transparent;
+}
+
+.toggle-theme-button.off {
+    filter: grayscale(0);
+    text-shadow: 0px 0px 10px #ff8d00;
+}
+
+.toggle-theme-button:hover {
+    background-color: transparent;
+}
+
+.toggle-theme-button:hover.off {
+    background-color: transparent;
+    animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+.toggle-theme-button::before {
+    content: '💡';
 }

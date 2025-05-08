@@ -88,7 +88,7 @@ export function PayloadColumn() {
                     </div>
                     <span className="select-none">{ viewParse(response.body.content_type) }</span>
                 </div>
-                <div id="response-content-bytes">
+                <div id="response-content-bytes" className="grid">
                     {cusorIs(VIEW_TEXT) && <TextView value={response.body.payload}/>}
                     {cusorIs(VIEW_JSON) && <JsonView value={response.body.payload}/>}
                     {(cusorIs(VIEW_HTML) || cusorIs(VIEW_XML)) && <HtmlView value={response.body.payload}/>}

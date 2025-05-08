@@ -8,23 +8,26 @@ import { StoreProviderStatus } from './store/StoreProviderStatus.tsx'
 import { StoreProviderSession } from './store/StoreProviderSession.tsx'
 import { StoreProviderContext } from './store/StoreProviderContext.tsx'
 import { StoreProviderRequest } from './store/StoreProviderRequest.tsx'
+import { StoreProviderTheme } from './store/StoreProviderTheme.tsx'
 
 function App() {
   return (
     <>
       <StoreProviderCache>
         <StoreProviderStatus>
-          <StoreProviderSession>
-            <Alert>
-              <StoreProviderContext>
-                  <StoreProviderRequest>
-                    <Header/>
-                    <Body/>
-                    <Footer/>
-                  </StoreProviderRequest>
-              </StoreProviderContext>
-            </Alert>
-          </StoreProviderSession>
+            <StoreProviderSession>
+              <Alert>
+                <StoreProviderTheme>
+                  <StoreProviderContext>
+                      <StoreProviderRequest>
+                        <Header/>
+                        <Body/>
+                        <Footer/>
+                      </StoreProviderRequest>
+                  </StoreProviderContext>
+                </StoreProviderTheme>
+              </Alert>
+            </StoreProviderSession>
          </StoreProviderStatus>
       </StoreProviderCache>
     </> 

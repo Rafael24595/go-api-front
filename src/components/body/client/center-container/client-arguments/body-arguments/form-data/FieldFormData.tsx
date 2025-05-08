@@ -238,9 +238,9 @@ export function FieldFormData({order, focus, value, disabled, rowPush, rowTrim}:
         <>
             <div className="parameter-container">{}
                 <input name="status" type="checkbox" onChange={handleChecked} disabled={disabled} checked={row.status}/>
-                <select className="parameter-input secondary" name="is-file" onChange={handleCategoryChange}>
-                    <option value={BINARY} selected={row.isFile}>Binary</option>
-                    <option value={FORMDATA} selected={!row.isFile}>Data</option>
+                <select className="parameter-input secondary" name="is-file" onChange={handleCategoryChange} defaultValue={row.isFile ? BINARY : FORMDATA}>
+                    <option value={BINARY}>Binary</option>
+                    <option value={FORMDATA}>Data</option>
                 </select>
                 <input className="parameter-input" ref={inputKey} name="key" type="text" onChange={handleChange} placeholder={ROW_DEFINITION.key} value={row.key}/>
                 {row.isFile ? (

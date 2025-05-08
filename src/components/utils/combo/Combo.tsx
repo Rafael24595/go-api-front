@@ -5,10 +5,12 @@ import './Combo.css';
 
 interface OptionsMenuProps {
   custom?: React.ReactNode;
+  asSelect?: boolean;
+  selected?: string;
   options: ComboOption[];
 }
 
-export const Combo = ({ custom, options }: OptionsMenuProps) => {
+export const Combo = ({ custom, asSelect, selected, options }: OptionsMenuProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [yAxis, setYAxis] = useState<"bottom" | "top">("bottom");
   const [xAxis, setXAxis] = useState<"left" | "right">("left");
@@ -48,6 +50,48 @@ export const Combo = ({ custom, options }: OptionsMenuProps) => {
     setIsOpen(false);
   }
 
+  const calculateBottom = () => {
+    if(asSelect) {
+      return yAxis === "top" ? "100%" : "auto"
+    }
+    return yAxis === "top" ? "80%" : "auto";
+  }
+
+  const calculateTop = () => {
+    if(asSelect) {
+      return yAxis === "bottom" ? "100%" : "auto"
+    }
+    return yAxis === "bottom" ? "80%" : "auto";
+  }
+
+  const calculateLeft = () => {
+    if(asSelect) {
+      return xAxis === "right" ? "0%" : "auto";
+    }
+    return xAxis === "right" ? "75%" : "auto";
+  }
+
+  const calculateRight = () => {
+    if(asSelect) {
+      return xAxis === "left" ? "0%" : "auto";
+    }
+    return xAxis === "left" ? "75%" : "auto";
+  }
+
+  const calculateMarginTop = () => {
+    if(asSelect) {
+      return "2px"
+    }
+    return yAxis === "top" ? "5px" : "0";
+  }
+
+  const calculateMarginBottom = () => {
+    if(asSelect) {
+      return "2px"
+    }
+    return yAxis === "bottom" ? "5px" : "0";
+  }
+
   return (
     <div ref={menuRef} className="options-container">
       <button
@@ -59,7 +103,7 @@ export const Combo = ({ custom, options }: OptionsMenuProps) => {
             { custom }
           </>
         ) : (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <svg className="combo-svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <circle cx="12" cy="5" r="2" />
             <circle cx="12" cy="12" r="2" />
             <circle cx="12" cy="19" r="2" />
@@ -71,16 +115,19 @@ export const Combo = ({ custom, options }: OptionsMenuProps) => {
           ref={boxRef}
           className="options-menu"
           style={{
-            bottom: yAxis === "top" ? "75%" : "auto",
-            top: yAxis === "bottom" ? "75%" : "auto",
-            marginBottom: yAxis === "top" ? "5px" : "0",
-            marginTop: yAxis === "bottom" ? "5px" : "0",
-            left: xAxis === "right" ? "80%" : "auto",
-            right: xAxis === "left" ? "80%" : "auto",
+            bottom: calculateBottom(),
+            top: calculateTop(),
+            left: calculateLeft(),
+            right: calculateRight(),
+            marginBottom: calculateMarginBottom(),
+            marginTop: calculateMarginTop(),
           }}
         >
           {options.map((option, index) => (
-            <button key={ index } onClick={ () => execute(option) } title={ option.title && option.title }>
+            <button 
+              key={ index } 
+              className={`${ selected && option.name == selected ? "selected-combo-option" : "" }`}
+              onClick={ () => execute(option) } title={ option.title && option.title }>
               {option.icon && (
                 <span className="option-icon">{ option.icon }</span>
               )}

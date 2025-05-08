@@ -133,9 +133,9 @@ export function StatusCategoryKeyValue({order, focus, value, definition, rowPush
                     type="button" 
                     title={`${ row.private ? "Show value" : "hide value" }`}
                     onClick={handlePrivacityChange}>👁️</button>
-                <select className="parameter-input secondary" name="category" onChange={handleCategoryChange}>
+                <select className="parameter-input secondary" name="category" onChange={handleCategoryChange} defaultValue={row.category}>
                     {definition.categories.map(c => (
-                        <option key={c.value} value={c.value} selected={c.value == row.category}>{c.key}</option>
+                        <option key={c.value} value={c.value}>{c.key}</option>
                     ))}
                 </select>
                 <input className="parameter-input" ref={inputKey} name="key" type="text" onChange={handleChange} placeholder={definition.key} value={row.key}/>

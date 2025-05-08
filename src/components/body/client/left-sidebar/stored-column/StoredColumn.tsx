@@ -18,12 +18,12 @@ import { Optional } from '../../../../../types/Optional';
 
 import './StoredColumn.css';
 
-const FILTER_TARGET_KEY = "CollectionColumnDetailsFilterTarget";
-const FILTER_VALUE_KEY = "CollectionColumnDetailsFilterValue";
+const FILTER_TARGET_KEY = "StoredColumnDetailsFilterTarget";
+const FILTER_VALUE_KEY = "StoredColumnnDetailsFilterValue";
 
 const DEFAULT_CURSOR = "name";
 const VALID_CURSORS = Object.keys(newRequest("anonymous"))
-    .map(k => k as keyof Request )
+    .map(k => k as keyof Request)
 
 interface Payload {
     filterTarget: keyof Request;
@@ -146,9 +146,9 @@ export function StoredColumn() {
         await fetchCollection();
     }
 
-    const onFilterTargetChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const target = event.target.value in VALID_CURSORS 
-            ? event.target.value as keyof Request
+    const onFilterTargetChange = (value: string) => {
+        const target = VALID_CURSORS.find(c => c == value)
+            ? value as keyof Request
             : DEFAULT_CURSOR;
         store(FILTER_TARGET_KEY, target);
         setData((prevData) => ({
@@ -166,6 +166,7 @@ export function StoredColumn() {
     }
 
     const onFilterValueClean = () => {
+        store(FILTER_VALUE_KEY, "");
         setData((prevData) => ({
             ...prevData,
             filterValue: "",
@@ -303,7 +304,7 @@ export function StoredColumn() {
                                     {isCached(cursor) && (
                                         <span className="button-modified-status small visible"></span>
                                     )}
-                                    <span className="request-sign-method">{ cursor.method }</span>
+                                    <span className={`request-sign-method ${cursor.method}`}>{ cursor.method }</span>
                                     <span className="request-sign-url">{ cursor.name }</span>
                                 </div>
                                 <div className="request-sign-date">
@@ -361,14 +362,42 @@ export function StoredColumn() {
                     )}
                 />
                 <div id="search-box">
-                    <button title="Clean filter" onClick={onFilterValueClean}></button>
-                    <input id="search-input" type="text" value={data.filterValue} onChange={onFilterValueChange}/>
-                    <select value={data.filterTarget} onChange={onFilterTargetChange}>
-                        <option value="name">Name</option>
-                        <option value="timestamp">Date</option>
-                        <option value="method">Method</option>
-                        <option value="uri">Uri</option>
-                    </select>
+                    <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
+                    <input id="search-input" type="text" value={data.filterValue} onChange={onFilterValueChange} placeholder={data.filterTarget}/>
+                    <div className="search-combo-container">
+                        <Combo 
+                            custom={(
+                                <span>🔎</span>
+                            )}
+                            asSelect={true}
+                            selected={data.filterTarget}
+                            options={[
+                                {
+                                    label: "Name",
+                                    name: "name",
+                                    title: "Filter by name",
+                                    action: () => onFilterTargetChange("name")
+                                },
+                                {
+                                    label: "Date",
+                                    name: "timestamp",
+                                    title: "Filter by date",
+                                    action: () => onFilterTargetChange("timestamp")
+                                },
+                                {
+                                    label: "Method",
+                                    name: "method",
+                                    title: "Filter by method",
+                                    action: () => onFilterTargetChange("method")
+                                },
+                                {
+                                    label: "Uri",
+                                    name: "uri",
+                                    title: "Filter by Uri",
+                                    action: () => onFilterTargetChange("uri")
+                                },
+                        ]}/>
+                    </div>
                 </div>
                 <ImportRequestModal
                     isOpen={data.modalImport}

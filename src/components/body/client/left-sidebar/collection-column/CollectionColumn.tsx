@@ -313,11 +313,11 @@ export function CollectionColumn() {
         }));
     };
 
-    function onFilterTargetChange(event: React.ChangeEvent<HTMLSelectElement>): void {
-        const target = event.target.value in VALID_CURSORS 
-            ? event.target.value as keyof ItemCollection
+    const onFilterTargetChange = (value: string) => {
+        const target = VALID_CURSORS.find(c => c == value)
+            ? value as keyof ItemCollection
             : DEFAULT_CURSOR;
-        store(FILTER_VALUE_KEY, target);
+        store(FILTER_TARGET_KEY, target);
         setData((prevData) => ({
             ...prevData,
             filterTarget: target,
@@ -333,6 +333,7 @@ export function CollectionColumn() {
     }
 
     function onFilterValueClean(): void {
+        store(FILTER_VALUE_KEY, "");
         setData((prevData) => ({
             ...prevData,
             filterValue: "",
@@ -558,7 +559,7 @@ export function CollectionColumn() {
                                                 {isCached(node.request) && (
                                                     <span className="button-modified-status small visible"></span>
                                                 )}
-                                                <span className="request-sign-method">{ node.request.method }</span>
+                                                <span className={`request-sign-method ${node.request.method}`}>{ node.request.method }</span>
                                                 <span className="request-sign-url">{ node.request.name }</span>
                                             </div>
                                             <div className="request-sign-date">
@@ -617,12 +618,30 @@ export function CollectionColumn() {
                 )}
             />
             <div id="search-box">
-                <button title="Clean filter" onClick={onFilterValueClean}></button>
-                <input id="search-input" type="text" value={data.filterValue} onChange={onFilterValueChange}/>
-                <select value={data.filterTarget} onChange={onFilterTargetChange}>
-                    <option value="name">Name</option>
-                    <option value="timestamp">Date</option>
-                </select>
+                <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
+                <input id="search-input" type="text" value={data.filterValue} onChange={onFilterValueChange} placeholder={data.filterTarget}/>
+                <div className="search-combo-container">
+                    <Combo 
+                        custom={(
+                            <span>🔎</span>
+                        )}
+                        asSelect={true}
+                        selected={data.filterTarget}
+                        options={[
+                            {
+                                label: "Name",
+                                name: "name",
+                                title: "Filter by name",
+                                action: () => onFilterTargetChange("name")
+                            },
+                            {
+                                label: "Date",
+                                name: "timestamp",
+                                title: "Filter by date",
+                                action: () => onFilterTargetChange("timestamp")
+                            },
+                    ]}/>
+                </div>
             </div>
             <CollectionModal 
                 isOpen={data.modalCollection} 

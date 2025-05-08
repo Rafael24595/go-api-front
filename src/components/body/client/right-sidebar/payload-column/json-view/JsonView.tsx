@@ -27,6 +27,7 @@ export function JsonView({value}: JsonViewProps) {
             <CodeMirror
                 value={data}
                 height="100%"
+                width="100%"
                 extensions={[
                   json(), 
                   linter(jsonParseLinter()), 

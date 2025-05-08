@@ -111,7 +111,7 @@ export function AuthArguments() {
                         onChange={cursorChange}/>
                     <label htmlFor="tag-auth-bearer">Bearer</label>
                 </div>
-                <div id="client-argument-content">
+                <div id="client-argument-content" className="no-scroll">
                     {data.cursor === VIEW_BASIC && <BasicData value={data.basic} onValueChange={authChange}/>}
                     {data.cursor === VIEW_BEARER && <BearerData value={data.bearer} onValueChange={authChange}/>}
                 </div>

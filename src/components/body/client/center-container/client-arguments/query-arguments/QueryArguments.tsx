@@ -99,7 +99,7 @@ export function QueryArguments() {
     
     return (
         <>
-            <div id="client-argument-content">
+            <div id="client-argument-content" className="no-scroll">
                 <div id="query-process-group" className="border-bottom">
                     <div>
                         <label htmlFor="process-uri">Auto: </label>

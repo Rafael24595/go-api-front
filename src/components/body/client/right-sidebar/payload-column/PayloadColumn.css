@@ -13,6 +13,8 @@
 #response-content-bytes {
     display: flex;
     flex: 1 1 auto;
+    overflow: auto;
+    scrollbar-gutter: stable;
 }
 
 #detect-container {

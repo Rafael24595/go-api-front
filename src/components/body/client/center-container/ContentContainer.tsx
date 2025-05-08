@@ -8,6 +8,7 @@ import { useAlert } from "../../../utils/alert/Alert";
 import { EAlertCategory } from "../../../../interfaces/AlertData";
 import { useStoreRequests } from "../../../../store/StoreProviderRequests";
 import { Combo } from "../../../utils/combo/Combo";
+import { useStoreTheme } from "../../../../store/StoreProviderTheme";
 
 import './ContentContainer.css';
 
@@ -16,14 +17,20 @@ export function ContentContainer() {
     const { initialHash, actualHash, request, parent, getRequest, getResponse, discardRequest, defineRequest, updateRequest, updateUri, insertRequest } = useStoreRequest();
     const { fetchAll } = useStoreRequests();
 
+    const { openModal } = useStoreTheme();
+
     const { push } = useAlert();
 
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateUri(e.target.value);
     };
 
-    const executeAction = async (e: { preventDefault: () => void; }) => {
-        e.preventDefault();
+    const executeAction = async () => {
+        //TODO: Remove easter-egg
+        if(request.method == "CONNECT" && request.uri == "RewriteInRust!") {
+            openModal();
+            return;
+        }
 
         const req = getRequest();
 
@@ -80,7 +87,7 @@ export function ContentContainer() {
             <div id="client-form">
                 <div id="client-bar">
                     <MethodSelector/>
-                    <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={urlChange} value={request.uri}/>
+                    <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={urlChange} value={request.uri} placeholder="Url"/>
                     <button id="client-button-send" className="client-bar-component section-header-element" onClick={executeAction}>Send</button>
                 </div>
                 <div id="client-content">

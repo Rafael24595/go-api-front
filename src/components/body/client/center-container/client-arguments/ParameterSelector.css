@@ -12,6 +12,14 @@
     height: 100%;
 }
 
+#client-argument-content.no-scroll {
+    scrollbar-gutter: initial
+}
+
+#sub-argument-content.grid, #response-content-bytes.grid {
+    display: grid;
+}
+
 #context-buttons {
     float: right;
     flex: 1 1 auto;

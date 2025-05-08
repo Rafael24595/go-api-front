@@ -278,6 +278,10 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         updatePreview(data.status, "", "global", data.argument);
     }
 
+    const previewReset = () => {
+        updatePreview(data.status, TEMPLATE, "global", data.argument);
+    }
+
     const updateTemplate = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         updatePreview(data.status, e.target.value, data.categoryPreview, data.argument);
     }
@@ -421,6 +425,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                     <p className="title">Preview:</p>
                     <div id="preview-buttons">
                         <button type="button" className="button-tag" onClick={switchPreview}>{ data.showPreview ? "Hide" : "Show" }</button>
+                        <button type="button" className="button-tag" onClick={previewReset}>Reset</button>
                         <button type="button" className="button-tag" onClick={previewClean}>Clean</button>
                     </div>
                 </div>
@@ -429,9 +434,9 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                         <div id="preview-params">
                             <div className="preview-select-param">
                                 <label htmlFor="test-category">Category:</label>
-                                <select name="test-category" onChange={onPreviewCategoryChange}>
+                                <select name="test-category" onChange={onPreviewCategoryChange} defaultValue={data.filter.category}>
                                     {ROW_DEFINITION.categories.map(c => (
-                                        <option key={c.value} value={c.value} selected={data.filter.category == c.value}>{c.key}</option>
+                                        <option key={c.value} value={c.value}>{c.key}</option>
                                     ))}
                                 </select>
                             </div>
@@ -469,18 +474,18 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                             <div id="filter-container">
                                 <div className='filter-fragment'>
                                     <label htmlFor="filter-status">Status:</label>
-                                    <select name="filter-status" onChange={onFilterStatusChange}>
+                                    <select name="filter-status" onChange={onFilterStatusChange} defaultValue={data.filter.status}>
                                         {STATUS_VALUES.map(s => (
-                                            <option key={s.value} value={s.value} selected={data.filter.status == s.value}>{s.key}</option>    
+                                            <option key={s.value} value={s.value}>{s.key}</option>    
                                         ))}
                                     </select>
                                 </div>
                                 <div className='filter-fragment'>
                                 <label htmlFor="filter-category">Category:</label>
-                                    <select name="category" onChange={onFilterCategoryChange}>
+                                    <select name="category" onChange={onFilterCategoryChange} defaultValue={data.filter.category}>
                                         <option value="none">None</option>
                                         {ROW_DEFINITION.categories.map(c => (
-                                            <option key={c.value} value={c.value} selected={data.filter.category == c.value}>{c.key}</option>
+                                            <option key={c.value} value={c.value}>{c.key}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -493,7 +498,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                                     <input type="input" name="filter-value" onChange={onFilterValueChange} value={data.filter.value}/>
                                 </div>
                                 <div className='filter-fragment'>
-                                    <button type="button" onClick={clearFilter}>Clean</button>
+                                    <button className="modal-button" type="button" onClick={clearFilter}>Clean</button>
                                 </div>
                             </div>
                         </div>

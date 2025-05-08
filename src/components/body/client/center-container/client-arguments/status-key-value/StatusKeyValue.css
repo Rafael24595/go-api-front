@@ -26,12 +26,12 @@
     height: 25px;
     width: 25px;
     padding: revert;
-    border: 1px solid #9b9b9b;
+    border: 1px solid var(--border-color);
     cursor: pointer;
 }
 
 .remove-button:hover {
-    background-color: #e4c1c1;
+    background-color: var(--button-delete-color);
 }
 
 .remove-button.show {

@@ -13,8 +13,8 @@
     margin: 10px;
     margin-top: 5px;
     margin-bottom: 5px;
-    background-color: #e5e5e5;
-    box-shadow: 2px 2px 2px 0px darkgrey;
+    background-color: var(--modal-color);
+    box-shadow: 2px 2px 2px 0px var(--combo-shadow-color);
     z-index: 999;
 }
 
