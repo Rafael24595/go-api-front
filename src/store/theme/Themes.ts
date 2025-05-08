@@ -1380,6 +1380,10 @@ export const ThemesDefault: IThemes = {
 }
 
 export const ThemeTemplate: IThemeData = {
+    "fix-logo-filter": "",
+    "fix-profile-color": "",
+    "fix-profile-text-color": "",
+    "fix-profile-border-color": "",
     "body-color": "#ffffff",
     "body-text-color": "#ffffff",
     "header-color": "#ffffff",
