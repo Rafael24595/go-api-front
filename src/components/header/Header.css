@@ -3,14 +3,16 @@
     align-items: center;
     justify-content: space-between;
     height: 75px;
+    background-color: var(--header-color);
+    border: 1px solid var(--border-color);
 }
 
 #logo-container {
     height: 55%;
     display: flex;
     margin-left: 20px;
+    filter: var(--fix-logo-filter);
 }
-
 
 #user-container {
     display: flex;

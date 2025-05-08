@@ -52,7 +52,10 @@ export function ProfileImage({ size }: ProfileImageProps) {
     }
 
     return (
-        <div id="profile-image" className={`select-none ${size ? size : ""}`} style={{ backgroundColor: backgroundColor(), color: color() }}>
+        <div id="profile-image" className={`select-none ${size ? size : ""}`} style={{ 
+            backgroundColor: `var(--fix-profile-color, ${backgroundColor()})`, 
+            color: `var(--fix-profile-text-color, ${color()})`
+            }}>
             {!userData.picture && (
                 <span>{initials()}</span>
             )}

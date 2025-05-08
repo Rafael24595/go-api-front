@@ -6,7 +6,7 @@ import { ProfileImage } from './ProfileImage';
 import { fetchAuthenticate } from '../../../services/api/ServiceManager';
 import { EAlertCategory } from '../../../interfaces/AlertData';
 import { useAlert } from '../../utils/alert/Alert';
-import { useStoreTheme } from '../../../store/StoreProviderTheme';
+import { useStoreTheme } from '../../../store/theme/StoreProviderTheme';
 
 import './SessionModal.css';
 
@@ -26,7 +26,7 @@ interface Payload {
 
 export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     const { userData, login, logout, signin, remove } = useStoreSession();
-    const { isDark, toggleDefaultThemes } = useStoreTheme();
+    const { isDark, openModal, toggleDefaultThemes } = useStoreTheme();
 
     const { push } = useAlert();
 
@@ -88,6 +88,11 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
 
     const onLocalClose = async () => {
         resetView()
+        onClose();
+    };
+
+    const openThemesModal = async () => {
+        openModal()
         onClose();
     };
 
@@ -287,6 +292,7 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
             <div id="session-links">
                 <button className="button-anchor small" onClick={viewLogin}>Login</button>
                 <button className="button-anchor small" onClick={onLogout}>Logout</button>
+                <button className="button-anchor small margin" onClick={openThemesModal}>🎨 Themes 🎨</button>
                 {!userData.is_protected && (
                     <button type="button" className="button-anchor small" onClick={onRemove}>Delete</button>
                 )}

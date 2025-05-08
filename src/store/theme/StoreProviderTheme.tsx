@@ -1,13 +1,13 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { useStoreStatus } from "./StoreProviderStatus";
-import { isITheme, isIThemeData, ITheme, IThemeData, Themes, ThemeTemplate } from "./Themes";
-import { Modal } from "../components/utils/modal/Modal";
-import { useAlert } from "../components/utils/alert/Alert";
-import { EAlertCategory } from "../interfaces/AlertData";
-
-import '../components/collection/CollectionModal.css';
-import { downloadFile } from "../services/Utils";
-import { formatBytes, millisecondsToDate } from "../services/Tools";
+import { useStoreStatus } from "../StoreProviderStatus";
+import { isITheme, isIThemeData, ITheme, IThemeData, Themes, ThemesDefault, ThemeTemplate } from "./Themes";
+import { Modal } from "../../components/utils/modal/Modal";
+import { useAlert } from "../../components/utils/alert/Alert";
+import { EAlertCategory } from "../../interfaces/AlertData";
+import { downloadFile } from "../../services/Utils";
+import { formatBytes, millisecondsToDate } from "../../services/Tools";
+import { Dict } from "../../types/Dict";
+import { Optional } from "../../types/Optional";
 
 interface StoreProviderThemeType {
   isDark: () => boolean;
@@ -46,10 +46,10 @@ interface Payload {
 }
 
 export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { find, findAll, store } = useStoreStatus();
+  const { find, findAll, store, remove } = useStoreStatus();
   const { push } = useAlert();
 
-  const [customThemes, setCustomThemes] = useState<ITheme[]>([]);
+  const [customThemes, setCustomThemes] = useState<Dict<ITheme>>({});
 
   const [theme, setTheme] = useState(
     find(STORAGE_THEME_KEY, {
@@ -59,7 +59,9 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
 
   const [modalData, setModalData] = useState<Payload>({
     isOpen: false,
-    themeName: CUSTOM_THEME,
+    themeName: find(STORAGE_THEME_KEY, {
+      def: THEME_LIGHT
+    }),
     customName: "",
     theme: null,
     file: null,
@@ -68,8 +70,8 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   });
 
   useEffect(() => {
-    preloadThemes();
-    loadTheme(theme);
+    preloadCustomThemes();
+    preloadCursorTheme();
   }, []);
 
   useEffect(() => {
@@ -77,31 +79,53 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  const preloadThemes = async () => {
-    const cachedThemes = findAll(DEFAULT_CURSOR, {
+  const preloadCustomThemes = async () => {
+    const cachedThemes = findAll(CUSTOM_THEME, {
       prefix: true,
       parser: parseCache
     });
-    setCustomThemes(cachedThemes);
+
+    const newCustomThemes: Dict<ITheme> = {};
+    for (const theme of cachedThemes) {
+      newCustomThemes[theme.code] = theme;
+    }
+    setCustomThemes(newCustomThemes);
   }
 
-  const loadTheme = async (themeName: string) => {
-    if(DEFAULT_THEMES.includes(themeName)) {
+  const preloadCursorTheme = async () => {
+    if(DEFAULT_THEMES.includes(theme)) {
       return;
     }
 
-    const themePreload = Themes[themeName];
+    const themePreload = Themes[theme];
     if(themePreload) {
       loadCustom(themePreload.code, themePreload.theme);
       return;
     }
 
-    const themeCache = find(themeName, {
+    const themeCache = find(theme, {
       parser: parseCache
     });
     if(themeCache && typeof themeCache === 'object') {
       loadCustom(themeCache.code, themeCache.theme);
       return;
+    }
+  }
+
+  const findTheme = (themeName: string): Optional<ITheme> => {
+    const themeDefault = ThemesDefault[themeName];
+    if(themeDefault) {
+      return themeDefault;
+    }
+
+    const themePreload = Themes[themeName];
+    if(themePreload) {
+      return themePreload;
+    }
+
+    const customTheme = customThemes[modalData.themeName];
+    if(customTheme) {
+      return customTheme;
     }
   }
 
@@ -285,7 +309,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
       return;
     }
 
-    const customTheme = customThemes.find(c => c.code == modalData.themeName);
+    const customTheme = customThemes[modalData.themeName];
     if(customTheme) {
       loadCustom(customTheme.code, customTheme.theme);
       return;
@@ -325,17 +349,40 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
       stringifier: (v) => JSON.stringify(v)
     });
 
-    const exists = customThemes.find(c => c.code == themeData.code);
-    if(exists) {
-      const newCustomThemes = [...customThemes];
-      const index = newCustomThemes.indexOf(exists);
-      if(index != -1) {
-        newCustomThemes[index] = themeData;
-        setCustomThemes(newCustomThemes);
-      }
-    }
+    const newCustomThemes = { ...customThemes };
+    newCustomThemes[themeData.code] = themeData;
+
+    setCustomThemes(newCustomThemes);
 
     return;
+  }
+
+  const downloadTheme = () => {
+    const theme = findTheme(modalData.themeName);
+    if(theme) {
+      downloadFile(theme.code, theme.theme);
+      return;
+    }
+
+    push({
+      category: EAlertCategory.ERRO,
+      content: `Cannot download the theme ${modalData.themeName}`
+    });
+  }
+
+  const deleteCustomTheme = () => {
+    remove(modalData.themeName);
+    const exists = customThemes[modalData.themeName];
+    if(exists) {
+      const newCustomThemes = { ...customThemes };
+      delete newCustomThemes[modalData.themeName];
+      setCustomThemes(newCustomThemes);
+    }
+    setTheme(THEME_LIGHT);
+    setModalData((prevData) => ({
+      ...prevData,
+      themeName: THEME_LIGHT
+    }));
   }
 
   return (
@@ -358,25 +405,26 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
           }
         ]}
         title={
-          <span>Manage themes [Beta]</span>
+          <span>Manage themes</span>
         }
-        width="55%"
-        height="50%"
+        width="800px"
+        height="530px"
         isOpen={modalData.isOpen}
         onClose={closeModal}>
         <div id="form-group">
           <div className="form-fragment">
             <label htmlFor="theme-name">Theme:</label>
-            <select name="theme-name" onChange={themeNameChange} defaultValue={theme}>
+            <select name="theme-name" onChange={themeNameChange} value={theme}>
               <option value={CUSTOM_THEME}>- Custom Theme -</option>
               <option disabled>---- DEFAULT ----</option>
-              <option value={THEME_LIGHT}> Light </option>
-              <option value={THEME_DARK}> Dark </option>
+              {Object.values(ThemesDefault).map(v => (
+                <option key={v.code} value={v.code}>{v.description}</option>
+              ))}
               <option disabled>---- PRELOAD ----</option>
               {Object.values(Themes).map(v => (
                 <option key={v.code} value={v.code}>{v.description}</option>
               ))}
-              {customThemes.length > 0 && (
+              {Object.keys(customThemes).length > 0 && (
                 <>(
                   <option disabled>---- STORAGE ----</option>
                     {Object.values(customThemes).map(v => (
@@ -386,7 +434,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
               )}
             </select>
           </div>
-          {modalData.themeName == CUSTOM_THEME && (
+          {modalData.themeName == CUSTOM_THEME ? (
             <>
               <div className="form-fragment">
                 <label htmlFor="collection-request-name">Theme name:</label>
@@ -427,6 +475,24 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
                       <p><span className="metadata-title">Type: </span> <span className="metadata-value">{modalData.file.type || "binary"}</span></p>
                       <p><span className="metadata-title">Modified: </span> <span className="metadata-value">{millisecondsToDate(modalData.file.lastModified)}</span></p>
                     </div>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <p id="actions-title">Actions:</p>
+              <div className="form-fragment">
+                <div className="actions-fragment">
+                  <p>Download theme:</p>
+                  <button type="button" onClick={downloadTheme}>Download</button>
+                </div>
+              </div>
+              {customThemes[modalData.themeName] && (
+                <div className="form-fragment">
+                  <div className="actions-fragment">
+                    <p>Delete theme from local storage:</p>
+                    <button type="button" onClick={deleteCustomTheme}>Delete</button>
                   </div>
                 </div>
               )}

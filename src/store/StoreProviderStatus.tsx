@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { Dict } from "../types/Dict";
+import { Optional } from "../types/Optional";
 
 interface StoreOptions<T> {
     stringifier?: (value: T) => string
@@ -23,11 +24,16 @@ interface FindAllOptions<T> {
     parser?: (value: string) => T | null;
 }
 
+interface RemoveOptions<T> {
+    parser?: (value: string) => T;
+}
+
 interface StoreProviderStatusType {
-    store: <T>(key: string, value: T, options?: StoreOptions<T>) => T;
     find: <T>(key: string, options?: FindOptions<T>) => T | string;
     findOrDefault: <T>(key: string, options: FindOptionsDefault<T>) => T;
     findAll: <T>(key: string, options: FindAllOptions<T>) => T[];
+    store: <T>(key: string, value: T, options?: StoreOptions<T>) => T;
+    remove: <T>(key: string, options?: RemoveOptions<T>) => Optional<T>;
 }
 
 interface Payload {
@@ -120,6 +126,29 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
         }));
         return value;
     }
+
+    const remove = <T,>(key: string, options?: RemoveOptions<T>): Optional<T> => {
+        const value = data.status[key];
+        if(value == undefined) {
+            return value
+        }
+
+        setData((prevData) => {
+            const newStatus = {...data.status};
+            delete newStatus[key];
+            return {
+                ...prevData,
+                status: newStatus
+            }
+        });
+
+        const parsed = tryParse(value, value, options?.parser);
+        if(typeof parsed == "string") {
+            return null;
+        }
+
+        return parsed;
+    }
   
     const tryParse = <T,K>(value: string, def: K, parser?: (value: string) => T) => {
         try {
@@ -130,7 +159,7 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
     }
 
     return (
-        <StoreStatus.Provider value={{ find, findOrDefault, findAll, store }}>
+        <StoreStatus.Provider value={{ find, findOrDefault, findAll, store, remove }}>
           {children}
         </StoreStatus.Provider>
       );

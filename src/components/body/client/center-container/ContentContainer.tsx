@@ -8,7 +8,6 @@ import { useAlert } from "../../../utils/alert/Alert";
 import { EAlertCategory } from "../../../../interfaces/AlertData";
 import { useStoreRequests } from "../../../../store/StoreProviderRequests";
 import { Combo } from "../../../utils/combo/Combo";
-import { useStoreTheme } from "../../../../store/StoreProviderTheme";
 
 import './ContentContainer.css';
 
@@ -17,8 +16,6 @@ export function ContentContainer() {
     const { initialHash, actualHash, request, parent, getRequest, getResponse, discardRequest, defineRequest, updateRequest, updateUri, insertRequest } = useStoreRequest();
     const { fetchAll } = useStoreRequests();
 
-    const { openModal } = useStoreTheme();
-
     const { push } = useAlert();
 
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,12 +23,6 @@ export function ContentContainer() {
     };
 
     const executeAction = async () => {
-        //TODO: Remove easter-egg
-        if(request.method == "CONNECT" && request.uri == "RewriteInRust!") {
-            openModal();
-            return;
-        }
-
         const req = getRequest();
 
         const newReq = {...req};

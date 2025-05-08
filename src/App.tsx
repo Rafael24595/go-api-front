@@ -8,7 +8,7 @@ import { StoreProviderStatus } from './store/StoreProviderStatus.tsx'
 import { StoreProviderSession } from './store/StoreProviderSession.tsx'
 import { StoreProviderContext } from './store/StoreProviderContext.tsx'
 import { StoreProviderRequest } from './store/StoreProviderRequest.tsx'
-import { StoreProviderTheme } from './store/StoreProviderTheme.tsx'
+import { StoreProviderTheme } from './store/theme/StoreProviderTheme.tsx'
 
 function App() {
   return (

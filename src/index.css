@@ -1,15 +1,19 @@
 :root {
   --default-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  --bg-color: #ffffff;
-  --text-color: black;
+  --body-color: #ffffff;
+  --header-color: #ffffff;
+  --body-text-color: #000000;
+  --header-text-color: #000000;
   --border-color: #d5d5d5;
+  --border-selected-color: #9b9b9b;
   --input-color: transparent;
   --option-disabled-color: #9e9d9d;
+  --option-selected-color: #e2e2e2;
   --button-color: #f9f9f9;
   --button-hover-color: #f9f9f9;
   --button-border-color: #d1d1d1;
   --button-delete-color: #e4c1c1;
-  --modal-color: var(--bg-color);
+  --modal-color: var(--body-color);
   --modal-button-color: var(--button-color);
   --modal-border-color: var(--button-border-color);
   --combo-color: #efefef;
@@ -29,11 +33,15 @@
 }
 
 [data-theme='dark'] {
-  --bg-color: #232323;
-  --text-color: #f1f1f1;
+  --body-color: #232323;
+  --header-color: #232323;
+  --body-text-color: #f1f1f1;
+  --header-text-color: #f1f1f1;
   --border-color: #6d6d6d;
+  --border-selected-color: #919191;
   --input-color: #2d2d2d;
   --option-disabled-color: #d1d1d1;
+  --option-selected-color: #919191;
   --button-color: #3d3d3d;
   --button-border-color: #5a5a5a;
   --button-hover-color: #d1d1d1;
@@ -78,12 +86,12 @@ html, body {
   height: 100%;
   width: 100%;
   font-family: var(--default-font);
-  color: var(--text-color);
-  background-color: var(--bg-color);
+  color: var(--body-text-color);
+  background-color: var(--body-color);
 }
 
 input, textarea, select {
-  color: var(--text-color);
+  color: var(--body-text-color);
   border: 1px solid var(--button-border-color);
   background-color: var(--input-color);
   cursor: pointer;
@@ -91,7 +99,16 @@ input, textarea, select {
 
 input:focus, textarea:focus, select:focus {
   outline-width: 0px;
-  border-color: #9b9b9b;
+  border-color: var(--border-selected-color);
+}
+
+input:-webkit-autofill {
+  box-shadow: 0 0 0 1000px var(--input-color) inset !important;
+  -webkit-text-fill-color: var(--body-text-color) !important;
+}
+
+select option:checked {
+  background-color: var(--option-selected-color);
 }
 
 option:disabled {
@@ -110,7 +127,7 @@ button {
   padding-bottom: 3px;
   box-sizing: border-box;
   border: 1px solid var(--button-border-color);
-  color: var(--text-color);
+  color: var(--body-text-color);
   background-color: var(--button-color);
   font-weight: 600;
   cursor: pointer;
@@ -130,7 +147,7 @@ button:hover {
   height: auto !important;
   background-color: transparent;
   border: none;
-  color: var(--text-color);
+  color: var(--body-text-color);
 }
 
 .option-button:hover {
@@ -163,7 +180,7 @@ button:hover {
   font-weight: 500;
   background-color: transparent;
   border: none;
-  color: var(--text-color);
+  color: var(--body-text-color);
 }
 
 .radio-button-group label, .button-tag {
@@ -233,10 +250,6 @@ button:hover {
   border: 1px solid #dddddd;
   text-align: left;
   padding: 8px;
-}
-
-.table-styled tr:nth-child(even) {
-  /* background-color: #f3f3f3; */
 }
 
 .table-styled tr:first-child th {
@@ -340,6 +353,10 @@ button:hover {
   cursor: pointer;
 }
 
+.button-anchor.margin {
+  margin-top: 10px;
+}
+
 .button-anchor.small {
   font-size: 0.85em;
 }
@@ -354,7 +371,7 @@ button:hover {
   font-weight: 600;
   font-size: 0.95em;
   cursor: pointer;
-  color: var(--text-color);
+  color: var(--body-text-color);
 }
 
 .button-div:hover {
@@ -430,6 +447,49 @@ button:hover {
 
 .ͼi {
   color: var(--tag-color) !important;
+}
+
+/* ----------------------- */
+
+
+/* Move to custom css file */
+
+#form-group {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.form-fragment {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-fragment label {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+#actions-title {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.actions-fragment {
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+}
+
+.actions-fragment p {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.actions-fragment button {
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
 /* ----------------------- */

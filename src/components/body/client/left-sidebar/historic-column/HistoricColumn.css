@@ -11,7 +11,7 @@
     padding: 10px;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--bg-color);
+    background-color: var(--body-color);
 }
 
 .request-link {

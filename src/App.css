@@ -8,8 +8,9 @@
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  filter: blur(1px);
+  visibility: hidden;
   pointer-events: none;
+  background-color: black;
 }
 
 .loader {

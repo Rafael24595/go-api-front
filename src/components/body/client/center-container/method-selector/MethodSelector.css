@@ -1,4 +1,5 @@
 #method {
     height: 100%;
     font-weight: bold;
+    background-color: var(--modal-button-color);
 }
