@@ -60,7 +60,9 @@ export function BodyArguments() {
         //store(CURSOR_KEY, e.target.value);
         setData(newData);
         //TODO: Find another solution, one more elegant.
-        updateBody(makeBody(newData));
+        if(Object.entries(request.body.parameters).length > 0) {
+            updateBody(makeBody(newData));
+        }
     };
 
     const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
