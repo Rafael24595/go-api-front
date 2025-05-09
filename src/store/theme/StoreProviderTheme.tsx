@@ -77,6 +77,10 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   useEffect(() => {
     store(STORAGE_THEME_KEY, theme);
     document.documentElement.setAttribute('data-theme', theme);
+    setModalData((prevData) => ({
+      ...prevData,
+      themeName: theme
+    }));
   }, [theme]);
 
   const preloadCustomThemes = async () => {
@@ -414,7 +418,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
         <div id="form-group">
           <div className="form-fragment">
             <label htmlFor="theme-name">Theme:</label>
-            <select name="theme-name" onChange={themeNameChange} value={theme}>
+            <select name="theme-name" onChange={themeNameChange} value={modalData.themeName}>
               <option value={CUSTOM_THEME}>- Custom Theme -</option>
               <option disabled>---- DEFAULT ----</option>
               {Object.values(ThemesDefault).map(v => (
