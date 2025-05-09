@@ -40,6 +40,10 @@ const ROW_DEFINITION = {
             value: "header"
         },
         {
+            key: "Cookie",
+            value: "cookie"
+        },
+        {
             key: "Auth",
             value: "auth"
         },
