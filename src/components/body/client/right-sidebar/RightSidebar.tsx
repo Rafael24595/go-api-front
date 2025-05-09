@@ -5,6 +5,7 @@ import { HeaderColumn } from './header-column/HeaderColumn';
 import { CookieColumn } from './cookie-column/CookieColumn';
 import { useStoreRequest } from '../../../../store/StoreProviderRequest';
 import { useStoreStatus } from '../../../../store/StoreProviderStatus';
+import { httpStatusDescriptions } from '../../../../constants/HttpMethod';
 
 import './RightSidebar.css';
 
@@ -35,12 +36,25 @@ export function RightSidebar() {
         setCursor(e.target.value);
     };
 
+    const statusToCss = (status: string) => {
+        if(status.length == 0) {
+            return ""
+        }
+        return `c${status[0]}xx`;
+      }
+
     return (
         <div id='right-sidebar'>
             <div id="response-metadata">
-                <span className="section-header-element"><span className="select-none">Status:</span> { response.status }</span>
-                <span className="section-header-element"><span className="select-none">Time:</span> { millisecondsToTime(response.time) }</span>
-                <span className="section-header-element"><span className="select-none">Size:</span> { formatBytes(response.size) }</span>
+                <span className="section-header-element response-data">
+                    <span 
+                        className="response-title select-none">Status:</span>
+                    <span 
+                        className={`response-code ${statusToCss(response.status)}`} 
+                        title={httpStatusDescriptions.get(Number(response.status))}>{ response.status }</span>
+                </span>
+                <span className="section-header-element response-data"><span className="response-title select-none">Time:</span> { millisecondsToTime(response.time) }</span>
+                <span className="section-header-element response-data"><span className="response-title select-none">Size:</span> { formatBytes(response.size) }</span>
             </div>
             <div className="radio-button-group border-bottom">
                 <input type="radio" id="tag-right-sidebar-payload" className="client-tag" name="cursor-right-sidebar"
