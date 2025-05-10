@@ -9,22 +9,12 @@ import { formatBytes, millisecondsToDate } from "../../services/Tools";
 import { Dict } from "../../types/Dict";
 import { Optional } from "../../types/Optional";
 
-interface StoreProviderThemeType {
-  isDark: () => boolean;
-  openModal: () => void;
-  closeModal: () => void;
-  loadCustom: (themeName: string, themeObj: IThemeData) => void;
-  toggleDefaultThemes: () => void;
-}
-
 const STORAGE_THEME_KEY = "StoreProviderThemeCache";
 
 const THEME_LIGHT = "light";
 const THEME_DARK = "dark";
 
 const DEFAULT_THEMES = [THEME_LIGHT, THEME_DARK];
-
-const StoreTheme = createContext<StoreProviderThemeType | undefined>(undefined);
 
 const CUSTOM_THEME = "custom-theme";
 
@@ -35,6 +25,14 @@ const VALID_CURSORS = [CURSOR_LOCAL, CURSOR_TEXT];
 
 const DEFAULT_CURSOR = CURSOR_LOCAL;
 
+interface StoreProviderThemeType {
+  isDark: () => boolean;
+  openModal: () => void;
+  closeModal: () => void;
+  loadCustom: (themeName: string, themeObj: IThemeData) => void;
+  toggleDefaultThemes: () => void;
+}
+
 interface Payload {
   isOpen: boolean;
   themeName: string;
@@ -44,6 +42,8 @@ interface Payload {
   fileBlob: string
   fileType: string
 }
+
+const StoreTheme = createContext<StoreProviderThemeType | undefined>(undefined);
 
 export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { find, findAll, store, remove } = useStoreStatus();

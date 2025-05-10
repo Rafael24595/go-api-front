@@ -111,7 +111,7 @@ export const Alert: React.FC<{ children: ReactNode }> = ({ children }) => {
 export const useAlert = (): AlertType => {
   const context = useContext(StoreContext);
   if (!context) {
-    throw new Error("useStore must be used within a StoreProviderClient");
+    throw new Error("useStore must be used within a StoreContext");
   }
   return context;
 };
