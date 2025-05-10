@@ -9,6 +9,7 @@ import { StoreProviderSession } from './store/StoreProviderSession.tsx'
 import { StoreProviderContext } from './store/StoreProviderContext.tsx'
 import { StoreProviderRequest } from './store/StoreProviderRequest.tsx'
 import { StoreProviderTheme } from './store/theme/StoreProviderTheme.tsx'
+import { StoreProviderSystem } from './store/system/StoreProviderSystem.tsx'
 
 function App() {
   return (
@@ -16,17 +17,19 @@ function App() {
       <StoreProviderCache>
         <StoreProviderStatus>
             <StoreProviderSession>
-              <Alert>
-                <StoreProviderTheme>
-                  <StoreProviderContext>
-                      <StoreProviderRequest>
-                        <Header/>
-                        <Body/>
-                        <Footer/>
-                      </StoreProviderRequest>
-                  </StoreProviderContext>
-                </StoreProviderTheme>
-              </Alert>
+              <StoreProviderSystem>
+                <Alert>
+                  <StoreProviderTheme>
+                    <StoreProviderContext>
+                        <StoreProviderRequest>
+                          <Header/>
+                          <Body/>
+                          <Footer/>
+                        </StoreProviderRequest>
+                    </StoreProviderContext>
+                  </StoreProviderTheme>
+                </Alert>
+              </StoreProviderSystem>
             </StoreProviderSession>
          </StoreProviderStatus>
       </StoreProviderCache>

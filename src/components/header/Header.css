@@ -8,9 +8,12 @@
 }
 
 #logo-container {
-    height: 55%;
     display: flex;
+    height: 40px;
     margin-left: 20px;
+    padding: 0px;
+    border: none;
+    background-color: transparent;
     filter: var(--fix-logo-filter);
 }
 

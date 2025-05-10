@@ -4,6 +4,7 @@ import { useStoreRequest } from '../../store/StoreProviderRequest';
 import { useStoreSession } from '../../store/StoreProviderSession';
 import { SessionModal } from './session/SessionModal';
 import { ProfileImage } from './session/ProfileImage';
+import { useStoreSystem } from '../../store/system/StoreProviderSystem';
 
 import './Header.css';
 
@@ -13,6 +14,7 @@ interface Payload {
 
 export function Header() {
     const { userData } = useStoreSession();
+    const { openModal } = useStoreSystem();
     const request = useStoreRequest();
     const context = useStoreContext();
 
@@ -49,9 +51,9 @@ export function Header() {
 
     return (
         <div id="header-container">
-            <div id="logo-container">
+            <button id="logo-container" onClick={ openModal } title="View system metadata">
                 <img src="/GoApiLogo.png" title="GoApi logo" alt="GoApi logo"/>
-            </div>
+            </button>
             <div id="user-container">
                 {(request.cacheLenght() > 0 || context.cacheLenght() > 0) && (
                     <div id="unsafe-container">

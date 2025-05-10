@@ -1,4 +1,5 @@
 import { Context } from "../../interfaces/context/Context";
+import { Record, SystemMetadata } from "../../interfaces/Metadata";
 import { Request } from "../../interfaces/request/Request";
 import { UserData } from "../../interfaces/UserData";
 import apiManager from "./ApiManager";
@@ -79,6 +80,24 @@ export const fetchAuthenticate = async (oldPassword: string, newPassword1: strin
 export const fetchUserData = async (): Promise<UserData> => {
   try {
     const apiResponse = await apiManager.get(`/api/v1/user`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchSystemMetadata = async (): Promise<SystemMetadata> => {
+  try {
+    const apiResponse = await apiManager.get(`/api/v1/system/metadata`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchSystemRecords = async (): Promise<Record[]> => {
+  try {
+    const apiResponse = await apiManager.get(`/api/v1/system/log`);
     return apiResponse.data;
   } catch (error) {
     throw error;

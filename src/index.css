@@ -494,3 +494,9 @@ button:hover {
 }
 
 /* ----------------------- */
+
+.unstyled-anchor {
+  font-weight: bold;
+  color: var(--body-text-color);
+  cursor: pointer;
+}
