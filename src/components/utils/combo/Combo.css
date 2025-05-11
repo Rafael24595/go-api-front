@@ -1,0 +1,80 @@
+.options-container {
+    position: relative;
+}
+
+.list-container {
+    max-width: 400px;
+    margin: 20px auto;
+    background: white;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.options-button {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.options-button:hover {
+    background-color: initial
+}
+
+.options-menu {
+    position: absolute;
+    width: 125px;
+    right: 0;
+    margin-top: 5px;
+    padding: 5px;
+    background: var(--combo-color);
+    box-shadow: 2px 2px 2px 0px var(--combo-shadow-color);
+    z-index: 10;
+}
+
+.options-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 7px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.options-menu button:hover {
+    background: var(--combo-hover-color);
+}
+
+.option-icon {
+    margin-right: 7px;
+}
+
+.combo-svg {
+    color: var(--body-text-color);
+}
+
+.selected-combo-option {
+    background: var(--combo-hover-color) !important;
+}
+
+.selected-combo-option::before {
+    content: "► ";
+}
+

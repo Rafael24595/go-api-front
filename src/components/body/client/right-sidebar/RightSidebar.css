@@ -2,6 +2,52 @@
     overflow: hidden;
     display: flex;
     flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 350px;
     width: 40%;
-    border: 1px solid lightgray;
+    border: 1px solid var(--border-color);
+}
+
+#response-metadata {
+    padding: 15px;
+    display: flex;
+}
+
+.response-data {
+    margin-right: 10px;
+}
+
+.response-title {
+    font-weight: 600;
+    margin-right: 5px;
+}
+
+#response-container {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 10px;
+}
+
+.response-code {
+    font-weight: bold;
+}
+
+.response-code.c1xx {
+    color: #007bff;
+}
+
+.response-code.c2xx {
+    color: #28a745;
+}
+
+.response-code.c3xx {
+    color: #17a2b8;
+}
+
+.response-code.c4xx {
+    color: #fd7e14;
+}
+
+.response-code.c5xx {
+    color: #dc3545;
 }

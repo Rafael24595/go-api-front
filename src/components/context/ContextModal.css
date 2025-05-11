@@ -1,0 +1,129 @@
+#modal-container select {
+    background-color: var(--modal-button-color);
+}
+
+#context-title-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#preview-container {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+#preview-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.preview-component {
+    flex: 1 1 auto;
+    margin: 0px;
+    margin-left: 10px;
+    margin-right: 10px;
+    width: 50%;
+    height: 85px;
+    resize: none;
+    background-color: var(--input-color);
+    box-sizing: border-box;
+    padding: 7px;
+    font-style: italic;
+    white-space: break-spaces;
+    word-break: break-word;
+}
+
+#preview-params {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+    margin-right: 10px;
+}
+
+.preview-select-param label {
+    font-weight: 500;
+    margin-right: 5px;
+}
+
+#preview-areas {
+    display: flex;
+}
+
+#text-component {
+    resize: none;
+}
+
+#dictionary-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+#dictionary-status {
+    display: flex;
+}
+
+#dictionary-title, #preview-title {
+    margin-bottom: 10px;
+}
+
+#dictionary-title p, #preview-title p {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin: 0px;
+}
+
+#filter-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    margin-bottom: 25px;
+    padding: 10px;
+}
+
+.filter-fragment {
+    padding-left: 12px;
+}
+
+.filter-fragment label {
+    font-weight: 500;
+    padding-right: 3px;
+}
+
+.filter-fragment button {
+    margin-left: 15px;
+}
+
+#dictionary-items {
+    display: flex;
+    justify-content: space-between;
+}
+
+#dictionary-items-counter {
+    font-weight: 500;
+}
+
+#dictionary-items-counter span {
+    font-style: italic;
+}
+
+#context-dictionary-content {
+    overflow: auto;
+    scrollbar-gutter: stable;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#import-container {
+    padding: 10px;
+    margin: 5px;
+    background: lightgrey;
+}

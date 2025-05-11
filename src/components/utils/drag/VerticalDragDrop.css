@@ -1,0 +1,36 @@
+.vertical-drag-container {
+    position: relative;
+}
+
+.vertical-drag-item {
+    position: relative;
+    transition: transform 0.3s ease;
+    width: 100%;
+    cursor: move;
+}
+
+.vertical-drag-item.cursor {
+    position: absolute;
+    transition: none;
+    z-index: 2;
+}
+
+.vertical-drag-item.cursor:not(.landing-area) {
+    opacity: 0.65;
+}
+
+.landing-area {
+    display: none;
+    margin-bottom: 5px;
+    height: 2px;
+    width: 100%;
+    background-color: var(--landing-area-color);
+}
+
+.landing-area.show {
+    display: block;
+}
+
+.landing-area.original {
+    background-color: cornflowerblue;
+}
