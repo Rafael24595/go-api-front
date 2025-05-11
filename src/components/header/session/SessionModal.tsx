@@ -357,7 +357,7 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
             title={ 
                 <div id="session-title-container">
                     <span className="select-none">{ loadTitle() }</span>
-                    <button className={`toggle-theme-button ${ isDark() ? "off" : ""}`} onClick={toggleDefaultThemes} onDoubleClickCapture={() => console.log("ci")}></button>
+                    <button className={`toggle-theme-button ${ isDark() ? "off" : ""}`} onClick={toggleDefaultThemes} type="button"></button>
                 </div>
              }
             height="400px"
