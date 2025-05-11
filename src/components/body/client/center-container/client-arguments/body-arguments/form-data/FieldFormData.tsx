@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { CleanItemBodyParameter, ItemBodyParameter } from '../../../../../../../interfaces/request/Request';
 import { useAlert } from '../../../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../../../interfaces/AlertData';
+import { useStoreTheme } from '../../../../../../../store/theme/StoreProviderTheme';
 
 import './FieldFormData.css';
 
@@ -28,6 +29,8 @@ interface FieldFormDataProps {
 
 export function FieldFormData({order, focus, value, disabled, rowPush, rowTrim}: FieldFormDataProps) {
     const { push } = useAlert();
+
+    const { loadThemeWindow } = useStoreTheme();
 
     const inputKey = useRef<HTMLInputElement>(null);
     const inputValue = useRef<HTMLInputElement>(null);
@@ -161,17 +164,8 @@ export function FieldFormData({order, focus, value, disabled, rowPush, rowTrim}:
         }
       
         const blob = new Blob(byteArrays, { type: row.fileType });
-        const url = URL.createObjectURL(blob);
-        window.open(url, "_blank", windowPreferences(500, 500));
-    }
-
-    const windowPreferences = (width: number, height: number) => {
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        const left = (screenWidth / 2) - (width / 2);
-        const top = (screenHeight / 2) - (height / 2);
-    
-        return `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`;
+        
+        loadThemeWindow(500, 500, blob)
     }
 
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

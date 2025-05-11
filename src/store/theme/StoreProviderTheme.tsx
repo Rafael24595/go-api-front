@@ -8,8 +8,11 @@ import { downloadFile } from "../../services/Utils";
 import { formatBytes, millisecondsToDate } from "../../services/Tools";
 import { Dict } from "../../types/Dict";
 import { Optional } from "../../types/Optional";
+import { useStoreSession } from "../StoreProviderSession";
+import { UserData } from "../../interfaces/UserData";
 
 const STORAGE_THEME_KEY = "StoreProviderThemeCache";
+const TRIGGER_KEY = "StoreProviderThemeTrigger";
 
 const THEME_LIGHT = "light";
 const THEME_DARK = "dark";
@@ -32,6 +35,7 @@ interface StoreProviderThemeType {
   closeModal: () => void;
   loadCustom: (themeName: string, themeObj: IThemeData) => void;
   toggleDefaultThemes: () => void;
+  loadThemeWindow: (width: number, height: number, content: string | Blob) => void
 }
 
 interface Payload {
@@ -47,20 +51,25 @@ interface Payload {
 const StoreTheme = createContext<StoreProviderThemeType | undefined>(undefined);
 
 export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { userData, pushTrigger } = useStoreSession();
   const { find, findAll, store, remove } = useStoreStatus();
   const { push } = useAlert();
 
   const [customThemes, setCustomThemes] = useState<Dict<ITheme>>({});
 
+  const makeCacheKey = (userData: UserData) => {
+    return `${STORAGE_THEME_KEY}-${userData.username}`
+  }
+
   const [theme, setTheme] = useState(
-    find(STORAGE_THEME_KEY, {
+    find(makeCacheKey(userData), {
       def: THEME_LIGHT
     })
   );
 
   const [modalData, setModalData] = useState<Payload>({
     isOpen: false,
-    themeName: find(STORAGE_THEME_KEY, {
+    themeName: find(makeCacheKey(userData), {
       def: THEME_LIGHT
     }),
     customName: "",
@@ -71,18 +80,26 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   });
 
   useEffect(() => {
+    pushTrigger(TRIGGER_KEY, findSessionTheme);
     preloadCustomThemes();
     preloadCursorTheme();
   }, []);
 
   useEffect(() => {
-    store(STORAGE_THEME_KEY, theme);
+    store(makeCacheKey(userData), theme);
     document.documentElement.setAttribute('data-theme', theme);
     setModalData((prevData) => ({
       ...prevData,
       themeName: theme
     }));
   }, [theme]);
+
+  const findSessionTheme = (userData: UserData) => {
+    const theme = find(makeCacheKey(userData), {
+      def: THEME_LIGHT
+    });
+    preloadCursorTheme(theme);
+  }
 
   const preloadCustomThemes = async () => {
     const cachedThemes = findAll(CUSTOM_THEME, {
@@ -97,18 +114,22 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     setCustomThemes(newCustomThemes);
   }
 
-  const preloadCursorTheme = async () => {
-    if(DEFAULT_THEMES.includes(theme)) {
+  const preloadCursorTheme = async (cursorTheme?: string) => {
+    if(cursorTheme == undefined) {
+      cursorTheme = theme;
+    }
+
+    if(DEFAULT_THEMES.includes(cursorTheme)) {
       return;
     }
 
-    const themePreload = Themes[theme];
+    const themePreload = Themes[cursorTheme];
     if(themePreload) {
       loadCustom(themePreload.code, themePreload.theme);
       return;
     }
 
-    const themeCache = find(theme, {
+    const themeCache = find(cursorTheme, {
       parser: parseCache
     });
     if(themeCache && typeof themeCache === 'object') {
@@ -154,6 +175,35 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     setTheme(prev => {
       return prev === THEME_LIGHT ? THEME_DARK : THEME_LIGHT;
     });
+  }
+
+  const loadThemeWindow = (width: number, height: number, content: string | Blob) => {
+    let url = "";
+    if(typeof content != 'string') {
+      url = URL.createObjectURL(content);
+    }
+
+    const newWindow = window.open(url, '_blank', windowPreferences(width, height));
+    if (!newWindow) {
+      return;
+    }
+    
+    if(typeof content == 'string') {
+      newWindow.document.body.innerHTML = content;
+    }
+    newWindow.document.documentElement.setAttribute('data-theme', theme);
+
+    document.querySelectorAll('link[rel="stylesheet"], style')
+      .forEach(node => newWindow.document.head.appendChild(node.cloneNode(true)));
+  }
+
+  const windowPreferences = (width: number, height: number) => {
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    const left = (screenWidth / 2) - (width / 2);
+    const top = (screenHeight / 2) - (height / 2);
+
+    return `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`;
   }
 
   const openModal = async () => {
@@ -391,7 +441,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   }
 
   return (
-    <StoreTheme.Provider value={{ theme, isDark, openModal, closeModal, loadCustom, toggleDefaultThemes }}>
+    <StoreTheme.Provider value={{ theme, isDark, openModal, closeModal, loadCustom, toggleDefaultThemes, loadThemeWindow }}>
       {children}
       <Modal
         buttons={[

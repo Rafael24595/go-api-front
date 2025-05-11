@@ -15,7 +15,7 @@ interface StoreProviderSessionType {
   pushTrigger: (key: string, trigger: Trigger) => Promise<void>
 }
 
-type Trigger = () => void
+type Trigger = (userData: UserData) => void
 
 interface Payload {
   userData: UserData;
@@ -49,7 +49,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       userData: userData,
       loaded: true
     }));
-    executeTriggers();
+    executeTriggers(userData);
   };
 
   const logout = async () => {
@@ -59,7 +59,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       userData: userData,
       loaded: true
     }));
-    executeTriggers();
+    executeTriggers(userData);
   };
 
   const authenticate = async (oldPassword: string, newPassword1: string, newPassword2: string) => {
@@ -69,7 +69,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       userData: userData,
       loaded: true
     }));
-    executeTriggers();
+    executeTriggers(userData);
   };
 
   const signin = async (username: string, password1: string, password2: string, isAdmin: boolean) => {
@@ -83,7 +83,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       userData: userData,
       loaded: true
     }));
-    executeTriggers();
+    executeTriggers(userData);
   };
 
   const fetchUser = async () => {
@@ -95,8 +95,8 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     }));
   };
 
-  const executeTriggers = () => {
-    Object.values(data.triggers).forEach(f => f());
+  const executeTriggers = (userData: UserData) => {
+    Object.values(data.triggers).forEach(f => f(userData));
   };
 
   const pushTrigger = async (key: string, trigger: Trigger) => {
