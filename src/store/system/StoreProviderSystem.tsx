@@ -4,6 +4,7 @@ import { fetchSystemMetadata, fetchSystemRecords } from "../../services/api/Serv
 import { Modal } from "../../components/utils/modal/Modal";
 import { millisecondsToDate } from "../../services/Tools";
 import { useStoreSession } from "../StoreProviderSession";
+import { useStoreTheme } from "../theme/StoreProviderTheme";
 
 import './StoreProviderSystem.css';
 
@@ -22,6 +23,7 @@ interface Payload {
 
 export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { userData } = useStoreSession();
+  const { theme } = useStoreTheme();
 
   const [data, setData] = useState<Payload>({
     isOpen: false,
@@ -77,9 +79,36 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
     }));
   }
 
+  const showLogs = () => {
+    const newWindow = window.open('', '_blank', windowPreferences(850, 500));
+    if (!newWindow) {
+      return;
+    }
+    
+    const html = data.records
+      .map(r => `<p class="log-row">${formatRecord(r)}</p>`)
+      .join('');
+
+    newWindow.document.body.innerHTML = `<div id="record-row-container">${html}</div>`;
+
+    newWindow.document.documentElement.setAttribute('data-theme', theme);
+
+    document.querySelectorAll('link[rel="stylesheet"], style')
+      .forEach(node => newWindow.document.head.appendChild(node.cloneNode(true)));
+  }
+
   const formatRecord = (record: Record) => {
     return `${ millisecondsToDate(record.timestamp) } - [${ record.category }]: ${record.message}`;
   }
+
+  const windowPreferences = (width: number, height: number) => {
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    const left = (screenWidth / 2) - (width / 2);
+    const top = (screenHeight / 2) - (height / 2);
+
+    return `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`;
+}
 
   return (
     <StoreTheme.Provider value={{ openModal, closeModal }}>
@@ -104,7 +133,10 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
             <h3 className="system-title">System:</h3>
             <div className="system-metadata-subcontainer">
               <div className="system-metadata-fragment">
-                  <p><span className="system-data-title">Core name: </span> <span>{ data.metadata.core_name }</span></p>
+                  <p><span className="system-data-title">Core name: </span> <a className="unstyled-anchor" 
+                    href={`https://${data.metadata.core_name}`} 
+                    target="_blank"
+                    title="Go to Rafael24595's core project page">{ data.metadata.core_name }</a></p>
                   <p>
                     <span className="system-data-title">Core version: </span>
                     {data.metadata.core_replace && (
@@ -114,7 +146,10 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
                   </p>
               </div>
               <div className="system-metadata-fragment">
-                  <p><span className="system-data-title">Render name: </span> <span>{ data.metadata.render_name }</span></p>
+                  <p><span className="system-data-title">Render name: </span> <a className="unstyled-anchor" 
+                    href={`https://${data.metadata.render_name}`} 
+                    target="_blank" 
+                    title="Go to Rafael24595's render project page">{ data.metadata.render_name }</a></p>
                   <p><span className="system-data-title">Render version: </span> <span>{ data.metadata.render_version }</span></p>
               </div>
             </div>
@@ -126,23 +161,12 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
               </div>
             </div>
             <div id="system-metadata-footer">
-              <a className="unstyled-anchor" href="https://github.com/Rafael24595" title="Go to Rafael24595's github profile" target="_blank">GitHub</a>
+              {userData.is_admin && (
+                <>
+                  <button className="button-anchor" onClick={showLogs} title="View system logs">Logs</button>
+                </>
+              )}
             </div>
-            {/*userData.is_admin && (
-              <>
-                <h3 className="system-title">Logs: </h3>
-                <div className="system-metadata-fragment">  
-                  <details>
-                    <summary>Details</summary>
-                    <div id="record-row-container">
-                          {data.records.map(r => (
-                            <span className="record-row">{ formatRecord(r) }</span>
-                          ))}
-                    </div>
-                  </details>
-                </div>
-              </>
-            )*/}
           </div>
         </>
       </Modal>

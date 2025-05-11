@@ -26,6 +26,7 @@ const VALID_CURSORS = [CURSOR_LOCAL, CURSOR_TEXT];
 const DEFAULT_CURSOR = CURSOR_LOCAL;
 
 interface StoreProviderThemeType {
+  theme: string;
   isDark: () => boolean;
   openModal: () => void;
   closeModal: () => void;
@@ -390,7 +391,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   }
 
   return (
-    <StoreTheme.Provider value={{ isDark, openModal, closeModal, loadCustom, toggleDefaultThemes }}>
+    <StoreTheme.Provider value={{ theme, isDark, openModal, closeModal, loadCustom, toggleDefaultThemes }}>
       {children}
       <Modal
         buttons={[

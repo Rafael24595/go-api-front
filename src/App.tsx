@@ -14,25 +14,25 @@ import { StoreProviderSystem } from './store/system/StoreProviderSystem.tsx'
 function App() {
   return (
     <>
-      <StoreProviderCache>
-        <StoreProviderStatus>
-            <StoreProviderSession>
-              <StoreProviderSystem>
-                <Alert>
-                  <StoreProviderTheme>
-                    <StoreProviderContext>
-                        <StoreProviderRequest>
-                          <Header/>
-                          <Body/>
-                          <Footer/>
-                        </StoreProviderRequest>
-                    </StoreProviderContext>
-                  </StoreProviderTheme>
-                </Alert>
-              </StoreProviderSystem>
-            </StoreProviderSession>
-         </StoreProviderStatus>
-      </StoreProviderCache>
+      <Alert>
+        <StoreProviderCache>
+          <StoreProviderStatus>
+              <StoreProviderSession>
+                <StoreProviderTheme>
+                  <StoreProviderSystem>
+                        <StoreProviderContext>
+                            <StoreProviderRequest>
+                              <Header/>
+                              <Body/>
+                              <Footer/>
+                            </StoreProviderRequest>
+                        </StoreProviderContext>
+                  </StoreProviderSystem>
+                </StoreProviderTheme>
+              </StoreProviderSession>
+          </StoreProviderStatus>
+        </StoreProviderCache>
+      </Alert>
     </> 
   )
 }

@@ -38,11 +38,13 @@
 #record-row-container {
     display: flex;
     flex-direction: column;
-    height: 150px;
-    overflow: auto;
-    padding: 5px;
-    background-color: var(--input-color);
-    overflow: scroll;
+    padding: 10px;
+}
+
+#record-row-container p {
+    font-family: monospace;
+    font-weight: 600;
+    margin: 2px;
 }
 
 #system-metadata-footer {
