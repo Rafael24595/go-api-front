@@ -6,7 +6,7 @@ const baseURL = (): string => {
     port = window.location.port;
     console.error(`Warning: back port is undefined, default port '${port}' will be used.`);
   }
-  const url = `${window.location.protocol}//${window.location.hostname}:${import.meta.env.VITE_SERVICE_API_MANAGER_PORT}`;
+  const url = `${window.location.protocol}//${window.location.hostname}:${port}`;
   if(url != undefined) {
     return url
   }
