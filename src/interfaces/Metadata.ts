@@ -6,6 +6,8 @@ export interface SystemMetadata {
     core_replace: boolean,
 	render_name: string,
 	render_version: string
+    front_name: string,
+	front_version: string
 }
 
 export function emptySystemMetadata(): SystemMetadata {
@@ -17,6 +19,8 @@ export function emptySystemMetadata(): SystemMetadata {
         core_replace: false,
         render_name: "",
         render_version: "",
+        front_name: "",
+        front_version: ""
     }
 }
 

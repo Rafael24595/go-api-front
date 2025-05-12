@@ -52,7 +52,7 @@ export function Header() {
     return (
         <div id="header-container">
             <button id="logo-container" onClick={ openModal } title="View system metadata">
-                <img src="/GoApiLogo.png" title="GoApi logo" alt="GoApi logo"/>
+                <img src="/assets/GoApiLogo.png" title="GoApi logo" alt="GoApi logo"/>
             </button>
             <div id="user-container">
                 {(request.cacheLenght() > 0 || context.cacheLenght() > 0) && (

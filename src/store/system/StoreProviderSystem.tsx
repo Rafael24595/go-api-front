@@ -136,6 +136,17 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
                   <p><span className="system-data-title">Render version: </span> <span>{ data.metadata.render_version }</span></p>
               </div>
             </div>
+            {data.metadata.front_name != "" && data.metadata.front_version != "" && (
+              <div className="system-metadata-subcontainer">
+                <div className="system-metadata-fragment">
+                    <p><span className="system-data-title">Front name: </span> <a className="unstyled-anchor" 
+                      href={`https://github.com/Rafael24595/${data.metadata.front_name}`} 
+                      target="_blank" 
+                      title="Go to Rafael24595's render project page">{ data.metadata.front_name }</a></p>
+                    <p><span className="system-data-title">Front version: </span> <span>{ data.metadata.front_version }</span></p>
+                </div>
+              </div>
+            )}
             <h3 className="system-title">Session: </h3>
             <div className="system-metadata-subcontainer">
               <div className="system-metadata-fragment">
