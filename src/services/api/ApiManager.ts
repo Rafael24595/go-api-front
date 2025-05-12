@@ -1,6 +1,10 @@
 import axios, { AxiosResponse } from "axios";
 
 const baseURL = (): string => {
+  const port = import.meta.env.VITE_SERVICE_API_MANAGER_PORT;
+  if(port == undefined) {
+    console.error("Warning: back port is undefined.")
+  }
   const url = `${window.location.protocol}//${window.location.hostname}:${import.meta.env.VITE_SERVICE_API_MANAGER_PORT}`;
   if(url != undefined) {
     return url
