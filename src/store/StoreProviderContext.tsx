@@ -7,6 +7,7 @@ import { useStoreCache } from "./StoreProviderCache";
 import { Optional } from "../types/Optional";
 import { useStoreSession } from "./StoreProviderSession";
 
+const TRIGGER_KEY = "StoreProviderContextTrigger";
 const CACHE_KEY = "StoreProviderContextCache";
 
 interface StoreProviderContextType {
@@ -36,8 +37,8 @@ interface Payload {
 const StoreContext = createContext<StoreProviderContextType | undefined>(undefined);
 
 export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData } = useStoreSession();
-  const { gather, search, exists, insert, remove, length } = useStoreCache();
+  const { userData, pushTrigger } = useStoreSession();
+  const { gather, search, exists, insert, excise, remove, length } = useStoreCache();
 
   const [data, setData] = useState<Payload>({
     initialHash: "",
@@ -49,6 +50,7 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   });
 
   useEffect(() => {
+    pushTrigger(TRIGGER_KEY, cleanCache);
     fetchContext();
   }, []);
 
@@ -91,6 +93,10 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
 
   const getContext = (): Context => {
     return toContext(data.context);
+  }
+
+  const cleanCache = () => {
+    excise(CACHE_KEY);
   }
 
   const discardContext = () => {

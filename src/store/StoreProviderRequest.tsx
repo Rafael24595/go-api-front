@@ -12,6 +12,10 @@ import { CacheActionData } from "../interfaces/CacheActionData";
 import { useStoreSession } from "./StoreProviderSession";
 import { useStoreContext } from "./StoreProviderContext";
 
+const TRIGGER_KEY_VIEW = "StoreProviderRequestViewTrigger";
+const TRIGGER_KEY_CACHE = "StoreProviderRequestCacheTrigger";
+const CACHE_KEY = "StoreProviderRequestCache";
+
 interface StoreProviderRequestType {
   initialHash: string;
   actualHash: string;
@@ -42,9 +46,6 @@ interface StoreProviderRequestType {
   processUri: () => void;
 }
 
-const TRIGGER_KEY = "StoreProviderRequestTrigger";
-const CACHE_KEY = "StoreProviderRequestCache";
-
 interface Payload {
   initialHash: string
   actualHash: string
@@ -60,7 +61,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const { userData, pushTrigger } = useStoreSession();
   const { fetchContext } = useStoreContext();
 
-  const { gather, search, exists, insert, remove, length } = useStoreCache();
+  const { gather, search, exists, insert, excise, remove, length } = useStoreCache();
 
   const [data, setData] = useState<Payload>({
     initialHash: "",
@@ -73,7 +74,8 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   
   
   useEffect(() => {
-    pushTrigger(TRIGGER_KEY, cleanRequest);
+    pushTrigger(TRIGGER_KEY_VIEW, cleanRequest);
+    pushTrigger(TRIGGER_KEY_CACHE, cleanCache);
   }, []);
 
   useEffect(() => {
@@ -120,6 +122,10 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   const cleanRequest = () => {
     defineRequestFromRequest(newRequest(userData.username));
+  }
+
+  const cleanCache = () => {
+    excise(CACHE_KEY);
   }
 
   const discardRequest = () => {

@@ -8,6 +8,7 @@ interface StoreProviderCacheType {
     locate: <T>(category: string, predicate: (key: string, item: T) => boolean) => Optional<T>;
     exists: <T>(category: string, predicate: (key: string, item: T) => boolean) => boolean;
     insert: <T>(category: string, key: string, value: T) => Optional<T>;
+    excise: <T>(category: string) => T[];
     remove: <T>(category: string, key: string) => Optional<T>;
     length: (category: string) => number;
 }
@@ -24,6 +25,7 @@ export const StoreProviderCache: React.FC<{ children: ReactNode }> = ({ children
     });
 
     const gather = <T,>(category: string): T[] => {
+      console.log(category, data.cache);
       if(data.cache[category] == undefined) {
         return []
       }
@@ -66,6 +68,26 @@ export const StoreProviderCache: React.FC<{ children: ReactNode }> = ({ children
         return value;
     }
 
+    const excise = <T,>(category: string): T[] => {
+      let items = [];
+      if(data.cache[category] != undefined) {
+        items = Object.values(data.cache[category]);
+      }
+
+      setData((prevData) => {
+        const newCache = { ...prevData.cache };
+
+        delete newCache[category];
+
+        return {
+            ...prevData,
+            cache: newCache
+        }
+      });
+
+      return items;
+    }
+
     const remove = <T,>(category: string, key: string): Optional<T> => {
       let item: T | undefined = undefined
       if(data.cache[category] != undefined && data.cache[category][key] != undefined) {
@@ -88,7 +110,7 @@ export const StoreProviderCache: React.FC<{ children: ReactNode }> = ({ children
     }
 
     return (
-        <StoreCache.Provider value={{ gather, search, locate, exists, insert, remove, length }}>
+        <StoreCache.Provider value={{ gather, search, locate, exists, insert, excise, remove, length }}>
           {children}
         </StoreCache.Provider>
       );
