@@ -30,6 +30,9 @@ export function Header() {
         }
         const contexts = context.cacheComments();
         if(contexts.length > 0) {
+            if(title != "") {
+                title += "\n";
+            }
             title += contexts.join("\n");
         }
         return title;
