@@ -25,7 +25,7 @@ interface Payload {
 }
 
 export function SessionModal({ isOpen, onClose }: SessionModalProps) {
-    const { userData, login, logout, signin, remove } = useStoreSession();
+    const { userData, login, logout, authenticate, signin, remove } = useStoreSession();
     const { isDark, openModal, toggleDefaultThemes } = useStoreTheme();
 
     const { push } = useAlert();
@@ -58,7 +58,7 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     };
 
     const onAuthenticate = async () => {
-        await fetchAuthenticate(data.oldPassword, data.newPassword1, data.newPassword2)
+        await authenticate(data.oldPassword, data.newPassword1, data.newPassword2)
             .then(onLocalClose)
             .catch(e =>push({
                 title: `[${e.statusCode}] ${e.statusText}`,
@@ -86,12 +86,12 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
             }));
     };
 
-    const onLocalClose = async () => {
-        resetView()
+    const onLocalClose = () => {
+        resetView();
         onClose();
     };
 
-    const openThemesModal = async () => {
+    const openThemesModal = () => {
         openModal()
         onClose();
     };
