@@ -3,7 +3,6 @@ import { useStoreSession } from '../../../store/StoreProviderSession';
 import { Modal } from '../../utils/modal/Modal';
 import { millisecondsToDate } from '../../../services/Tools';
 import { ProfileImage } from './ProfileImage';
-import { fetchAuthenticate } from '../../../services/api/ServiceManager';
 import { EAlertCategory } from '../../../interfaces/AlertData';
 import { useAlert } from '../../utils/alert/Alert';
 import { useStoreTheme } from '../../../store/theme/StoreProviderTheme';
