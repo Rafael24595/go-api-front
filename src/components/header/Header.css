@@ -17,6 +17,10 @@
     filter: var(--fix-logo-filter);
 }
 
+#logo-container img {
+    height: 100%;
+}
+
 #user-container {
     display: flex;
     align-items: center;

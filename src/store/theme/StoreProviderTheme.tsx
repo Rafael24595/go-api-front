@@ -120,6 +120,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     }
 
     if(DEFAULT_THEMES.includes(cursorTheme)) {
+      setTheme(cursorTheme);
       return;
     }
 

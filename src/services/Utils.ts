@@ -2,6 +2,13 @@ import { ItemStatusCategoryKeyValue, StatusCategoryKeyValue } from "../interface
 import { StatusKeyValue } from "../interfaces/StatusKeyValue";
 import { ItemStatusValue, PrivateStatusValue, StatusValue } from "../interfaces/StatusValue";
 import { Dict } from "../types/Dict";
+import SHA256 from "crypto-js/sha256";
+
+(() => {
+    if (!window.isSecureContext || !window.crypto?.subtle) {
+        console.warn("Falling back to crypto-js (insecure hash, use HTTPS if possible)");
+    }
+})()
 
 export function detachStatusKeyValue(dict: Dict<StatusValue[]>): StatusKeyValue[] {
     const vector: StatusKeyValue[] = [];
@@ -128,6 +135,11 @@ export async function generateHash(obj: any) {
     const sortedObj = deepSort(obj);
 
     const str = JSON.stringify(sortedObj);
+
+    if (!window.isSecureContext || !window.crypto?.subtle) {
+        return SHA256(str).toString();
+    }
+    
     const encoder = new TextEncoder();
     const data = encoder.encode(str);
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
