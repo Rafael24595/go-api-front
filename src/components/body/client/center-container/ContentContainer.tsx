@@ -1,59 +1,20 @@
 import { MethodSelector } from "./method-selector/MethodSelector";
 import { ParameterSelector } from "./client-arguments/ParameterSelector";
-import { executeFormAction } from "../../../../services/api/ServiceManager";
 import { pushHistoric } from "../../../../services/api/ServiceStorage";
-import { useStoreContext } from "../../../../store/StoreProviderContext";
 import { useStoreRequest } from "../../../../store/StoreProviderRequest";
-import { useAlert } from "../../../utils/alert/Alert";
-import { EAlertCategory } from "../../../../interfaces/AlertData";
 import { useStoreRequests } from "../../../../store/StoreProviderRequests";
 import { Combo } from "../../../utils/combo/Combo";
 
 import './ContentContainer.css';
 
 export function ContentContainer() {
-    const { getContext } = useStoreContext();
-    const { initialHash, actualHash, request, parent, getRequest, getResponse, discardRequest, defineRequest, updateRequest, updateUri, insertRequest } = useStoreRequest();
+    const { initialHash, actualHash, request, parent, getRequest, getResponse, discardRequest, defineRequest, updateUri, executeAction, insertRequest } = useStoreRequest();
     const { fetchAll } = useStoreRequests();
-
-    const { push } = useAlert();
 
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateUri(e.target.value);
     };
-
-    const executeAction = async () => {
-        const req = getRequest();
-
-        const newReq = {...req};
-        if(newReq.name == "") {
-            const name = `temp-${req.method}-${req.timestamp}`;
-            newReq.name = name;
-        }
-
-        updateRequest(newReq);
-
-        let apiResponse = await executeFormAction(newReq, getContext()).catch(e =>
-            push({
-                title: `[${e.statusCode}] ${e.statusText}`,
-                category: EAlertCategory.ERRO,
-                content: e.message,
-            }));
-
-        if(!apiResponse) {
-            return;
-        }
-
-        updateRequest(newReq, apiResponse.response);
-
-        apiResponse = await pushHistoric(req, apiResponse.response);
-        
-        newReq._id = apiResponse.request._id;
-        updateRequest(newReq, apiResponse.response, req);
-
-        fetchAll();
-    };
-
+    
     const insertFormAction = async () => {
         const req = getRequest();
         const res = getResponse();

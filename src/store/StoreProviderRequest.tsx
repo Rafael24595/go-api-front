@@ -4,17 +4,23 @@ import { Auths, fromRequest, ItemBody, ItemRequest, newItemRequest, newRequest, 
 import { cleanCopy, ItemStatusKeyValue } from "../interfaces/StatusKeyValue";
 import { fixOrder } from "../interfaces/StatusKeyValue";
 import { fromResponse, ItemResponse, newItemResponse, Response, toResponse } from "../interfaces/response/Response";
-import { findAction, insertAction } from "../services/api/ServiceStorage";
+import { findAction, insertAction, pushHistoric } from "../services/api/ServiceStorage";
 import { ResponseExecuteAction } from "../services/api/Responses";
 import { useStoreCache } from "./StoreProviderCache";
 import { Optional } from "../types/Optional";
 import { CacheActionData } from "../interfaces/CacheActionData";
 import { useStoreSession } from "./StoreProviderSession";
 import { useStoreContext } from "./StoreProviderContext";
+import { useStoreRequests } from "./StoreProviderRequests";
+import { useAlert } from "../components/utils/alert/Alert";
+import { executeFormAction } from "../services/api/ServiceManager";
+import { EAlertCategory } from "../interfaces/AlertData";
 
 const TRIGGER_KEY_VIEW = "StoreProviderRequestViewTrigger";
 const TRIGGER_KEY_CACHE = "StoreProviderRequestCacheTrigger";
 const CACHE_KEY = "StoreProviderRequestCache";
+
+const VOID_FUNCTION = () => {};
 
 interface StoreProviderRequestType {
   initialHash: string;
@@ -23,6 +29,8 @@ interface StoreProviderRequestType {
   backup: ItemRequest;
   request: ItemRequest;
   response: ItemResponse;
+  waitingRequest: boolean;
+  cancelRequest: () => void;
   getRequest: () => Request;
   getResponse: () => Response;
   cleanRequest: ()=> void;
@@ -37,6 +45,7 @@ interface StoreProviderRequestType {
   updateCookie: (items: ItemStatusKeyValue[]) => void;
   updateBody: (body: ItemBody) => void;
   updateAuth: (auth: Auths) => void;
+  executeAction: () => Promise<void>;
   fetchRequest: (request: Request, parent?: string, context?: string) => Promise<void>;
   insertRequest: (req: Request, res?: Response) => Promise<ResponseExecuteAction>;
   isParentCached: (parent: string) => boolean;
@@ -53,6 +62,12 @@ interface Payload {
   backup: ItemRequest;
   request: ItemRequest;
   response: ItemResponse;
+  executionPromise: Optional<Promise<ResponseExecuteAction>>;
+}
+
+interface PayloadFectch {
+  waiting: boolean;
+  cancel: () => void;
 }
 
 const StoreRequest = createContext<StoreProviderRequestType | undefined>(undefined);
@@ -60,6 +75,10 @@ const StoreRequest = createContext<StoreProviderRequestType | undefined>(undefin
 export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { userData, pushTrigger } = useStoreSession();
   const { fetchContext } = useStoreContext();
+  const { getContext } = useStoreContext();
+  const { fetchAll } = useStoreRequests();
+
+  const { push } = useAlert();
 
   const { gather, search, exists, insert, excise, remove, length } = useStoreCache();
 
@@ -69,9 +88,14 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     parent: "",
     backup: newItemRequest(userData.username),
     request: newItemRequest(userData.username),
-    response: newItemResponse(userData.username)
+    response: newItemResponse(userData.username),
+    executionPromise: undefined,
   });
-  
+
+  const [dataFetch, setDataFetch] = useState<PayloadFectch>({
+    waiting: false,
+    cancel: VOID_FUNCTION
+  });
   
   useEffect(() => {
     pushTrigger(TRIGGER_KEY_VIEW, cleanRequest);
@@ -148,7 +172,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       if(oldRequest && oldRequest._id != newRequest._id) {
         remove(CACHE_KEY, oldRequest._id)
       }
-      
+
       return {
         ...prevData,
         initialHash: "",
@@ -156,7 +180,8 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
         parent: parent || "",
         backup: { ...backup },
         request: { ...newRequest },
-        response: { ...newResponse }
+        response: { ...newResponse },
+        executionPromise: undefined
       }
     });
     fetchContext(context, parent);
@@ -261,6 +286,54 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     }));
   };
 
+  const executeAction = async () => {
+    const req = getRequest();
+
+    const newReq = {...req};
+    if(newReq.name == "") {
+        const name = `temp-${req.method}-${req.timestamp}`;
+        newReq.name = name;
+    }
+
+    updateRequest(newReq);
+
+    let fetchResponse = executeFormAction(newReq, getContext());
+
+    setDataFetch(() => ({
+      waiting: true,
+      cancel: fetchResponse.cancel
+    }));
+
+    let apiResponse = await fetchResponse.promise.catch(e => {
+      if(e == undefined) {
+        return;
+      }
+      push({
+        title: `[${e.statusCode}] ${e.statusText}`,
+        category: EAlertCategory.ERRO,
+        content: e.message,
+      })
+    });
+
+    setDataFetch(() => ({
+      waiting: false,
+      cancel: VOID_FUNCTION
+    }));
+
+    if(!apiResponse) {
+        return;
+    }
+
+    updateRequest(newReq, apiResponse.response);
+
+    apiResponse = await pushHistoric(req, apiResponse.response);
+    
+    newReq._id = apiResponse.request._id;
+    updateRequest(newReq, apiResponse.response, req);
+
+    fetchAll();
+  };
+
   const fetchRequest = async (request: Request, parent?: string, context?: string) => {
     const cached: Optional<CacheActionData> = search(CACHE_KEY, request._id);
     if(cached != undefined) {
@@ -348,13 +421,16 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   return (
     <StoreRequest.Provider value={{ ...data, 
+      waitingRequest: dataFetch.waiting,
+      cancelRequest: dataFetch.cancel,
       getRequest, getResponse, cleanRequest,
       discardRequest, defineRequest, updateRequest,
       updateName, updateMethod, updateUri,
       updateQuery, updateHeader, updateCookie,
-      updateBody, updateAuth, fetchRequest,
-      insertRequest, processUri, isParentCached,
-      isCached, cacheComments, cacheLenght }}>
+      updateBody, updateAuth, executeAction,
+      fetchRequest, insertRequest, processUri,
+      isParentCached, isCached, cacheComments, 
+      cacheLenght }}>
       {children}
     </StoreRequest.Provider>
   );

@@ -4,15 +4,23 @@ import { Request } from "../../interfaces/request/Request";
 import { UserData } from "../../interfaces/UserData";
 import apiManager from "./ApiManager";
 import { RequestAuthentication, RequestLogin, RequestSignin } from "./Requests";
-import { ResponseExecuteAction } from "./Responses";
+import { ResponseExecuteAction, ResponseFetch } from "./Responses";
 
-export const executeFormAction = async (request: Request, context: Context): Promise<ResponseExecuteAction> => {
-  try {
-    const apiResponse = await apiManager.post(`/api/v1/action`, { request, context });
-    return apiResponse.data;
-  } catch (error) {
-    throw error;
-  }
+export const executeFormAction = (request: Request, context: Context): ResponseFetch<ResponseExecuteAction> => {
+  const controller = new AbortController();
+
+  const payload = { request, context };
+
+  const promise = apiManager.post(`/api/v1/action`, payload, { signal: controller.signal })
+    .then(response => response.data)
+    .catch(error => {
+      throw error;
+    });
+
+  return {
+    promise,
+    cancel: () => controller.abort(),
+  };
 };
 
 export const fetchLogin = async (username: string, password: string): Promise<UserData> => {

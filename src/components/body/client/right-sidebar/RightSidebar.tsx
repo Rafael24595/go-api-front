@@ -22,7 +22,7 @@ const CURSOR_KEY = "RightSidebarCursor";
 export function RightSidebar() {
     const { find, store } = useStoreStatus();
 
-    const { response } = useStoreRequest();
+    const { response, waitingRequest, cancelRequest } = useStoreRequest();
 
     const [cursor, setCursor] = useState<string>(
         find(CURSOR_KEY, {
@@ -74,6 +74,14 @@ export function RightSidebar() {
                 <label htmlFor="tag-right-sidebar-collection">Cookie {response.cookies.length > 0 && `(${response.cookies.length})`}</label>
             </div>
             <div id="response-container">
+                {waitingRequest && (
+                    <div id="cancel-container">
+                        <div id="cancel-buttons">
+                        <span className="loader-small"></span>
+                            <button type="button" className="button-anchor" onClick={cancelRequest}>Cancel</button>
+                        </div>
+                    </div>
+                )}
                 {cursor === VIEW_PAYLOAD && <PayloadColumn/>}
                 {cursor === VIEW_HEADER && <HeaderColumn/>}
                 {cursor === VIEW_COOKIE && <CookieColumn/>}

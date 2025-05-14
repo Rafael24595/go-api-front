@@ -32,7 +32,13 @@ export const pushInterceptor = (
 pushInterceptor(
   (response) => response,
   (error) => {
+    //TODO: Remove log.
     console.error("API Error:", error.response || error.message);
+
+    if(axios.isCancel(error)) {
+      return Promise.reject();
+    }
+
     return Promise.reject({
       statusCode: error.status,
       statusText: error.response.statusText,

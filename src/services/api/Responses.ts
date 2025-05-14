@@ -5,3 +5,8 @@ export interface ResponseExecuteAction {
     request: Request,
     response?: Response
 }
+
+export interface ResponseFetch<T> {
+    promise: Promise<T>;
+    cancel: () => void
+}
