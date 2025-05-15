@@ -44,7 +44,7 @@
     padding: 5px;
     background: var(--combo-color);
     box-shadow: 2px 2px 2px 0px var(--combo-shadow-color);
-    z-index: 10;
+    z-index: 1;
 }
 
 .options-menu button {
