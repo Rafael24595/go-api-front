@@ -133,7 +133,12 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
                     href={`https://${data.metadata.render_name}`} 
                     target="_blank" 
                     title="Go to Rafael24595's render project page">{ data.metadata.render_name }</a></p>
-                  <p><span className="system-data-title">Render version: </span> <span>{ data.metadata.render_version }</span></p>
+                  <p>
+                    <span className="system-data-title">Render version: </span> 
+                    {data.metadata.render_release != data.metadata.render_version && (
+                      <span className="replace-icon" title={`This dependency is not up to date; the latest version available is ${data.metadata.render_release}`}></span>
+                    )}
+                    <span>{ data.metadata.render_version }</span></p>
               </div>
             </div>
             {data.metadata.front_name != "" && data.metadata.front_version != "" && (
