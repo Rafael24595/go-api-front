@@ -407,6 +407,7 @@ button:hover {
 
 .gray-scale {
   filter: grayscale(1);
+  color: var(--border-selected-color);
 }
 
 
