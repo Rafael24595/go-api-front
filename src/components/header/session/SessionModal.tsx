@@ -353,16 +353,18 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     return (
         <Modal 
             buttons={loadButtons()}  
-            title={ 
+            titleCustom={ 
                 <div id="session-title-container">
                     <span className="select-none">{ loadTitle() }</span>
                     <button className={`toggle-theme-button ${ isDark() ? "off" : ""}`} onClick={toggleDefaultThemes} type="button"></button>
                 </div>
-             }
-            height="400px"
-            width="250px"
-            minHeight="350px"
-            minWidth="250px"
+            }
+            style={{
+               height: "400px",
+               width: "250px",
+               minHeight: "350px",
+               minWidth: "250px"
+            }}
             isOpen={isOpen} 
             onClose={onLocalClose}>
                 {loadView()}

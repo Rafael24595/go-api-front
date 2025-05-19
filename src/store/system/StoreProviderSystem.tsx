@@ -105,10 +105,12 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
             }
           }
         ]}
-        title={
+        titleCustom={
           <span>System metadata</span>
         }
-        width="800px"
+        style={{
+          width: "800px"
+        }}
         isOpen={data.isOpen}
         onClose={closeModal}>
         <>

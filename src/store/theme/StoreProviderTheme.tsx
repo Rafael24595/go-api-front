@@ -460,11 +460,13 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
             }
           }
         ]}
-        title={
+        titleCustom={
           <span>Manage themes</span>
         }
-        width="800px"
-        height="530px"
+        style={{
+          width: "800px",
+          height: "530px"
+        }}
         isOpen={modalData.isOpen}
         onClose={closeModal}>
         <div id="form-group">
