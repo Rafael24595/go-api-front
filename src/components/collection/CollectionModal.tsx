@@ -81,11 +81,15 @@ export function CollectionModal({ isOpen, request, onSubmit, onClose }: Collecti
                     }
                 }
             ]}  
-            title={
+            titleCustom={
                 <span>Add to Collection</span>
             }
-            width="45%"
-            height="40%"
+            style={{
+                width:"45%",
+                height: "40%",
+                maxWidth: "700px",
+                maxHeight: "400px"
+            }}
             isOpen={isOpen} 
             onClose={onClose}>
                 <div id="form-group">

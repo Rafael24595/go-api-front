@@ -3,19 +3,15 @@ import { ModalButton } from '../../../interfaces/ModalButton';
 
 import './Modal.css';
 
-interface ModalProps {
-    title?: string | ReactNode
-    width?: string
-    height?: string
-    minWidth?: string
-    minHeight?: string
+interface ModalProps extends React.HTMLAttributes<HTMLFormElement> {
+    titleCustom?: string | ReactNode
     isOpen: boolean,
     onClose: () => void,
     children: ReactNode
     buttons?: ModalButton[]
 }
 
-export function Modal({ title, height, width, minHeight, minWidth, isOpen, onClose, children, buttons }: ModalProps) {
+export function Modal({ titleCustom, isOpen, onClose, children, buttons, ...rest }: ModalProps) {
     if (!isOpen) {
         return null;
     }
@@ -32,15 +28,19 @@ export function Modal({ title, height, width, minHeight, minWidth, isOpen, onClo
   
     return (
       <div id="modal-area" onClick={handleBackgroundClick}>
-        <form id="modal-container" style={{ 
-            height: height ? height : "auto", 
-            width: width ? width : "",
-            minHeight: minHeight ? minHeight : "300px",
-            minWidth: minWidth ? minWidth : "500px",
-          }} onSubmit={handleSubmit}>
-          {title && (
+        <form id="modal-container"
+          {...rest}
+          style= {{
+            ...rest.style,
+            height: rest.style?.height ? rest.style.height : "auto", 
+            width: rest.style?.width ? rest.style.width : "",
+            minHeight: rest.style?.minHeight ? rest.style.minHeight : "300px",
+            minWidth: rest.style?.minWidth ? rest.style.minWidth : "500px",
+          }}
+          onSubmit={handleSubmit}>
+          {titleCustom && (
             <div id="modal-title" className="border-bottom">
-              <h3>{ title }</h3>
+              <h3>{ titleCustom }</h3>
           </div>
           )}
           <div id="modal-content">

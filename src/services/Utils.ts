@@ -8,9 +8,12 @@ import SHA256 from "crypto-js/sha256";
     if (!window.isSecureContext || !window.crypto?.subtle) {
         console.warn("Falling back to crypto-js (insecure hash, use HTTPS if possible)");
     }
+     if (!navigator.clipboard) {
+        console.warn("Falling back to execCommand (insecure copy to clipboard, use HTTPS if possible)");
+    }
 })()
 
-export function detachStatusKeyValue(dict: Dict<StatusValue[]>): StatusKeyValue[] {
+export const detachStatusKeyValue = (dict: Dict<StatusValue[]>): StatusKeyValue[] => {
     const vector: StatusKeyValue[] = [];
     if(dict == undefined) {
         return vector;
@@ -29,7 +32,7 @@ export function detachStatusKeyValue(dict: Dict<StatusValue[]>): StatusKeyValue[
     return vector;
 }
 
-export function collectStatusKeyValue(dict: Dict<StatusValue>): StatusKeyValue[] {
+export const collectStatusKeyValue = (dict: Dict<StatusValue>): StatusKeyValue[] => {
     const vector: StatusKeyValue[] = [];
     if(dict == undefined) {
         return vector;
@@ -78,7 +81,7 @@ export const joinStatusKeyValue = (newValues: StatusKeyValue[]): Dict<StatusValu
     return merge;
 }
 
-export function detachStatusCategoryKeyValue(dict: Dict<Dict<PrivateStatusValue>>): StatusCategoryKeyValue[] {
+export const detachStatusCategoryKeyValue = (dict: Dict<Dict<PrivateStatusValue>>): StatusCategoryKeyValue[] => {
     const vector: StatusCategoryKeyValue[] = [];
     if(dict == undefined) {
         return vector;
@@ -131,7 +134,7 @@ export const mergeStatusCategoryKeyValueAsItem = (newValues: ItemStatusCategoryK
     return merge;
 }
 
-export async function generateHash(obj: any) {
+export const generateHash = async (obj: any) => {
     const sortedObj = deepSort(obj);
 
     const str = JSON.stringify(sortedObj);
@@ -148,7 +151,7 @@ export async function generateHash(obj: any) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-function deepSort(obj: any): any {
+const deepSort = (obj: any): any => {
     if(obj === null) {
         return obj;
     } else if (Array.isArray(obj)) {
@@ -185,4 +188,41 @@ export const downloadFile = (name: string, data: any) => {
     a.download = name;
     a.click();
     URL.revokeObjectURL(url);
-  };
+};
+
+export const copyTextToClipboard = (text: string, onSuccess?: () => void, onError?: (err: any) => void) => {
+  if (!navigator.clipboard) {
+    return fallbackCopyTextToClipboard(text, onSuccess, onError);
+  }
+  
+  navigator.clipboard.writeText(text).then(
+    onSuccess,
+    onError
+  );
+}
+
+const fallbackCopyTextToClipboard = (text: string, onSuccess?: () => void, onError?: (err: any) => void) => {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+
+  try {
+    const successful = document.execCommand("copy");
+    const msg = successful ? "successful" : "unsuccessful";
+    if(!onSuccess) {
+        console.log("Fallback: Copying text command was " + msg);
+    } else {
+        onSuccess();
+    }
+  } catch (err) {
+    if(!onError) {
+        console.error("Fallback: Oops, unable to copy", err);
+    } else {
+        onError(err);
+    }
+  }
+
+  document.body.removeChild(textArea);
+}

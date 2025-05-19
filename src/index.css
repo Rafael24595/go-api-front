@@ -365,6 +365,21 @@ button:hover {
   background-color: transparent;
 }
 
+.button-paragraph {
+  font-weight: normal;
+  font-size: 0.95em;
+  text-align: left;
+  border: 0px;
+  padding: 0px;
+  cursor: pointer;
+  background-color: transparent;
+  user-select: auto;
+}
+
+.button-paragraph:hover {
+  background-color: transparent;
+}
+
 .button-div {
   background-color: transparent;
   border: 0px;
@@ -407,6 +422,7 @@ button:hover {
 
 .gray-scale {
   filter: grayscale(1);
+  color: var(--border-selected-color);
 }
 
 

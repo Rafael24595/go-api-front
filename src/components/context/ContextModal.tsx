@@ -395,7 +395,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                     }
                 }
             ]}  
-            title={
+            titleCustom={
                 <span id="context-title-container">
                     <span>{translateDomain(context.domain)} Context</span>
                     <div className={`button-modified-container ${ initialHash != actualHash ? "visible" : "" }`}>
@@ -421,8 +421,12 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                     </div>
                 </span>
             }
-            width="70%"
-            height="80%"
+            style={{
+                width: "70%",
+                height: "80%",
+                maxWidth: "1100px",
+                maxHeight: "750px"
+            }}
             isOpen={isOpen} 
             onClose={onClose}>
                 <div id="preview-title" className="border-bottom">

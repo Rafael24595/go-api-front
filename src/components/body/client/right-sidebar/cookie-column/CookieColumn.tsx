@@ -1,10 +1,28 @@
+import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { cookieToString } from '../../../../../interfaces/response/Response';
+import { copyTextToClipboard } from '../../../../../services/Utils';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
+import { useAlert } from '../../../../utils/alert/Alert';
 
-import './CookieColumn.css'
+import './CookieColumn.css';
 
 export function CookieColumn() {
     const { response } = useStoreRequest();
+
+    const { push } = useAlert();
+    
+    const copyCookieToClipboard = (text: string) => {
+        copyTextToClipboard(text, 
+            () => push({
+                    category: EAlertCategory.INFO,
+                    content: "The cookie content has been copied to the clipboard"
+                }),
+            (err) => push({
+                    category: EAlertCategory.ERRO,
+                    content:`The cookie content could not be copied to the clipboard: ${err.message}`
+                }),
+        );
+    }
 
     return (
         <>
@@ -21,7 +39,12 @@ export function CookieColumn() {
                                     { cookie.code }
                                 </td>
                                 <td>
-                                    { cookieToString(cookie) }
+                                    <button 
+                                        className="button-paragraph" 
+                                        type="button" 
+                                        onClick={() => copyCookieToClipboard(cookie.value)}>
+                                            { cookieToString(cookie) }
+                                    </button>
                                 </td>
                             </tr>
                         ))}

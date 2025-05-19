@@ -164,11 +164,15 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
                     }
                 }
             ]}  
-            title={
+            titleCustom={
                 <span>Upload an OpenAPI File</span>
             }
-            width="50%"
-            height="45%"
+            style={{
+                width:"50%",
+                height: "45%",
+                maxWidth: "800px",
+                maxHeight: "450px"
+            }}
             isOpen={isOpen} 
             onClose={localClose}>
                 <div id="openapi-selector-container">
