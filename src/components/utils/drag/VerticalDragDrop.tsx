@@ -179,7 +179,15 @@ export const VerticalDragDrop = <T, K>({ items, parameters, emptyTemplate, befor
         if(!isCursor(index) || draggingPosition == null) {
             return 0;
         }
-        return draggingPosition - 20; // TODO: Fix position.
+
+        if (!containerRef.current || !dragItemRef.current) {
+             return draggingPosition - 20;
+        }
+
+        const current = containerRef.current.children[dragItemRef.current.index] as HTMLElement;
+        const middle = current.getBoundingClientRect().height / 2;
+        
+        return draggingPosition - middle;
     }
 
     const isLandPosition = (index: number) => {
