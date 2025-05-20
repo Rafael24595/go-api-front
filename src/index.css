@@ -94,8 +94,12 @@ input, textarea, select {
   color: var(--body-text-color);
   border: 1px solid var(--button-border-color);
   background-color: var(--input-color);
+}
+
+select {
   cursor: pointer;
 }
+
 
 input:focus, textarea:focus, select:focus {
   outline-width: 0px;
