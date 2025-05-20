@@ -347,8 +347,8 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   const insertRequest = async (req: Request, res?: Response): Promise<ResponseExecuteAction> => {
     if(req.status == "draft") {
-        const name = prompt("Insert a name: ");
-        if(name == null) {
+        const name = prompt("Insert a name: ", req.name);
+        if(name == null && name != req.name) {
             return {
               request: req,
               response: res

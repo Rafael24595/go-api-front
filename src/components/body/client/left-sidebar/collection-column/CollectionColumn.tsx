@@ -97,8 +97,8 @@ export function CollectionColumn() {
     }
 
     const renameCollection = async (collection: ItemCollection) => {
-        const name = prompt("Insert a name: ");
-        if(name == null) {
+        const name = prompt("Insert a name: ", collection.name);
+        if(name == null && name != collection.name) {
             return;
         }
 
@@ -109,8 +109,8 @@ export function CollectionColumn() {
     };
 
     const renameFromCollection = async (request: Request) => {
-        const name = prompt("Insert a name: ");
-        if(name == null) {
+        const name = prompt("Insert a name: ", request.name);
+        if(name == null && name != request.name) {
             return;
         }
         request.name = name;
@@ -119,7 +119,7 @@ export function CollectionColumn() {
     };
 
     const clone = async (collection: ItemCollection) => {
-        const name = prompt("Insert a name: ");
+        const name = prompt("Insert a name: ", `${collection.name}-copy`);
         if(name == null) {
             return;
         }            
