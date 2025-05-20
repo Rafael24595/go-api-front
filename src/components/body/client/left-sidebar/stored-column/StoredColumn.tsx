@@ -78,8 +78,8 @@ export function StoredColumn() {
     };
 
     const renameStored = async (request: Request) => {
-        const name = prompt("Insert a name: ");
-        if(name == null) {
+        const name = prompt("Insert a name: ", request.name);
+        if(name == null && name != request.name) {
             return;
         }
         request.name = name;
