@@ -4,6 +4,7 @@ import xml from 'highlight.js/lib/languages/xml';
 import { JsonView } from './json-view/JsonView';
 import { TextView } from './text-view/TextView';
 import { HtmlView } from './html-view/HtmlView';
+import { XmlView } from './xml-view/XmlView';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useEffect, useState } from 'react';
@@ -91,7 +92,8 @@ export function PayloadColumn() {
                 <div id="response-content-bytes" className="grid">
                     {cusorIs(VIEW_TEXT) && <TextView value={response.body.payload}/>}
                     {cusorIs(VIEW_JSON) && <JsonView value={response.body.payload}/>}
-                    {(cusorIs(VIEW_HTML) || cusorIs(VIEW_XML)) && <HtmlView value={response.body.payload}/>}
+                    {cusorIs(VIEW_XML) && <XmlView value={response.body.payload}/>}
+                    {cusorIs(VIEW_HTML) && <HtmlView value={response.body.payload}/>}
                 </div>
             </div>
         </>
@@ -111,7 +113,7 @@ function viewParse(view: string): string {
         case VIEW_JSON:
             return "Json"
         case VIEW_XML:
-            return "Xtml"
+            return "Xml"
         case VIEW_HTML:
             return "Html"
         default:
