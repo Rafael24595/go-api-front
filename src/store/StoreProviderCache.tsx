@@ -25,7 +25,6 @@ export const StoreProviderCache: React.FC<{ children: ReactNode }> = ({ children
     });
 
     const gather = <T,>(category: string): T[] => {
-      console.log(category, data.cache);
       if(data.cache[category] == undefined) {
         return []
       }

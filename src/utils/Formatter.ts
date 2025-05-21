@@ -24,3 +24,12 @@ export const formatHtml = async(text?: string) => {
         plugins: [htmlParser],
     });
 }
+
+//TODO: Use a real parser.
+export const formatXml = async(text?: string) => {
+    text = (text || "").replace(/></g, '> <');
+    return await prettier.format(text, {
+        parser: 'html',
+        plugins: [htmlParser],
+    });
+}
