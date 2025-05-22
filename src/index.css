@@ -435,6 +435,10 @@ button:hover {
   background-color: var(--input-color) !important;
 }
 
+.cm-tooltip {
+  background-color: var(--border-color) !important;
+}
+
 .cm-gutters {
   background-color: var(--button-color) !important;
   color: var(--body-text-color) !important;

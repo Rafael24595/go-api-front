@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import CodeMirror, { EditorState } from "@uiw/react-codemirror";
-import { html, } from "@codemirror/lang-html";
-import { lintGutter } from "@codemirror/lint";
-import { formatXml } from "../../../../../../utils/Formatter";
+import { xml } from "@codemirror/lang-xml";
+import { linter, lintGutter } from "@codemirror/lint";
+import { formatXml, xmlLinter } from "../../../../../../utils/Formatter";
 
 import './XmlView.css'
 
@@ -28,7 +28,8 @@ export function XmlView({ value }: XmlViewProps) {
         value={data}
         height="100%"
         extensions={[
-          html(), 
+          xml(), 
+          linter(xmlLinter()),
           lintGutter(), 
           EditorState.readOnly.of(true)]}
         theme="light"
