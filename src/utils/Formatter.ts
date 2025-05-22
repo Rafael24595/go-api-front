@@ -3,6 +3,8 @@ import * as prettier from 'prettier/standalone';
 import * as babelParser from 'prettier/plugins/babel';
 import * as htmlParser from 'prettier/parser-html';
 import prettierEstreePlugin  from 'prettier/plugins/estree';
+import { EditorView } from '@uiw/react-codemirror';
+import { Diagnostic } from '@codemirror/lint';
 
 export const formatJson = async (text?: string) => {
     try {
@@ -33,3 +35,32 @@ export const formatXml = async(text?: string) => {
         plugins: [htmlParser],
     });
 }
+
+export const xmlLinter = () => (view: EditorView): Diagnostic[] => {
+    const diagnostics: Diagnostic[] = [];
+    const xmlText = view.state.doc.toString();
+
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(xmlText, "application/xml");
+        const error = doc.querySelector("parsererror");
+
+        if (error) {
+            diagnostics.push({
+                from: 0,
+                to: xmlText.length,
+                severity: "error",
+                message: error.textContent || "Invalid XML",
+            });
+        }
+    } catch (e: any) {
+        diagnostics.push({
+            from: 0,
+            to: xmlText.length,
+            severity: "error",
+            message: e.message || "Unknown XML error",
+        });
+    }
+
+    return diagnostics;
+};

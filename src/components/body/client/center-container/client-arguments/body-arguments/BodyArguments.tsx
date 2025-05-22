@@ -3,9 +3,10 @@ import { TextData } from './text/TextData';
 import { ItemBody, ItemBodyParameter, orderItemBodyParameter } from '../../../../../../interfaces/request/Request';
 import { JsonData } from './json/JsonData';
 import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
-import { formatJson } from '../../../../../../utils/Formatter';
+import { formatJson, formatXml } from '../../../../../../utils/Formatter';
 import { FormData } from './form-data/FormData';
 import { Dict } from '../../../../../../types/Dict';
+import { XmlData } from './xml/XmlData';
 
 import './BodyArguments.css';
 
@@ -14,6 +15,7 @@ export const PAYLOAD_PARAM = "payload";
 export const FORM_DATA_PARAM = "form-data";
 
 const VIEW_TEXT = "text";
+const VIEW_XML = "xml";
 const VIEW_JSON = "json";
 const VIEW_FORM = "form";
 
@@ -130,6 +132,10 @@ export function BodyArguments() {
         if(data.cursor == VIEW_JSON) {
             document.value = await formatJson(document.value);
         }
+
+        if(data.cursor == VIEW_XML) {
+            document.value = await formatXml(document.value);
+        }
            
         setData((prevData) => { 
             const newData = {
@@ -160,6 +166,11 @@ export function BodyArguments() {
                         value={VIEW_TEXT} 
                         onChange={cursorChange}/>
                     <label htmlFor="tag-body-text">Text</label>
+                    <input type="radio" id="tag-body-xml" className="client-tag" name="cursor-body" 
+                        checked={data.cursor === VIEW_XML} 
+                        value={VIEW_XML}
+                        onChange={cursorChange}/>
+                    <label htmlFor="tag-body-xml">Xml</label>
                     <input type="radio" id="tag-body-json" className="client-tag" name="cursor-body" 
                         checked={data.cursor === VIEW_JSON} 
                         value={VIEW_JSON} 
@@ -171,13 +182,14 @@ export function BodyArguments() {
                         onChange={cursorChange}/>
                     <label htmlFor="tag-body-form">Form</label>
                     </div>
-                    {data.cursor === VIEW_JSON && (
+                    {data.cursor === VIEW_JSON || data.cursor === VIEW_XML && (
                         <div>
                             <button type="button" className="button-tag" onClick={formatPayload}>Format</button>
                         </div>
                     )}
                 </div>
                 {data.cursor === VIEW_TEXT && <TextData onValueChange={documentChange}/>}
+                {data.cursor === VIEW_XML && <XmlData onValueChange={documentChange}/>}
                 {data.cursor === VIEW_JSON && <JsonData onValueChange={documentChange}/>}
                 {data.cursor === VIEW_FORM && <FormData onValueChange={formDataChange}/>}
             </div>
