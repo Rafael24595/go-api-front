@@ -86,17 +86,29 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     executeTriggers(userData);
   };
 
-  const fetchUser = async () => {
-    const userData = await fetchUserData();
-    setData(prevData => ({
-      ...prevData,
-      userData: userData,
-      loaded: true
-    }));
+  const fetchUser = async (intent?: number) => {
+    await fetchUserData()
+      .then((userData) => {
+        setData(prevData => {
+          if (userData.username != prevData.userData.username) {
+            executeTriggers(userData, prevData.triggers);
+          }
+          return {
+            ...prevData,
+            userData: userData,
+            loaded: true
+          }
+        });
+      }).catch((e) => {
+        if(intent == undefined && e != undefined && e.statusCode == 401) {
+          fetchUser(1);
+        }
+      });
   };
 
-  const executeTriggers = (userData: UserData) => {
-    Object.values(data.triggers).forEach(f => f(userData));
+  const executeTriggers = (userData: UserData, triggers?: Dict<Trigger>) => {
+    triggers = triggers == undefined ? data.triggers : triggers;
+    Object.values(triggers).forEach(f => f(userData));
   };
 
   const pushTrigger = async (key: string, trigger: Trigger) => {
