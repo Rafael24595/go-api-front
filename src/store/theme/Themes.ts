@@ -1266,6 +1266,43 @@ export const Themes: IThemes = {
             "landing-area-color": "#fff6f9"
         }
     },
+        paprika: {
+        code: "paprika",
+        description: "Paprika D",
+        theme: {
+            "body-color": "#FFF5E1",
+            "body-text-color": "#5C0000",
+            "header-color": "#FF9248",
+            "header-text-color": "#FFFFFF",
+            "border-color": "#FFA500",
+            "border-selected-color": "#FFD700",
+            "input-color": "#FFE5B4",
+            "option-disabled-color": "#FFDAB9",
+            "option-selected-color": "#FFB347",
+            "button-color": "#FF775E",
+            "button-border-color": "#E25822",
+            "button-hover-color": "#FF4500",
+            "button-delete-color": "#D7263D",
+            "modal-color": "#FFF3CD",
+            "modal-button-color": "#FF8C42",
+            "modal-border-color": "#FFA07A",
+            "combo-color": "#FFE4B5",
+            "combo-hover-color": "#FFDEAD",
+            "combo-shadow-color": "#F4A460",
+            "selected-gutter": "#FFAD60",
+            "selected-line": "#FFD580",
+            "string-color": "#FF6B6B",
+            "number-color": "#FFA500",
+            "boolean-color": "#FFD700",
+            "undefined-color": "#E57373",
+            "tag-color": "#FFB347",
+            "scrollbar-track-color": "#FFF5E1",
+            "scrollbar-color": "#FF8C00",
+            "scrollbar-hover-color": "#FF4500",
+            "landing-area-color": "#FFFACD"
+        }
+
+    },
     honey: {
         code: "honey",
         description: "Honey NoCode",
