@@ -13,7 +13,7 @@ export interface Collection {
 
 export interface Node {
     order: number;
-    request: string;
+    item: string;
 }
 
 export interface ItemCollection {
@@ -64,8 +64,9 @@ export const toCollection = (collection: ItemCollection): Collection => {
   const nodes = collection.nodes
     .map(n => {return {
       order: n.order, 
-      request: n.request._id || ""}
-    });
+      item: n.request._id
+    }
+  });
   return {
     _id: collection._id,
     name: collection.name,

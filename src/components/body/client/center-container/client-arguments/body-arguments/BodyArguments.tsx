@@ -182,7 +182,7 @@ export function BodyArguments() {
                         onChange={cursorChange}/>
                     <label htmlFor="tag-body-form">Form</label>
                     </div>
-                    {data.cursor === VIEW_JSON || data.cursor === VIEW_XML && (
+                    {(data.cursor === VIEW_JSON || data.cursor === VIEW_XML) && (
                         <div>
                             <button type="button" className="button-tag" onClick={formatPayload}>Format</button>
                         </div>

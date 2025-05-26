@@ -18,6 +18,12 @@ export const Combo = ({ custom, asSelect, selected, options }: OptionsMenuProps)
   const boxRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         menuRef.current &&
@@ -27,8 +33,14 @@ export const Combo = ({ custom, asSelect, selected, options }: OptionsMenuProps)
         setIsOpen(false);
       }
     };
+
+     document.addEventListener("keydown", handleEsc);
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("keydown", handleEsc);
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
   }, []);
 
   useEffect(() => {
