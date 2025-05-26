@@ -37,7 +37,7 @@ export function PayloadColumn() {
         });
         const format = autoFormat 
             ? detectLang(response.body.payload) 
-            : VIEW_TEXT;
+            : response.body.content_type;
         return {
             autoFormat,
             format
@@ -60,7 +60,7 @@ export function PayloadColumn() {
     const updateFormat = (autoFormat: boolean) => {
         const format = autoFormat 
             ? detectLang(response.body.payload) 
-            : VIEW_TEXT;
+            : response.body.content_type;
         setData((prevData) => ({
             ...prevData,
             format
@@ -104,7 +104,7 @@ hljs.registerLanguage('json', json);
 hljs.registerLanguage('xml', xml);
 
 function detectLang(code: string) {
-  const result = hljs.highlightAuto(code, ['json', 'xml']);
+  const result = hljs.highlightAuto(code, ['json', 'html', 'xml']);
   return result.language || VIEW_TEXT;
 }
 
