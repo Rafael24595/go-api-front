@@ -34,6 +34,11 @@
     padding-right: 10px;
 }
 
+#client-button-send:disabled {
+    cursor: auto;
+    background-color: var(--button-hover-color);
+}
+
 .client-bar-component {
     box-sizing: border-box;
     border: 1px solid var(--button-border-color);

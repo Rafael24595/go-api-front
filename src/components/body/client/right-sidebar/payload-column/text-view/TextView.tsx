@@ -7,21 +7,21 @@ interface TextViewProps {
   value?: string;
 }
 
-export function TextView({value}: TextViewProps) {
-    const data: string = value ? value : "";
+export function TextView({ value }: TextViewProps) {
+  const data: string = value ? value : "";
 
-    return (
-        <>
-            <CodeMirror
-                value={data}
-                height="100%"
-                width="100%"
-                extensions={[
-                  lintGutter(), 
-                  EditorState.readOnly.of(true)
-                ]}
-                theme="light"
-            />
-        </>
-    )
+  return (
+    <>
+      <CodeMirror
+        value={data}
+        height="100%"
+        width="100%"
+        extensions={[
+          lintGutter(),
+          EditorState.readOnly.of(true)
+        ]}
+        theme="light"
+      />
+    </>
+  )
 }
