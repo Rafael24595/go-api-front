@@ -28,9 +28,9 @@ export function XmlView({ value }: XmlViewProps) {
         value={data}
         height="100%"
         extensions={[
-          xml(), 
+          xml(),
           linter(xmlLinter()),
-          lintGutter(), 
+          lintGutter(),
           EditorState.readOnly.of(true)]}
         theme="light"
       />

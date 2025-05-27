@@ -28,8 +28,8 @@ export function HtmlView({ value }: HtmlViewProps) {
         value={data}
         height="100%"
         extensions={[
-          html(), 
-          lintGutter(), 
+          html(),
+          lintGutter(),
           EditorState.readOnly.of(true)]}
         theme="light"
       />
