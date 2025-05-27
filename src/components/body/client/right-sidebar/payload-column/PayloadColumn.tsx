@@ -8,6 +8,10 @@ import { XmlView } from './xml-view/XmlView';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useEffect, useState } from 'react';
+import { copyTextToClipboard } from '../../../../../services/Utils';
+import { useAlert } from '../../../../utils/alert/Alert';
+import { EAlertCategory } from '../../../../../interfaces/AlertData';
+import { formatHtml, formatJson, formatXml } from '../../../../../utils/Formatter';
 
 import './PayloadColumn.css';
 
@@ -28,6 +32,8 @@ interface Payload {
 export function PayloadColumn() {
     const { findOrDefault, store } = useStoreStatus();
     
+    const { push } = useAlert();
+
     const { response } = useStoreRequest();
 
     const [data, setData] = useState<Payload>(() => {
@@ -47,6 +53,42 @@ export function PayloadColumn() {
     useEffect(() => {
         updateFormat(data.autoFormat);
     }, [response.body.payload]);
+
+    const copyPayloadToClipboard = async (text: string) => {
+        text = await format(text);
+        copyTextToClipboard(text, 
+            () => push({
+                    category: EAlertCategory.INFO,
+                    content: "The payload content has been copied to the clipboard"
+                }),
+            (err) => push({
+                    category: EAlertCategory.ERRO,
+                    content:`The payload content could not be copied to the clipboard: ${err.message}`
+                }),
+        );
+    }
+
+    const format = async (text: string) => {
+        if(cusorIs(VIEW_TEXT)) {
+            return await formatHtml(text);
+        }
+        
+        try {
+            if(cusorIs(VIEW_JSON)) {
+                return await formatJson(text);
+            }
+            if(cusorIs(VIEW_XML)) {
+                return await formatXml(text);
+            }
+            if(cusorIs(VIEW_HTML)) {
+                return await formatHtml(text);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+        
+        return text;
+    }
 
     const autoFormatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateFormat(e.target.checked);
@@ -90,6 +132,10 @@ export function PayloadColumn() {
                     <span className="select-none">{ viewParse(response.body.content_type) }</span>
                 </div>
                 <div id="response-content-bytes" className="grid">
+                    <button 
+                        className="clipboard-button" 
+                        type="button" 
+                        onClick={() => copyPayloadToClipboard(response.body.payload)}></button>
                     {cusorIs(VIEW_TEXT) && <TextView value={response.body.payload}/>}
                     {cusorIs(VIEW_JSON) && <JsonView value={response.body.payload}/>}
                     {cusorIs(VIEW_XML) && <XmlView value={response.body.payload}/>}
