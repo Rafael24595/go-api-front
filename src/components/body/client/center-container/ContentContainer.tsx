@@ -8,7 +8,7 @@ import { Combo } from "../../../utils/combo/Combo";
 import './ContentContainer.css';
 
 export function ContentContainer() {
-    const { initialHash, actualHash, request, parent, getRequest, getResponse, discardRequest, defineRequest, updateUri, executeAction, insertRequest } = useStoreRequest();
+    const { initialHash, actualHash, request, parent, waitingRequest, getRequest, getResponse, discardRequest, defineRequest, updateUri, executeAction, insertRequest } = useStoreRequest();
     const { fetchAll } = useStoreRequests();
 
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +40,7 @@ export function ContentContainer() {
                 <div id="client-bar">
                     <MethodSelector/>
                     <input id="url" className="client-bar-component section-header-element" name="url" type="text" onChange={urlChange} value={request.uri} placeholder="Url"/>
-                    <button id="client-button-send" className="client-bar-component section-header-element" onClick={executeAction}>Send</button>
+                    <button id="client-button-send" className="client-bar-component section-header-element" onClick={executeAction} disabled={waitingRequest}>Send</button>
                 </div>
                 <div id="client-content">
                     <ParameterSelector/>

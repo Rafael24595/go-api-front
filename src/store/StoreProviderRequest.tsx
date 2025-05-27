@@ -167,7 +167,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const defineRequestData = (backup: ItemRequest, newRequest: ItemRequest, newResponse?: ItemResponse, parent?: string, context?: string, oldRequest?: Request) => {
     newResponse = !newResponse ? newItemResponse(userData.username) : newResponse;
 
-    evalueCancelRequest(newRequest, oldRequest);
+    evalueCancelRequest(newRequest);
 
     setData(prevData => {
       if(oldRequest && oldRequest._id != newRequest._id) {
@@ -191,7 +191,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     const itemRequest = fromRequest(newRequest);
     const itemResponse = newResponse ? fromResponse(newResponse) : newItemResponse(userData.username);
 
-    evalueCancelRequest(itemRequest, oldRequest);
+    evalueCancelRequest(itemRequest);
     
     setData(prevData => {   
       if(oldRequest && oldRequest._id != newRequest._id) {
@@ -208,8 +208,8 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     });
   }
 
-  const evalueCancelRequest = (newRequest: ItemRequest, oldRequest?: Request): boolean => {
-    if(oldRequest && oldRequest._id == newRequest._id) {
+  const evalueCancelRequest = (newRequest: ItemRequest): boolean => {
+    if(data.request._id == newRequest._id) {
       return false;
     }
 
@@ -361,12 +361,16 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const fetchRequest = async (request: Request, parent?: string, context?: string) => {
     const cached: Optional<CacheActionData> = search(CACHE_KEY, request._id);
     if(cached != undefined) {
-      defineRequestData(cached.backup, cached.request, cached.response, cached.parent, context);
+      const loadResponse = dataFetch.waiting && data.request._id == cached.request._id;
+      const response = loadResponse ? undefined : cached.response;
+      defineRequestData(cached.backup, cached.request, response, cached.parent, context);
       return;
     }
     
     const apiResponse = await findAction(request);
-    defineRequestFromRequest(apiResponse.request, apiResponse.response, parent, context);
+    const loadResponse = dataFetch.waiting && data.request._id == apiResponse.request._id;
+    const response = loadResponse ? undefined : apiResponse.response;
+    defineRequestFromRequest(apiResponse.request, response, parent, context);
   }
 
   const insertRequest = async (req: Request, res?: Response): Promise<ResponseExecuteAction> => {
