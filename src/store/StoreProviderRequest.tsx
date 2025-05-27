@@ -62,7 +62,6 @@ interface Payload {
   backup: ItemRequest;
   request: ItemRequest;
   response: ItemResponse;
-  executionPromise: Optional<Promise<ResponseExecuteAction>>;
 }
 
 interface PayloadFectch {
@@ -89,7 +88,6 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     backup: newItemRequest(userData.username),
     request: newItemRequest(userData.username),
     response: newItemResponse(userData.username),
-    executionPromise: undefined,
   });
 
   const [dataFetch, setDataFetch] = useState<PayloadFectch>({
@@ -168,9 +166,12 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   const defineRequestData = (backup: ItemRequest, newRequest: ItemRequest, newResponse?: ItemResponse, parent?: string, context?: string, oldRequest?: Request) => {
     newResponse = !newResponse ? newItemResponse(userData.username) : newResponse;
+
+    evalueCancelRequest(newRequest, oldRequest);
+
     setData(prevData => {
       if(oldRequest && oldRequest._id != newRequest._id) {
-        remove(CACHE_KEY, oldRequest._id)
+        remove(CACHE_KEY, oldRequest._id);
       }
 
       return {
@@ -181,7 +182,6 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
         backup: { ...backup },
         request: { ...newRequest },
         response: { ...newResponse },
-        executionPromise: undefined
       }
     });
     fetchContext(context, parent);
@@ -190,10 +190,12 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const updateRequest = (newRequest: Request, newResponse?: Response, oldRequest?: Request) => {
     const itemRequest = fromRequest(newRequest);
     const itemResponse = newResponse ? fromResponse(newResponse) : newItemResponse(userData.username);
+
+    evalueCancelRequest(itemRequest, oldRequest);
     
     setData(prevData => {   
       if(oldRequest && oldRequest._id != newRequest._id) {
-        remove(CACHE_KEY, oldRequest._id)
+        remove(CACHE_KEY, oldRequest._id);
       }
 
       return {
@@ -204,6 +206,28 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
         response: itemResponse
       }
     });
+  }
+
+  const evalueCancelRequest = (newRequest: ItemRequest, oldRequest?: Request): boolean => {
+    if(oldRequest && oldRequest._id == newRequest._id) {
+      return false;
+    }
+
+    dataFetch.cancel();
+
+    setDataFetch(() => ({
+      waiting: false,
+      cancel: VOID_FUNCTION
+    }));
+
+    if(dataFetch.waiting) {
+      push({
+        category: EAlertCategory.WARN,
+        content: "Request cancelled"
+      });
+    }
+
+    return true;
   }
 
   const updateName = (name: string) => {
