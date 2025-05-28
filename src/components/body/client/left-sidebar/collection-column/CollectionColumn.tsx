@@ -51,7 +51,7 @@ export function CollectionColumn() {
     const { find, findOrDefault, store } = useStoreStatus();
 
     const context = useStoreContext();
-    const { parent, request, cleanRequest, defineRequest, fetchRequest, isParentCached, isCached } = useStoreRequest();
+    const { parent, request, cleanRequest, defineFreeRequest, fetchGroupRequest, isParentCached, isCached } = useStoreRequest();
     const { collection, fetchStored, fetchCollection, updateCollectionsOrder, updateCollectionRequestsOrder } = useStoreRequests();
 
     const { push } = useAlert();
@@ -165,14 +165,14 @@ export function CollectionColumn() {
 
     const defineCollectionRequest = async (collection: ItemCollection, request: Request) => {
         const context = fromContext(collection.context);
-        fetchRequest(request, collection._id, context._id);
+        fetchGroupRequest(collection._id, context._id, request);
     }
 
     const cloneFromCollection = (request: Request) => {
         const newRequest = {...request};
         newRequest._id = "";
         newRequest.status = 'draft';
-        defineRequest(newRequest);
+        defineFreeRequest(newRequest);
     };
 
     const openCloneModal = (request: Request) => {

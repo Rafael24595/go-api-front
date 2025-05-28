@@ -39,7 +39,7 @@ export function StoredColumn() {
     const { userData } = useStoreSession();
     const { find, findOrDefault, store } = useStoreStatus();
 
-    const { request, cleanRequest, defineRequest, fetchRequest, insertRequest, isCached } = useStoreRequest();
+    const { request, cleanRequest, defineFreeRequest, fetchFreeRequest, insertRequest, isCached } = useStoreRequest();
     const { stored, fetchStored, fetchCollection, updateStoredOrder } = useStoreRequests();
 
     const { push } = useAlert();
@@ -60,13 +60,13 @@ export function StoredColumn() {
     });
 
     const defineHistoricRequest = async (request: Request) => {
-        await fetchRequest(request);
+        await fetchFreeRequest(request);
     }
 
     const insertNewRequest = async () => {
         const result = await insertRequest(newRequest(userData.username));
         await fetchStored();
-        await fetchRequest(result.request);
+        await fetchFreeRequest(result.request);
     }
 
     const insertStored = async (request: Request) => {
@@ -103,7 +103,7 @@ export function StoredColumn() {
         const newRequest = {...request};
         newRequest._id = "";
         newRequest.status = 'draft';
-        defineRequest(newRequest);
+        defineFreeRequest(newRequest);
     };
 
     const openCollectModal = (request: Request) => {
