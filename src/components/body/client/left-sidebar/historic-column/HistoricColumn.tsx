@@ -24,7 +24,7 @@ interface Payload {
 export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const { userData } = useStoreSession();
 
-    const { request, cleanRequest, defineRequest, fetchRequest, insertRequest } = useStoreRequest();
+    const { request, cleanRequest, defineFreeRequest, fetchFreeRequest, insertRequest } = useStoreRequest();
     const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreRequests();
 
     const [data, setData] = useState<Payload>({
@@ -33,7 +33,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     });
 
     const defineHistoricRequest = async (request: Request) => {
-        await fetchRequest(request);
+        await fetchFreeRequest(request);
     }
 
     const insertHistoric = async (request: Request) => {
@@ -54,7 +54,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const cloneHistoric = (request: Request) => {
         const newRequest = {...request};
         newRequest._id = "";
-        defineRequest(newRequest);
+        defineFreeRequest(newRequest);
     };
     
     const makeKey = (request: Request): string => {

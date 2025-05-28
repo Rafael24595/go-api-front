@@ -1,37 +1,15 @@
 import { MethodSelector } from "./method-selector/MethodSelector";
 import { ParameterSelector } from "./client-arguments/ParameterSelector";
-import { pushHistoric } from "../../../../services/api/ServiceStorage";
 import { useStoreRequest } from "../../../../store/StoreProviderRequest";
-import { useStoreRequests } from "../../../../store/StoreProviderRequests";
 import { Combo } from "../../../utils/combo/Combo";
 
 import './ContentContainer.css';
 
 export function ContentContainer() {
-    const { initialHash, actualHash, request, parent, waitingRequest, getRequest, getResponse, discardRequest, defineRequest, updateUri, executeAction, insertRequest } = useStoreRequest();
-    const { fetchAll } = useStoreRequests();
+    const { initialHash, actualHash, request, waitingRequest, discardRequest, releaseAction, updateUri, executeAction } = useStoreRequest();
 
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateUri(e.target.value);
-    };
-    
-    const insertFormAction = async () => {
-        const req = getRequest();
-        const res = getResponse();
-
-        let apiResponse = await insertRequest(req, res);
-
-        const newReq = {...req};
-        const newRes = {...res};
-
-        newReq._id = apiResponse.request._id;
-        newReq.name = apiResponse.request.name;
-
-        defineRequest(newReq, newRes, parent, req);
-
-        apiResponse = await pushHistoric(apiResponse.request, apiResponse.response);
-
-        fetchAll();
     };
 
     return (
@@ -47,7 +25,7 @@ export function ContentContainer() {
                 </div>
                 <div id="client-buttons" className="border-top">
                     <span className="button-modified-status"></span>
-                    <button type="submit" onClick={insertFormAction}>Save</button>
+                    <button type="submit" onClick={releaseAction}>Save</button>
                     <div className={`button-modified-container ${ initialHash != actualHash ? "visible" : "" }`}>
                         <Combo 
                             custom={(
@@ -64,7 +42,7 @@ export function ContentContainer() {
                                     icon: "💾",
                                     label: "Save",
                                     title: "Save request",
-                                    action: insertFormAction
+                                    action: releaseAction
                                 },
                             ]}
                         />
