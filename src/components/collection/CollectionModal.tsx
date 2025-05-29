@@ -10,6 +10,7 @@ const NEW_COLLECTION = "";
 interface CollectionModalProps {
     isOpen: boolean,
     request: Request,
+    parent?: string,
     onSubmit(collectionId: string, collectionName: string, request: Request, requestName: string): Promise<void>,
     onClose: () => void,
 }
@@ -20,11 +21,11 @@ interface Payload {
     requestName: string;
 }
 
-export function CollectionModal({ isOpen, request, onSubmit, onClose }: CollectionModalProps) {
+export function CollectionModal({ isOpen, request, parent, onSubmit, onClose }: CollectionModalProps) {
     const { collection } = useStoreRequests();
 
     const [data, setData] = useState<Payload>({
-        collectionId: NEW_COLLECTION,
+        collectionId: parent || NEW_COLLECTION,
         collectionName: "",
         requestName: request.name,
     });
@@ -33,10 +34,16 @@ export function CollectionModal({ isOpen, request, onSubmit, onClose }: Collecti
         setData(prevData => ({
             ...prevData,
             requestName: request.name,
-            collection: NEW_COLLECTION,
             collectionName: "",
         }));
     }, [request]);
+
+    useEffect(() => {
+        setData(prevData => ({
+            ...prevData,
+            collectionId: parent || NEW_COLLECTION,
+        }));
+    }, [parent]);
 
     const requestNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setData((prevData) => ({
@@ -99,7 +106,7 @@ export function CollectionModal({ isOpen, request, onSubmit, onClose }: Collecti
                     </div>
                     <div className="form-fragment">
                         <label htmlFor="collection-request-parent">Collection:</label>
-                        <select name="collection-request-parent" onChange={collectionChange}>
+                        <select name="collection-request-parent" onChange={collectionChange} value={data.collectionId}>
                             <option value={NEW_COLLECTION}>- New Collection -</option>
                             <option disabled>------------------</option>
                             {collection.map(c => (
