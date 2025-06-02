@@ -9,12 +9,13 @@
 
 #logo-container {
     display: flex;
-    height: 40px;
+    font-size: 40px;
     margin-left: 20px;
     padding: 0px;
     border: none;
     background-color: transparent;
-    filter: var(--fix-logo-filter);
+    color: var(--logo-color);
+    text-shadow: 1px 1px 1px var(--logo-color);
 }
 
 #logo-container img {
