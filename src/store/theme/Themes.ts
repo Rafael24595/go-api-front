@@ -9,12 +9,12 @@ export interface ITheme {
 }
 
 export interface IThemeData {
-    "fix-logo-filter"?: string;
     "fix-profile-color"?: string;
     "fix-profile-text-color"?: string;
     "fix-profile-border-color"?: string;
     "body-color": string;
     "header-color": string;
+    "logo-color": string;
     "body-text-color": string;
     "header-text-color": string;
     "border-color": string;
@@ -74,6 +74,7 @@ export const Themes: IThemes = {
         code: "marine",
         description: "Marine Go",
         theme: {
+            "logo-color": "#f8f8f2",
             "body-color": "#1e2a38",
             "body-text-color": "#f8f8f2",
             "header-color": "#1e2a38",
@@ -110,6 +111,7 @@ export const Themes: IThemes = {
         code: "ocean",
         description: "Ocean PostgreSQL",
         theme: {
+            "logo-color": "#f0f6f8",
             "body-color": "#0b1d26",
             "body-text-color": "#f0f6f8",
             "header-color": "#0b1d26",
@@ -146,6 +148,7 @@ export const Themes: IThemes = {
         code: "desert",
         description: "Desert Rust",
         theme: {
+            "logo-color": "#ffe9d6",
             "body-color": "#2f1b0c",
             "body-text-color": "#ffe9d6",
             "header-color": "#2f1b0c",
@@ -182,6 +185,7 @@ export const Themes: IThemes = {
         code: "forest",
         description: "Forest MongoDB",
         theme: {
+            "logo-color": "#e8f5e9",
             "body-color": "#1b2d24",
             "body-text-color": "#e8f5e9",
             "header-color": "#1b2d24",
@@ -218,6 +222,7 @@ export const Themes: IThemes = {
         code: "tropical",
         description: "Tropical Clojure",
         theme: {
+            "logo-color": "#e1f7ff",
             "body-color": "#0d3c49",
             "body-text-color": "#e1f7ff",
             "header-color": "#0d3c49",
@@ -254,6 +259,7 @@ export const Themes: IThemes = {
         code: "autumn",
         description: "Autumn Java",
         theme: {
+            "logo-color": "#f9e8c2",
             "body-color": "#2a1a0f",
             "body-text-color": "#f9e8c2",
             "header-color": "#2a1a0f",
@@ -290,6 +296,7 @@ export const Themes: IThemes = {
         code: "twilight",
         description: "Twilight Typescript",
         theme: {
+            "logo-color": "#e0e1e7",
             "body-color": "#282a36",
             "body-text-color": "#e0e1e7",
             "header-color": "#282a36",
@@ -326,6 +333,7 @@ export const Themes: IThemes = {
         code: "sunrise",
         description: "Sunrise Fortran",
         theme: {
+            "logo-color": "#fff5d4",
             "body-color": "#3a1d4e",
             "body-text-color": "#fff5d4",
             "header-color": "#3a1d4e",
@@ -362,6 +370,7 @@ export const Themes: IThemes = {
         code: "quartz",
         description: "Quartz Elixir",
         theme: {
+            "logo-color": "#ffeaf4",
             "body-color": "#2a1a26",
             "body-text-color": "#ffeaf4",
             "header-color": "#2a1a26",
@@ -398,42 +407,44 @@ export const Themes: IThemes = {
         code: "dragon",
         description: "Dragon Pascal",
         theme: {
-            "body-color": "#0f0026",                  
-            "body-text-color": "#fafffc",    
+            "logo-color": "#fafffc",
+            "body-color": "#0f0026",
+            "body-text-color": "#fafffc",
             "header-color": "#240048",
             "header-text-color": "#fafffc",
-            "border-color": "#ff00cc",              
+            "border-color": "#ff00cc",
             "border-selected-color": "#33ccff",
-            "input-color": "#1c003f",               
-            "option-disabled-color": "#a0529d",      
+            "input-color": "#1c003f",
+            "option-disabled-color": "#a0529d",
             "option-selected-color": "#00ff90",
-            "button-color": "#00ffe7",              
-            "button-border-color": "#00ff90",       
-            "button-hover-color": "#fafffc",        
-            "button-delete-color": "#ff006e",       
-            "modal-color": "#240048",               
-            "modal-button-color": "#ff6ec7",        
-            "modal-border-color": "#00f7ff",        
-            "combo-color": "#35005b",               
-            "combo-hover-color": "#6f00a3",         
-            "combo-shadow-color": "#02000a",        
-            "selected-gutter": "#ff85e1",           
-            "selected-line": "#ffffff20",           
-            "string-color": "#fcbf49",              
-            "number-color": "#00f0ff",              
-            "boolean-color": "#fffb00",             
-            "undefined-color": "#d100ff",           
-            "tag-color": "#39ff14",                 
-            "scrollbar-track-color": "#330033",     
-            "scrollbar-color": "#ff00ff",           
-            "scrollbar-hover-color": "#ffccff",     
-            "landing-area-color": "#1a0033"     
+            "button-color": "#00ffe7",
+            "button-border-color": "#00ff90",
+            "button-hover-color": "#fafffc",
+            "button-delete-color": "#ff006e",
+            "modal-color": "#240048",
+            "modal-button-color": "#ff6ec7",
+            "modal-border-color": "#00f7ff",
+            "combo-color": "#35005b",
+            "combo-hover-color": "#6f00a3",
+            "combo-shadow-color": "#02000a",
+            "selected-gutter": "#ff85e1",
+            "selected-line": "#ffffff20",
+            "string-color": "#fcbf49",
+            "number-color": "#00f0ff",
+            "boolean-color": "#fffb00",
+            "undefined-color": "#d100ff",
+            "tag-color": "#39ff14",
+            "scrollbar-track-color": "#330033",
+            "scrollbar-color": "#ff00ff",
+            "scrollbar-hover-color": "#ffccff",
+            "landing-area-color": "#1a0033"
         }
     },
     vintage: {
         code: "vintage",
         description: "Vintage COBOL",
         theme: {
+            "logo-color": "#3b322c",
             "body-color": "#f5f0e6",
             "body-text-color": "#3b322c",
             "header-color": "#e3d6c3",
@@ -470,10 +481,10 @@ export const Themes: IThemes = {
         code: "shelter",
         description: "Shelter Vim",
         theme: {
-            "fix-logo-filter": "hue-rotate(285deg)",
             "fix-profile-color": "#000000",
             "fix-profile-text-color": "#00ff00",
             "fix-profile-border-color": "#00ff00",
+            "logo-color": "#00ff00",
             "body-color": "#000000",
             "body-text-color": "#00ff00",
             "header-color": "#000000",
@@ -481,7 +492,7 @@ export const Themes: IThemes = {
             "border-color": "#008000",
             "border-selected-color": "#006600",
             "input-color": "#001100",
-            "option-disabled-color": "#4d994d" ,
+            "option-disabled-color": "#4d994d",
             "option-selected-color": "#003300",
             "button-color": "#003300",
             "button-border-color": "#00cc00",
@@ -510,10 +521,10 @@ export const Themes: IThemes = {
         code: "nevada",
         description: "Nevada Emacs",
         theme: {
-            "fix-logo-filter": "hue-rotate(210deg)",
             "fix-profile-color": "#000000",
             "fix-profile-text-color": "#ff9900",
             "fix-profile-border-color": "#ff9900",
+            "logo-color": "#ff9900",
             "body-color": "#000000",
             "body-text-color": "#ff9900",
             "header-color": "#000000",
@@ -550,6 +561,7 @@ export const Themes: IThemes = {
         code: "solarized",
         description: "Solarized MySQL",
         theme: {
+            "logo-color": "#586e75",
             "body-color": "#fdf6e3",
             "body-text-color": "#586e75",
             "header-color": "#eee8d5",
@@ -586,6 +598,7 @@ export const Themes: IThemes = {
         code: "nebula",
         description: "Nebula C++",
         theme: {
+            "logo-color": "#c9d1d9",
             "body-color": "#0d1117",
             "body-text-color": "#c9d1d9",
             "header-color": "#161b22",
@@ -622,6 +635,7 @@ export const Themes: IThemes = {
         code: "sun",
         description: "Sun Hadoop",
         theme: {
+            "logo-color": "#4e342e",
             "body-color": "#fff8e1",
             "body-text-color": "#4e342e",
             "header-color": "#ffe0b2",
@@ -658,6 +672,7 @@ export const Themes: IThemes = {
         code: "strawberry",
         description: "Strawberry Ruby",
         theme: {
+            "logo-color": "#4a4a4a",
             "body-color": "#fff0f6",
             "body-text-color": "#4a4a4a",
             "header-color": "#ffd6e0",
@@ -694,6 +709,7 @@ export const Themes: IThemes = {
         code: "cyberpunk_0",
         description: "Cyberpunk PostgreSQL",
         theme: {
+            "logo-color": "#fdfdfe",
             "body-color": "#0f0f1b",
             "body-text-color": "#fdfdfe",
             "header-color": "#0f0f1b",
@@ -730,6 +746,7 @@ export const Themes: IThemes = {
         code: "cyberpunk_1",
         description: "Cyberpunk GraphQL",
         theme: {
+            "logo-color": "#fdfdfe",
             "body-color": "#0f0f1b",
             "body-text-color": "#fdfdfe",
             "header-color": "#0f0f1b",
@@ -766,6 +783,7 @@ export const Themes: IThemes = {
         code: "cyberpunk_2",
         description: "Cyberpunk DB2",
         theme: {
+            "logo-color": "#fdfdfe",
             "body-color": "#0f0f1b",
             "body-text-color": "#fdfdfe",
             "header-color": "#0f0f1b",
@@ -802,6 +820,7 @@ export const Themes: IThemes = {
         code: "cyberpunk_3",
         description: "Cyberpunk MySQL",
         theme: {
+            "logo-color": "#fdfdfe",
             "body-color": "#0f0f1b",
             "body-text-color": "#fdfdfe",
             "header-color": "#0f0f1b",
@@ -838,6 +857,7 @@ export const Themes: IThemes = {
         code: "cyberpunk_4",
         description: "Cyberpunk HBase",
         theme: {
+            "logo-color": "#fdfdfe",
             "body-color": "#0f0f1b",
             "body-text-color": "#fdfdfe",
             "header-color": "#0f0f1b",
@@ -874,6 +894,7 @@ export const Themes: IThemes = {
         code: "cyberpunk_5",
         description: "Cyberpunk MongoDB",
         theme: {
+            "logo-color": "#fdfdfe",
             "body-color": "#0f0f1b",
             "body-text-color": "#fdfdfe",
             "header-color": "#0f0f1b",
@@ -910,6 +931,7 @@ export const Themes: IThemes = {
         code: "cyberpunk_6",
         description: "Cyberpunk Neo4j",
         theme: {
+            "logo-color": "#fdfdfe",
             "body-color": "#0f0f1b",
             "body-text-color": "#fdfdfe",
             "header-color": "#0f0f1b",
@@ -946,6 +968,7 @@ export const Themes: IThemes = {
         code: "notebook",
         description: "Notebook Javascript",
         theme: {
+            "logo-color": "#3b3a30",
             "body-color": "#fdf6e3",
             "body-text-color": "#3b3a30",
             "header-color": "#f8f3e2",
@@ -982,6 +1005,7 @@ export const Themes: IThemes = {
         code: "harvest",
         description: "Harvest CoffeeScript",
         theme: {
+            "logo-color": "#5a3e36",
             "body-color": "#f4e9dc",
             "body-text-color": "#5a3e36",
             "header-color": "#f4e9dc",
@@ -1018,6 +1042,7 @@ export const Themes: IThemes = {
         code: "futuristic",
         description: "Futuristic Solidity",
         theme: {
+            "logo-color": "#e4e4e7",
             "body-color": "#0e0e10",
             "body-text-color": "#e4e4e7",
             "header-color": "#0e0e10",
@@ -1054,6 +1079,7 @@ export const Themes: IThemes = {
         code: "retro",
         description: "Retro Node",
         theme: {
+            "logo-color": "#2b3a3b",
             "body-color": "#f3f8f7",
             "body-text-color": "#2b3a3b",
             "header-color": "#e1eae9",
@@ -1090,6 +1116,7 @@ export const Themes: IThemes = {
         code: "midnight",
         description: "Midnight Cassandra",
         theme: {
+            "logo-color": "#dfe6e9",
             "body-color": "#121325",
             "body-text-color": "#dfe6e9",
             "header-color": "#1b1f3a",
@@ -1126,6 +1153,7 @@ export const Themes: IThemes = {
         code: "carnival",
         description: "Carnival C#",
         theme: {
+            "logo-color": "#f8f8f2",
             "body-color": "#1f0a1f",
             "body-text-color": "#f8f8f2",
             "header-color": "#1e0c27",
@@ -1162,6 +1190,7 @@ export const Themes: IThemes = {
         code: "inferno",
         description: "Inferno CouchDB",
         theme: {
+            "logo-color": "#ffdddd",
             "body-color": "#120000",
             "body-text-color": "#ffdddd",
             "header-color": "#330000",
@@ -1198,6 +1227,7 @@ export const Themes: IThemes = {
         code: "ice",
         description: "Ice PHP",
         theme: {
+            "logo-color": "#0d1b2a",
             "body-color": "#ffffff",
             "body-text-color": "#0d1b2a",
             "header-color": "#f7fbff",
@@ -1234,6 +1264,7 @@ export const Themes: IThemes = {
         code: "bloom",
         description: "Bloom GraphQL",
         theme: {
+            "logo-color": "#3d001a",
             "body-color": "#f5efe6",
             "body-text-color": "#3d001a",
             "header-color": "#f7d9d9",
@@ -1266,10 +1297,11 @@ export const Themes: IThemes = {
             "landing-area-color": "#fff6f9"
         }
     },
-        paprika: {
+    paprika: {
         code: "paprika",
         description: "Paprika D",
         theme: {
+            "logo-color": "#5C0000",
             "body-color": "#FFF5E1",
             "body-text-color": "#5C0000",
             "header-color": "#FF9248",
@@ -1307,6 +1339,7 @@ export const Themes: IThemes = {
         code: "honey",
         description: "Honey NoCode",
         theme: {
+            "logo-color": "#2b1b00",
             "body-color": "#ffffff",
             "body-text-color": "#2b1b00",
             "header-color": "#ffb84d",
@@ -1346,6 +1379,7 @@ export const ThemesDefault: IThemes = {
         code: "light",
         description: "Light",
         theme: {
+            "logo-color": "#303030",
             "body-color": "#ffffff",
             "body-text-color": "#000000",
             "header-color": "#ffffff",
@@ -1382,6 +1416,7 @@ export const ThemesDefault: IThemes = {
         code: "dark",
         description: "Dark",
         theme: {
+            "logo-color": "#f1f1f1",
             "body-color": "#232323",
             "body-text-color": "#f1f1f1",
             "header-color": "#232323",
@@ -1417,10 +1452,10 @@ export const ThemesDefault: IThemes = {
 }
 
 export const ThemeTemplate: IThemeData = {
-    "fix-logo-filter": "",
     "fix-profile-color": "",
     "fix-profile-text-color": "",
     "fix-profile-border-color": "",
+    "logo-color": "#ffffff",
     "body-color": "#ffffff",
     "body-text-color": "#ffffff",
     "header-color": "#ffffff",

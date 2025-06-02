@@ -175,11 +175,11 @@ export function CollectionColumn() {
         defineFreeRequest(newRequest);
     };
 
-    const openCloneModal = (request: Request) => {
+    const openCloneModal = (request: Request, collection: ItemCollection) => {
         setData((prevData) => ({
             ...prevData,
             move: false, 
-            cursorCollection: undefined, 
+            cursorCollection: collection, 
             cursorRequest: request, 
             modalCollection: true
         }));
@@ -589,7 +589,7 @@ export function CollectionColumn() {
                                                 icon: "🐏",
                                                 label: "Duplicate",
                                                 title: "Duplicate to collection",
-                                                action: () => openCloneModal(node.request)
+                                                action: () => openCloneModal(node.request, cursorCollection)
                                             },
                                             {
                                                 icon: "📦",
@@ -646,6 +646,7 @@ export function CollectionColumn() {
             <CollectionModal 
                 isOpen={data.modalCollection} 
                 request={data.cursorRequest} 
+                parent={data.cursorCollection?._id}
                 onSubmit={submitCollectionModal}
                 onClose={closeCollectionModal}/>
             <ImportCollectionModal
