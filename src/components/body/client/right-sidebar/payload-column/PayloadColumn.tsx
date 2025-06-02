@@ -131,11 +131,12 @@ export function PayloadColumn() {
                     </div>
                     <span className="select-none">{ viewParse(response.body.content_type) }</span>
                 </div>
+                <button 
+                    className="clipboard-button" 
+                    type="button" 
+                    onClick={() => copyPayloadToClipboard(response.body.payload)}>
+                </button>
                 <div id="response-content-bytes" className="grid">
-                    <button 
-                        className="clipboard-button" 
-                        type="button" 
-                        onClick={() => copyPayloadToClipboard(response.body.payload)}></button>
                     {cusorIs(VIEW_TEXT) && <TextView value={response.body.payload}/>}
                     {cusorIs(VIEW_JSON) && <JsonView value={response.body.payload}/>}
                     {cusorIs(VIEW_XML) && <XmlView value={response.body.payload}/>}
