@@ -405,7 +405,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                             )}
                             options={[
                                 {
-                                    icon: "🗑️",
+                                    icon: "🧹",
                                     label: "Discard",
                                     title: "Discard context",
                                     action: discardContext

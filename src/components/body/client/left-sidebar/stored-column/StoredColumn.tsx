@@ -39,7 +39,7 @@ export function StoredColumn() {
     const { userData } = useStoreSession();
     const { find, findOrDefault, store } = useStoreStatus();
 
-    const { request, cleanRequest, defineFreeRequest, fetchFreeRequest, insertRequest, isCached } = useStoreRequest();
+    const { request, cleanRequest, discardRequest, defineFreeRequest, fetchFreeRequest, insertRequest, isCached } = useStoreRequest();
     const { stored, fetchStored, fetchCollection, updateStoredOrder } = useStoreRequests();
 
     const { push } = useAlert();
@@ -90,6 +90,7 @@ export function StoredColumn() {
     const deleteStored = async (cursorRequest: Request) => {
         try {
             await deleteAction(cursorRequest);
+            discardRequest(cursorRequest);
             await fetchStored();
             if(request._id == cursorRequest._id) {
                 cleanRequest();
@@ -144,6 +145,10 @@ export function StoredColumn() {
         await requestCollect(payload);
         await fetchStored();
         await fetchCollection();
+
+        if(data.move) {
+            discardRequest(request);
+        }
     }
 
     const onFilterTargetChange = (value: string) => {
@@ -353,6 +358,13 @@ export function StoredColumn() {
                                     label: "Export",
                                     title: "Export request",
                                     action: () => exportRequest(cursor)
+                                },
+                                {
+                                    icon: "🧹",
+                                    label: "Discard",
+                                    title: "Discard changes",
+                                    disable: !isCached(cursor),
+                                    action: () => discardRequest(cursor)
                                 },
                             ]}/>
                         </div>

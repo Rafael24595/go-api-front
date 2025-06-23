@@ -33,7 +33,7 @@ export function ContentContainer() {
                             )}
                             options={[
                                 {
-                                    icon: "🗑️",
+                                    icon: "🧹",
                                     label: "Discard",
                                     title: "Discard request",
                                     action: discardRequest

@@ -32,7 +32,7 @@ interface StoreProviderRequestType {
   waitingRequest: boolean;
   cancelRequest: () => void;
   cleanRequest: () => void;
-  discardRequest: () => void;
+  discardRequest: (request?: Request) => void;
   defineFreeRequest: (request: Request, response?: Response, oldRequest?: Request) => void;
   defineGroupRequest: (parent: string, context: string, request: Request, response?: Response, oldRequest?: Request) => void;
   updateRequest: (newRequest: Request, newResponse?: Response, oldRequest?: Request) => void;
@@ -143,8 +143,14 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     excise(CACHE_KEY);
   }
 
-  const discardRequest = () => {
-    releaseItemRequest(data.backup, data.response, toRequest(data.request));
+  const discardRequest = (request?: Request) => {
+    if(!request || request._id == data.backup._id) {
+      return releaseItemRequest(data.backup, data.response, toRequest(data.request));
+    }
+    setData(prevData => {
+      remove(CACHE_KEY, request._id);
+      return { ...prevData };
+    });
   }
 
   const defineFreeRequest = (request: Request, response?: Response, oldRequest?: Request) => {
