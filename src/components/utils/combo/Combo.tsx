@@ -136,15 +136,17 @@ export const Combo = ({ custom, asSelect, selected, options }: OptionsMenuProps)
           }}
         >
           {options.map((option, index) => (
-            <button 
-              key={ index } 
-              className={`${ selected && option.name == selected ? "selected-combo-option" : "" }`}
-              onClick={ () => execute(option) } title={ option.title && option.title }>
-              {option.icon && (
-                <span className="option-icon">{ option.icon }</span>
-              )}
-              <span>{ option.label }</span>
-            </button>
+            !option.disable && (
+              <button 
+                key={ index } 
+                className={`${ selected && option.name == selected ? "selected-combo-option" : "" }`}
+                onClick={ () => execute(option) } title={ option.title && option.title }>
+                {option.icon && (
+                  <span className="option-icon">{ option.icon }</span>
+                )}
+                <span>{ option.label }</span>
+              </button>
+            )
           ))}
         </div>
       )}

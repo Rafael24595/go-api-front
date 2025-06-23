@@ -3,5 +3,6 @@ export interface ComboOption {
     name?: string;
     title?: string;
     icon?: string;
+    disable?: boolean;
     action: () => void;
   }

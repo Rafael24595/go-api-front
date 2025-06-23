@@ -51,7 +51,7 @@ export function CollectionColumn() {
     const { find, findOrDefault, store } = useStoreStatus();
 
     const context = useStoreContext();
-    const { parent, request, cleanRequest, defineFreeRequest, fetchGroupRequest, isParentCached, isCached } = useStoreRequest();
+    const { parent, request, cleanRequest, discardRequest, defineFreeRequest, fetchGroupRequest, isParentCached, isCached } = useStoreRequest();
     const { collection, fetchStored, fetchCollection, updateCollectionsOrder, updateCollectionRequestsOrder } = useStoreRequests();
 
     const { push } = useAlert();
@@ -94,6 +94,11 @@ export function CollectionColumn() {
             cleanRequest();
         }
         await fetchCollection();
+        discardCollection(collection);
+    }
+
+    const discardCollection = async (collection: ItemCollection) => {
+        collection.nodes.forEach(n => discardRequest(n.request));
     }
 
     const renameCollection = async (collection: ItemCollection) => {
@@ -150,8 +155,9 @@ export function CollectionColumn() {
         await deleteFromCollection(collection, cursorRequest);
         await fetchCollection();
         if(cursorRequest._id == request._id) {
-            cleanRequest();
+            return cleanRequest();
         }
+        discardRequest(cursorRequest);
     }
 
     const takeFrom = async (collection: ItemCollection, cursorRequest: Request) => {
@@ -159,8 +165,9 @@ export function CollectionColumn() {
         await fetchCollection();
         await fetchStored();
         if(cursorRequest._id == request._id) {
-            cleanRequest();
+            return cleanRequest();
         }
+        discardRequest(cursorRequest);
     }
 
     const defineCollectionRequest = async (collection: ItemCollection, request: Request) => {
@@ -534,7 +541,14 @@ export function CollectionColumn() {
                                     label: "Import",
                                     title: "Import requests",
                                     action: () => openImportRequestModal(cursorCollection)
-                                }
+                                },
+                                {
+                                    icon: "🧹",
+                                    label: "Discard",
+                                    title: "Discard requests changes",
+                                    disable: !isParentCached(cursorCollection._id),
+                                    action: () => discardCollection(cursorCollection)
+                                },
                             ]}/>)}
                         subsummary={(
                             <div className="request-sign-date">
@@ -602,7 +616,14 @@ export function CollectionColumn() {
                                                 label: "Take",
                                                 title: "Take from collection",
                                                 action: () => takeFrom(cursorCollection, node.request)
-                                            }
+                                            },
+                                            {
+                                                icon: "🧹",
+                                                label: "Discard",
+                                                title: "Discard changes",
+                                                disable: !isCached(node.request),
+                                                action: () => discardRequest(node.request)
+                                            },
                                         ]}/>
                                     </div>
                                 )}
