@@ -175,11 +175,11 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     evalueCancelRequest(request);
 
-    setData(prevData => {
-      if (oldRequest && oldRequest._id != request._id) {
-        remove(CACHE_KEY, oldRequest._id);
-      }
+    if (oldRequest && oldRequest._id != request._id) {
+      remove(CACHE_KEY, oldRequest._id);
+    }
 
+    setData(prevData => {
       return {
         ...prevData,
         initialHash: "",
