@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { Dict } from "../types/Dict";
 import { Optional } from "../types/Optional";
 
@@ -49,12 +49,15 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
         status: findStatus()
     });
 
+    const statusRef = useRef(data.status);
+
     useEffect(() => {
         storageStatus(data.status);
+        statusRef.current = data.status;
     }, [data.status]);
     
     const find = <T,>(key: string, options?: FindOptions<T>): T | string => {
-        const value = data.status[key];
+        const value = statusRef.current[key];
         if(value == undefined && options?.def != undefined) {
             return options.def;
         }
@@ -71,8 +74,8 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
     }
 
     const findOrDefault = <T,>(key: string, options: FindOptionsDefault<T>): T => {
-        const value = data.status[key];
-        if(!value == undefined) {
+        const value = statusRef.current[key];
+        if(value == undefined) {
             return options.def;
         }
 
@@ -89,7 +92,7 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
 
     const findAll = <T,>(key: string, options?: FindAllOptions<T>): T[] => {
         const result = [];
-        for (const [k, v] of Object.entries(data.status)) {
+        for (const [k, v] of Object.entries(statusRef.current)) {
             let coindidence = null
             if(options?.prefix && k.startsWith(key)) {
                 coindidence = v;
@@ -128,13 +131,13 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
     }
 
     const remove = <T,>(key: string, options?: RemoveOptions<T>): Optional<T> => {
-        const value = data.status[key];
+        const value = statusRef.current[key];
         if(value == undefined) {
             return value
         }
 
         setData((prevData) => {
-            const newStatus = {...data.status};
+            const newStatus = {...prevData.status};
             delete newStatus[key];
             return {
                 ...prevData,

@@ -17,27 +17,27 @@ function App() {
   return (
     <>
       <Alert>
-        <StoreProviderCache>
-          <StoreProviderStatus>
-              <StoreProviderSession>
-                <StoreProviderTheme>
-                  <StoreProviderSystem>
-                    <StoreProviderRequests>
-                        <StoreProviderContext>
-                            <StoreProviderRequest>
-                              <Header/>
-                              <Body/>
-                              <Footer/>
-                            </StoreProviderRequest>
-                        </StoreProviderContext>
-                    </StoreProviderRequests>
-                  </StoreProviderSystem>
-                </StoreProviderTheme>
-              </StoreProviderSession>
-          </StoreProviderStatus>
-        </StoreProviderCache>
+        <StoreProviderStatus>
+          <StoreProviderCache>
+            <StoreProviderSession>
+              <StoreProviderTheme>
+                <StoreProviderSystem>
+                  <StoreProviderRequests>
+                    <StoreProviderContext>
+                      <StoreProviderRequest>
+                        <Header />
+                        <Body />
+                        <Footer />
+                      </StoreProviderRequest>
+                    </StoreProviderContext>
+                  </StoreProviderRequests>
+                </StoreProviderSystem>
+              </StoreProviderTheme>
+            </StoreProviderSession>
+          </StoreProviderCache>
+        </StoreProviderStatus>
       </Alert>
-    </> 
+    </>
   )
 }
 
