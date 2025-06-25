@@ -16,7 +16,7 @@ interface StoreProviderContextType {
   backup: ItemContext;
   context: ItemContext;
   getContext: () => Context;
-  discardContext: () => void;
+  discardContext: (context?: Context) => void;
   defineContext: (context: Context, parent?: string) => void;
   defineItemContext: (context: ItemContext, parent?: string) => void;
   updateContext: (context: ItemContext) => void;
@@ -99,8 +99,16 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     excise(CACHE_KEY);
   }
 
-  const discardContext = () => {
-    defineContextData(data.backup, data.backup, data.parent);
+  const discardContext = (context?: Context) => {
+    if(!context || context._id == data.backup._id) {
+      return defineContextData(data.backup, data.backup, data.parent);
+    }
+
+    remove(CACHE_KEY, context._id);
+
+    setData(prevData => {
+      return { ...prevData };
+    });
   }
 
   const defineItemContext = (context: ItemContext, parent?: string) => {
@@ -132,10 +140,9 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const fetchContext = async (id?: string, parent?: string) => {
-    const cached: Optional<CacheContext> = search(CACHE_KEY, id || userData.username);
+    let cached: Optional<CacheContext> = search(CACHE_KEY, id || userData.username);
     if(cached != undefined) {
-      defineContextData(cached.backup, cached.context, cached.parent);
-      return;
+      return defineContextData(cached.backup, cached.context, cached.parent);
     }
     
     const request = id == undefined 
@@ -144,6 +151,13 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
 
     const context = await request.catch(
       () => newContext(userData.username));
+  
+    if (data.loading) {
+      cached = search(CACHE_KEY, context._id);
+      if(cached != undefined) {
+        return defineContextData(cached.backup, cached.context, cached.parent);
+      }
+    }
       
     defineContext(context, parent);
   };
