@@ -525,3 +525,8 @@ button:hover {
   color: var(--body-text-color);
   cursor: pointer;
 }
+
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+}
