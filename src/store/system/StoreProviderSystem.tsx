@@ -5,6 +5,7 @@ import { Modal } from "../../components/utils/modal/Modal";
 import { millisecondsToDate } from "../../services/Tools";
 import { useStoreSession } from "../StoreProviderSession";
 import { useStoreTheme } from "../theme/StoreProviderTheme";
+import useInactivityRefresh from "../../hook/InactivityRefresh";
 
 import './StoreProviderSystem.css';
 
@@ -22,6 +23,8 @@ interface Payload {
 }
 
 export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ children }) => {
+  useInactivityRefresh(import.meta.env.VITE_INACTIVITY_REFRESH, import.meta.env.VITE_INACTIVITY_WARNING);
+  
   const { userData } = useStoreSession();
   const { loadThemeWindow } = useStoreTheme();
 

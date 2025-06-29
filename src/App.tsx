@@ -10,13 +10,10 @@ import { StoreProviderRequest } from './store/StoreProviderRequest.tsx';
 import { StoreProviderTheme } from './store/theme/StoreProviderTheme.tsx';
 import { StoreProviderSystem } from './store/system/StoreProviderSystem.tsx';
 import { StoreProviderRequests } from './store/StoreProviderRequests.tsx';
-import useInactivityRefresh from './hook/InactivityRefresh.ts';
 
 import './App.css';
 
 function App() {
-  useInactivityRefresh(import.meta.env.VITE_INACTIVITY_REFRESH);
-
   return (
     <>
       <Alert>
