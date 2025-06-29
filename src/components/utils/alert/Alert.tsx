@@ -6,6 +6,7 @@ import './Alert.css';
 
 interface AlertType {
   push: (alert: AlertData) => void;
+  remove: (alert: AlertData) => void;
 }
 
 interface Payload {
@@ -72,7 +73,7 @@ export const Alert: React.FC<{ children: ReactNode }> = ({ children }) => {
       setData(newData);
       setTimeout(() => {
         remove(alert);
-      }, 5000);
+      }, alert.time || 5000);
     }
     return alert;
   };
@@ -89,7 +90,7 @@ export const Alert: React.FC<{ children: ReactNode }> = ({ children }) => {
   }
 
   return (
-    <StoreContext.Provider value={{ push }}>
+    <StoreContext.Provider value={{ push, remove }}>
       <div id="alert-queue">
         {data.showing.map(a => (
           <div key={uuidv4()} className="alert-component">

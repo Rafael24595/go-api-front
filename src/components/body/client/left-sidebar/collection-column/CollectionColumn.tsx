@@ -544,10 +544,17 @@ export function CollectionColumn() {
                                 },
                                 {
                                     icon: "🧹",
-                                    label: "Discard",
+                                    label: "Request",
                                     title: "Discard requests changes",
                                     disable: !isParentCached(cursorCollection._id),
                                     action: () => discardCollection(cursorCollection)
+                                },
+                                 {
+                                    icon: "🧹",
+                                    label: "Context",
+                                    title: "Discard context changes",
+                                    disable: !context.isParentCached(cursorCollection._id),
+                                    action: () => context.discardContext(cursorCollection.context)
                                 },
                             ]}/>)}
                         subsummary={(

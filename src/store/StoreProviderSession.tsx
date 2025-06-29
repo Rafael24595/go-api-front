@@ -89,10 +89,11 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
   const fetchUser = async (intent?: number) => {
     await fetchUserData()
       .then((userData) => {
+        if (userData.username != data.userData.username) {
+          executeTriggers(userData);
+        }
+        
         setData(prevData => {
-          if (userData.username != prevData.userData.username) {
-            executeTriggers(userData, prevData.triggers);
-          }
           return {
             ...prevData,
             userData: userData,

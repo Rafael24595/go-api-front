@@ -3,7 +3,7 @@ export interface AlertData {
     content: string,
     category: EAlertCategory,
     //buttons?: ModalButton[],
-    //time?: number
+    time?: number
 }
 
 export enum EAlertCategory {

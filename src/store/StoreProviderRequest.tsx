@@ -147,8 +147,10 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     if(!request || request._id == data.backup._id) {
       return releaseItemRequest(data.backup, data.response, toRequest(data.request));
     }
+
+    remove(CACHE_KEY, request._id);
+    
     setData(prevData => {
-      remove(CACHE_KEY, request._id);
       return { ...prevData };
     });
   }
@@ -175,11 +177,11 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     evalueCancelRequest(request);
 
-    setData(prevData => {
-      if (oldRequest && oldRequest._id != request._id) {
-        remove(CACHE_KEY, oldRequest._id);
-      }
+    if (oldRequest && oldRequest._id != request._id) {
+      remove(CACHE_KEY, oldRequest._id);
+    }
 
+    setData(prevData => {
       return {
         ...prevData,
         initialHash: "",
