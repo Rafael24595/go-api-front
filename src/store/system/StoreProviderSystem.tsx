@@ -38,17 +38,13 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
     fetchMetadata();
     fetchRecords();
 
-    const intervalMetadata = setInterval(() => {
+    const interval = setInterval(() => {
       fetchMetadata();
-    }, 10000);
-
-    const intervalRecors = setInterval(() => {
       fetchRecords();
-    }, 10000);
+    }, 60 * 60 * 1000);
 
     return () => {
-      clearInterval(intervalMetadata);
-      clearInterval(intervalRecors);
+      clearInterval(interval);
     };
   }, []);
 
@@ -69,6 +65,9 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   };
 
   const openModal = async () => {
+    fetchMetadata();
+    fetchRecords();
+
     setData((prevData) => ({
       ...prevData,
       isOpen: true
