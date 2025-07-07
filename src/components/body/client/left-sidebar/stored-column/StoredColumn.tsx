@@ -289,6 +289,12 @@ export function StoredColumn() {
                                 label: "Import",
                                 title: "Import collections",
                                 action: () => openImportModal()
+                            },
+                            {
+                                icon: "🔄",
+                                label: "Refresh",
+                                title: "Refresh",
+                                action: () => fetchStored()
                             }
                         ]}/>
                     </div>

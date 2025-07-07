@@ -474,6 +474,12 @@ export function CollectionColumn() {
                             label: "Import",
                             title: "Import collections",
                             action: () => openImportModal()
+                        },
+                        {
+                            icon: "🔄",
+                            label: "Refresh",
+                            title: "Refresh",
+                            action: () => fetchCollection()
                         }
                     ]}/>
                 </div>

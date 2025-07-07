@@ -90,8 +90,15 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                     <Combo options={[]}/>
                 </div>
                 <button type="button" className="button-anchor" onClick={cleanRequest}>Clean</button>
-                <div id="right-options">
-                    <Combo options={[]}/>
+                <div id="right-options show">
+                    <Combo options={[
+                        {
+                            icon: "🔄",
+                            label: "Refresh",
+                            title: "Refresh",
+                            action: () => fetchHistoric()
+                        }
+                    ]}/>
                 </div>
             </div>
             <div id="actions-container">
