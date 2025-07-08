@@ -1,5 +1,5 @@
 import { Context, newContext } from "../context/Context";
-import { Request } from "../request/Request";
+import { LiteRequest, Request } from "../request/Request";
 
 export interface Collection {
     _id: string;
@@ -36,6 +36,21 @@ export interface ItemNodeCollection {
   collection: ItemCollection;
 }
 
+export interface LiteItemCollection {
+    _id: string;
+    name: string;
+    timestamp: number;
+    context: Context;
+    nodes: LiteItemNodeRequest[];
+    owner: string;
+    modified: number;
+}
+
+export interface LiteItemNodeRequest {
+    order: number;
+    request: LiteRequest;
+}
+
 export function newCollection(owner: string): Collection {
   return {
     _id: "",
@@ -60,7 +75,7 @@ export function newItemCollection(owner: string): ItemCollection {
   }
 }
 
-export const toCollection = (collection: ItemCollection): Collection => {
+export const toCollection = (collection: LiteItemCollection): Collection => {
   const nodes = collection.nodes
     .map(n => {return {
       order: n.order, 

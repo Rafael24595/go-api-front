@@ -1,6 +1,6 @@
-import { Collection, ItemCollection, ItemNodeCollection, ItemNodeRequest } from "../../interfaces/collection/Collection";
+import { Collection, ItemCollection, ItemNodeCollection, ItemNodeRequest, LiteItemCollection } from "../../interfaces/collection/Collection";
 import { Context } from "../../interfaces/context/Context";
-import { ItemRequest, Request } from "../../interfaces/request/Request";
+import { ItemRequest, LiteRequest, Request } from "../../interfaces/request/Request";
 import { Response } from "../../interfaces/response/Response";
 import apiManager from "./ApiManager";
 import { RequestCloneCollection, RequestImportContext, RequestNode, RequestRequestCollect, RequestSortNodes } from "./Requests";
@@ -33,7 +33,7 @@ export const insertContext = async (context: Context): Promise<Context> => {
   }
 };
 
-export const findAction = async (request: Request): Promise<ResponseExecuteAction> => {
+export const findAction = async (request: LiteRequest): Promise<ResponseExecuteAction> => {
   try {
     const apiResponse = await apiManager.get(`/api/v1/request/${request._id}`);
     return apiResponse.data;
@@ -80,7 +80,7 @@ export const sortRequests = async (nodes: RequestNode[]): Promise<ItemCollection
   }
 };
 
-export const deleteAction = async (request: Request): Promise<ResponseExecuteAction> => {
+export const deleteAction = async (request: LiteRequest): Promise<ResponseExecuteAction> => {
   try {
     const apiResponse = await apiManager.delete(`/api/v1/request/${request._id}`);
     return apiResponse.data;
@@ -108,9 +108,18 @@ export const pushHistoric = async (request: Request, response?: Response): Promi
   }
 };
 
-export const deleteHistoric = async (request: Request): Promise<ResponseExecuteAction> => {
+export const deleteHistoric = async (request: LiteRequest): Promise<ResponseExecuteAction> => {
   try {
     const apiResponse = await apiManager.delete(`/api/v1/historic/${request._id}`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const findCollection = async (request: LiteItemCollection): Promise<ItemCollection> => {
+  try {
+    const apiResponse = await apiManager.get(`/api/v1/collection/${request._id}`);
     return apiResponse.data;
   } catch (error) {
     throw error;
@@ -164,9 +173,9 @@ export const requestCollect = async (payload: RequestRequestCollect): Promise<It
   }
 };
 
-export const deleteCollection = async (collection: ItemCollection): Promise<ItemCollection> => {
+export const deleteCollection = async (request: LiteItemCollection): Promise<ItemCollection> => {
   try {
-    const apiResponse = await apiManager.delete(`/api/v1/collection/${collection._id}`);
+    const apiResponse = await apiManager.delete(`/api/v1/collection/${request._id}`);
     return apiResponse.data;
   } catch (error) {
     throw error;
@@ -185,7 +194,7 @@ export const cloneCollection = async (collection: ItemCollection, name: string):
   }
 };
 
-export const takeFromCollection = async (collection: ItemCollection, request: Request): Promise<ResponseExecuteAction> => {
+export const takeFromCollection = async (collection: LiteItemCollection, request: LiteRequest): Promise<ResponseExecuteAction> => {
   try {
     const apiResponse = await apiManager.put(`/api/v1/collection/${collection._id}/request/${request._id}`);
     return apiResponse.data;
@@ -194,7 +203,7 @@ export const takeFromCollection = async (collection: ItemCollection, request: Re
   }
 };
 
-export const deleteFromCollection = async (collection: ItemCollection, request: Request): Promise<ResponseExecuteAction> => {
+export const deleteFromCollection = async (collection: LiteItemCollection, request: LiteRequest): Promise<ResponseExecuteAction> => {
   try {
     const apiResponse = await apiManager.delete(`/api/v1/collection/${collection._id}/request/${request._id}`);
     return apiResponse.data;

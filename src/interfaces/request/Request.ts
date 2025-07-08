@@ -24,6 +24,16 @@ export interface Request {
   status: Status;
 }
 
+export interface LiteRequest {
+  _id: string;
+  timestamp: number;
+  name: string;
+  method: string;
+  uri: string;
+  owner: string;
+  modified: number;
+}
+
 export interface ItemRequest {
   _id: string;
   timestamp: number;

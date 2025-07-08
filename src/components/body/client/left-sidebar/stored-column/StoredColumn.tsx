@@ -1,5 +1,5 @@
-import { deleteAction, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
-import { ItemRequest, newRequest, Request } from '../../../../../interfaces/request/Request';
+import { deleteAction, findAction, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
+import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
@@ -23,16 +23,22 @@ const FILTER_VALUE_KEY = "StoredColumnnDetailsFilterValue";
 
 const DEFAULT_CURSOR = "name";
 const VALID_CURSORS = Object.keys(newRequest("anonymous"))
-    .map(k => k as keyof Request)
+    .map(k => k as keyof LiteRequest)
 
-interface Payload {
-    filterTarget: keyof Request;
-    filterValue: string;
-    request: Request;
-    dragRequest: Optional<Request>;
+interface PayloadModal {
+    request: LiteRequest;
     move: boolean;
-    modalImport: boolean;
-    modalMove: boolean;
+    openImport: boolean;
+    openMove: boolean;
+}
+
+interface PayloadDrag {
+    request: Optional<LiteRequest>;
+}
+
+interface PayloadFilter {
+    target: keyof LiteRequest;
+    value: string;
 }
 
 export function StoredColumn() {
@@ -44,55 +50,69 @@ export function StoredColumn() {
 
     const { push } = useAlert();
 
-    const [data, setData] = useState<Payload>({
-        filterTarget: findOrDefault(FILTER_TARGET_KEY, {
+    const [modalData, setModalData] = useState<PayloadModal>({
+        request: newRequest(userData.username),
+        move: false,
+        openImport: false,
+        openMove: false,
+    });
+
+    const [dragData, setDragData] = useState<PayloadDrag>({
+        request: undefined,
+    });
+
+    const [filterData, setFilterData] = useState<PayloadFilter>({
+        target: findOrDefault(FILTER_TARGET_KEY, {
             def: DEFAULT_CURSOR,
             range: VALID_CURSORS,
         }),
-        filterValue: find(FILTER_VALUE_KEY, {
+        value: find(FILTER_VALUE_KEY, {
             def: ""
-        }),
-        request: newRequest(userData.username),
-        dragRequest: undefined,
-        move: false,
-        modalImport: false,
-        modalMove: false,
+        })
     });
 
-    const defineHistoricRequest = async (request: Request) => {
-        await fetchFreeRequest(request);
+    const defineHistoricRequest = async (item: LiteRequest) => {
+        await fetchFreeRequest(item);
     }
 
     const insertNewRequest = async () => {
-        const result = await insertRequest(newRequest(userData.username));
+        const request = newRequest(userData.username);
+        const result = await insertRequest(request);
         await fetchStored();
         await fetchFreeRequest(result.request);
     }
 
-    const insertStored = async (request: Request) => {
-        const newRequest = {...request};
-        newRequest._id = "";
-        newRequest.status = 'draft';
-        await insertRequest(newRequest);
+    const duplicateStored = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        request._id = "";
+        request.status = 'draft';
+
+        await insertRequest(request);
         await fetchStored();
     };
 
-    const renameStored = async (request: Request) => {
+    const renameStored = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
         const name = prompt("Insert a name: ", request.name);
         if(name == null && name != request.name) {
             return;
         }
+
         request.name = name;
         await updateAction(request);
         await fetchStored();
     };
 
-    const deleteStored = async (cursorRequest: Request) => {
+    const deleteStored = async (item: LiteRequest) => {
         try {
-            await deleteAction(cursorRequest);
-            discardRequest(cursorRequest);
+            await deleteAction(item);
+            discardRequest(item);
             await fetchStored();
-            if(request._id == cursorRequest._id) {
+            if(request._id == item._id) {
                 cleanRequest();
             }
         } catch (error) {
@@ -100,101 +120,107 @@ export function StoredColumn() {
         }
     };
 
-    const cloneStored = (request: Request) => {
-        const newRequest = {...request};
-        newRequest._id = "";
-        newRequest.status = 'draft';
-        defineFreeRequest(newRequest);
+    const cloneStored = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        request._id = "";
+        request.status = 'draft';
+
+        defineFreeRequest(request);
     };
 
-    const openCollectModal = (request: Request) => {
-        setData((prevData) => ({
+    const openCollectModal = (item: LiteRequest) => {
+        setModalData((prevData) => ({
             ...prevData,
-            request: request,
+            request: item,
             move: false,
-            modalMove: true
+            openMove: true
         }));
     };
 
-    const openMoveModal = (request: Request) => {
-        setData((prevData) => ({
+    const openMoveModal = (item: LiteRequest) => {
+        setModalData((prevData) => ({
             ...prevData,
-            request: request,
+            request: item,
             move: true,
-            modalMove: true
+            openMove: true
         }));
     };
 
     const closeMoveModal = () => {
-        setData((prevData) => ({
+        setModalData((prevData) => ({
             ...prevData,
-            modalMove: false
+            openMove: false
         }));
     };
 
-    const submitModal = async (collectionId: string, collectionName: string, request: Request, requestName: string) => {
+    const submitModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
+        const action = await findAction(item);
+        const request = action.request;
+
         const payload: RequestRequestCollect = {
             source_id: "",
             target_id: collectionId,
             target_name: collectionName,
             request: request,
             request_name: requestName,
-            move: data.move ? "move" : "clone",
+            move: modalData.move ? "move" : "clone",
         };
 
         await requestCollect(payload);
         await fetchStored();
         await fetchCollection();
 
-        if(data.move) {
+        if(modalData.move) {
             discardRequest(request);
         }
     }
 
     const onFilterTargetChange = (value: string) => {
         const target = VALID_CURSORS.find(c => c == value)
-            ? value as keyof Request
+            ? value as keyof LiteRequest
             : DEFAULT_CURSOR;
         store(FILTER_TARGET_KEY, target);
-        setData((prevData) => ({
+        setFilterData((prevData) => ({
             ...prevData,
-            filterTarget: target,
+            target: target,
         }));
     }
 
     const onFilterValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         store(FILTER_VALUE_KEY, event.target.value);
-        setData((prevData) => ({
+        setFilterData((prevData) => ({
             ...prevData,
-            filterValue: event.target.value,
+            value: event.target.value,
         }));
     }
 
     const onFilterValueClean = () => {
         store(FILTER_VALUE_KEY, "");
-        setData((prevData) => ({
+        setFilterData((prevData) => ({
             ...prevData,
-            filterValue: "",
+            value: "",
         }));
     }
 
-    const applyFilter = (value: Request): boolean => {
-        let field = value[data.filterTarget]
-        if(data.filterValue == "" || field == undefined) {
+    const applyFilter = (item: LiteRequest): boolean => {
+        let field = item[filterData.target]
+        if(filterData.value == "" || field == undefined) {
             return true;
         }
 
         field = field.toString();
-        if(data.filterTarget == "timestamp") {
-            field = millisecondsToDate(value[data.filterTarget]);
+        if(filterData.target == "timestamp") {
+            field = millisecondsToDate(item[filterData.target]);
         }
-        return field.toLowerCase().includes(data.filterValue.toLowerCase())
+        return field.toLowerCase().includes(filterData.value.toLowerCase())
     }
 
     const openImportModal = () => {
-        setData((prevData) => ({
+        setModalData((prevData) => ({
             ...prevData,
-            modalImport: true
+            openImport: true
         }));
     };
 
@@ -214,9 +240,9 @@ export function StoredColumn() {
     }
 
     const closeImportModal = () => {
-        setData((prevData) => ({
+        setModalData((prevData) => ({
             ...prevData,
-            modalImport: false
+            openImport: false
         }));
     };
 
@@ -225,42 +251,45 @@ export function StoredColumn() {
         downloadFile(name, stored);
     }
 
-    const exportRequest = (request: Request) => {
+    const exportRequest = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
         let name = request.name.toLowerCase().replace(/\s+/g, "_");
         name = `request_${name}_${Date.now()}.json`;
         downloadFile(name, request);
     }
 
-    const makeKey = (request: Request): string => {
-        return `${request.timestamp}-${request.method}-${request.uri}`;
+    const makeKey = (item: LiteRequest): string => {
+        return `${item.timestamp}-${item.method}-${item.uri}`;
     }
 
-    const isRequestSelected = (cursor: Request) => {
-        return cursor._id == request._id;
+    const isRequestSelected = (item: LiteRequest) => {
+        return item._id == request._id;
     }
 
-    const isRequestDrag = (cursor: Request) => {
-        if(!data.dragRequest) {
+    const isRequestDrag = (item: LiteRequest) => {
+        if(!dragData.request) {
             return false
         }
-        return cursor._id == data.dragRequest._id;
+        return item._id == modalData.request._id;
     }
 
-    const onRequestDrag = async (item: PositionWrapper<Request>) => {
-        setData((prevData) => ({
+    const onRequestDrag = async (item: PositionWrapper<LiteRequest>) => {
+        setDragData((prevData) => ({
             ...prevData,
-            dragRequest: item.item,
+            request: item.item,
         }));
     };
 
     const onRequestDrop = async () => {
-        setData((prevData) => ({
+        setDragData((prevData) => ({
             ...prevData,
-            dragRequest: undefined,
+            request: undefined,
         }));
     };
 
-    const updateOrder = async (items: PositionWrapper<Request>[]) => {
+    const updateOrder = async (items: PositionWrapper<LiteRequest>[]) => {
         const ordered: RequestNode[] = items.map(e => ({
             order: e.index,
             item: e.item._id
@@ -345,7 +374,7 @@ export function StoredColumn() {
                                     icon: "🐏",
                                     label: "Duplicate",
                                     title: "Duplicate request",
-                                    action: () => insertStored(cursor)
+                                    action: () => duplicateStored(cursor)
                                 },
                                 {
                                     icon: "📚",
@@ -381,14 +410,14 @@ export function StoredColumn() {
                 />
                 <div id="search-box">
                     <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
-                    <input id="search-input" type="text" value={data.filterValue} onChange={onFilterValueChange} placeholder={data.filterTarget}/>
+                    <input id="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target}/>
                     <div className="search-combo-container">
                         <Combo 
                             custom={(
                                 <span>🔎</span>
                             )}
                             asSelect={true}
-                            selected={data.filterTarget}
+                            selected={filterData.target}
                             options={[
                                 {
                                     label: "Name",
@@ -418,12 +447,12 @@ export function StoredColumn() {
                     </div>
                 </div>
                 <ImportRequestModal
-                    isOpen={data.modalImport}
+                    isOpen={modalData.openImport}
                     onSubmit={submitImportModal}
                     onClose={closeImportModal}/>
                 <CollectionModal
-                    isOpen={data.modalMove} 
-                    request={data.request} 
+                    isOpen={modalData.openMove} 
+                    request={modalData.request} 
                     onSubmit={submitModal}
                     onClose={closeMoveModal}/>
             </>
