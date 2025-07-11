@@ -9,10 +9,11 @@ interface DetailsProps {
   options?: React.ReactNode;
   subsummary?: React.ReactNode;
   children: React.ReactNode;
-  isEmpty?: () => boolean
+  isEmpty?: () => boolean;
+  onToggle?: (status: boolean) => void;
 }
 
-export const Details: React.FC<DetailsProps> = ({ identity, summary, options, subsummary, children, isEmpty }) => {
+export const Details: React.FC<DetailsProps> = ({ identity, summary, options, subsummary, children, isEmpty, onToggle }) => {
   const { findOrDefault, store } = useStoreStatus();
 
   const [isOpen, setIsOpen] = useState(
@@ -25,6 +26,9 @@ export const Details: React.FC<DetailsProps> = ({ identity, summary, options, su
   const toggleOpen = () => {
     setIsOpen((prev) => {
       store(identity, !prev);
+      if(onToggle) {
+        onToggle(!prev);
+      }
       return !prev;
     })
   };
