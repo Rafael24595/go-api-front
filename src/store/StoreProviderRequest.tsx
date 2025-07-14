@@ -466,7 +466,12 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       }
       request.name = name;
     }
-    return await insertAction(request, response);
+
+    const result = await insertAction(request, response)
+    
+    fetchAll();
+
+    return result;
   };
 
   const processUri = () => {
