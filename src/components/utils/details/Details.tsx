@@ -24,11 +24,13 @@ export const Details: React.FC<DetailsProps> = ({ identity, summary, options, su
   );
 
   const toggleOpen = () => {
+    if(onToggle) {
+      onToggle(!isOpen);
+    }
+
+    store(identity, !isOpen);
+
     setIsOpen((prev) => {
-      store(identity, !prev);
-      if(onToggle) {
-        onToggle(!prev);
-      }
       return !prev;
     })
   };
