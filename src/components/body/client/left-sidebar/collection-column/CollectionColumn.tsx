@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { ItemCollection, ItemNodeRequest, newCollection, newItemCollection, toCollection } from '../../../../../interfaces/collection/Collection';
-import { fromContext } from '../../../../../interfaces/context/Context';
-import { ItemRequest, newRequest, Request } from '../../../../../interfaces/request/Request';
-import { cloneCollection, deleteCollection, deleteFromCollection, imporOpenApi, importCollections, importToCollection, insertCollection, requestCollect, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
+import { ItemCollection, LiteItemCollection, LiteItemNodeRequest, newCollection, newItemCollection, toCollection } from '../../../../../interfaces/collection/Collection';
+import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
+import { cloneCollection, deleteCollection, deleteFromCollection, findAction, findCollection, imporOpenApi, importCollections, importToCollection, insertCollection, requestCollect, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
@@ -32,18 +31,24 @@ const DEFAULT_CURSOR = "name";
 const VALID_CURSORS = Object.keys(newItemCollection("anonymous"))
     .map(k => k as keyof ItemCollection )
 
-interface Payload {
-    filterTarget: keyof ItemCollection;
-    filterValue: string;
+interface PayloadFilter {
+    target: keyof ItemCollection;
+    value: string;
+}
+
+interface PayloadDrag {
+    request: Optional<LiteItemNodeRequest>;
+    collection: Optional<LiteItemCollection>;
+}
+
+interface PayloadModal {
     move: boolean;
-    cursorRequest: Request;
-    dragRequest: Optional<ItemNodeRequest>;
-    cursorCollection?: ItemCollection;
-    dragCollection: Optional<ItemCollection>;
-    modalImportCollection: boolean;
-    modalImportOpenApi: boolean;
-    modalImportRequest: boolean;
-    modalCollection: boolean;
+    request: LiteRequest;
+    collection?: LiteItemCollection;
+    openImportCollection: boolean;
+    openImportOpenApi: boolean;
+    openImportRequest: boolean;
+    openCollect: boolean;
 }
 
 export function CollectionColumn() {
@@ -52,27 +57,33 @@ export function CollectionColumn() {
 
     const context = useStoreContext();
     const { parent, request, cleanRequest, discardRequest, defineFreeRequest, fetchGroupRequest, isParentCached, isCached } = useStoreRequest();
-    const { collection, fetchStored, fetchCollection, updateCollectionsOrder, updateCollectionRequestsOrder } = useStoreRequests();
+    const { collection, fetchStored, fetchCollection, fetchCollectionItem, updateCollectionsOrder, updateCollectionRequestsOrder } = useStoreRequests();
 
     const { push } = useAlert();
 
-    const [data, setData] = useState<Payload>({
-        filterTarget: findOrDefault(FILTER_TARGET_KEY, {
+    const [filterData, setFilterData] = useState<PayloadFilter>({
+        target: findOrDefault(FILTER_TARGET_KEY, {
             def: DEFAULT_CURSOR,
             range: VALID_CURSORS
         }),
-        filterValue: find(FILTER_VALUE_KEY, {
+        value: find(FILTER_VALUE_KEY, {
             def: ""
-        }),
+        })
+    });
+
+     const [dragData, setDragData] = useState<PayloadDrag>({
+        request: undefined,
+        collection: undefined,
+    });
+
+    const [modalData, setModalData] = useState<PayloadModal>({
         move: false,
-        cursorRequest: newRequest(userData.username),
-        dragRequest: undefined,
-        cursorCollection: undefined,
-        dragCollection: undefined,
-        modalImportCollection: false,
-        modalImportOpenApi: false,
-        modalImportRequest: false,
-        modalCollection: false,
+        request: newRequest(userData.username),
+        collection: undefined,
+        openImportCollection: false,
+        openImportOpenApi: false,
+        openImportRequest: false,
+        openCollect: false,
     });
 
     const insert = async () => {
@@ -88,32 +99,35 @@ export function CollectionColumn() {
         await fetchCollection();
     }
 
-    const remove = async (collection: ItemCollection) => {
-        await deleteCollection(collection);
-        if(parent == collection._id) {
+    const remove = async (item: LiteItemCollection) => {
+        await deleteCollection(item);
+        if(parent == item._id) {
             cleanRequest();
         }
         await fetchCollection();
-        discardCollection(collection);
+        discardCollection(item);
     }
 
-    const discardCollection = async (collection: ItemCollection) => {
-        collection.nodes.forEach(n => discardRequest(n.request));
+    const discardCollection = async (item: LiteItemCollection) => {
+        item.nodes.forEach(n => discardRequest(n.request));
     }
 
-    const renameCollection = async (collection: ItemCollection) => {
-        const name = prompt("Insert a name: ", collection.name);
-        if(name == null && name != collection.name) {
+    const renameCollection = async (item: LiteItemCollection) => {
+        const name = prompt("Insert a name: ", item.name);
+        if(name == null && name != item.name) {
             return;
         }
 
-        collection.name = name;
+        item.name = name;
 
-        await insertCollection(toCollection(collection));
+        await insertCollection(toCollection(item));
         await fetchCollection();
     };
 
-    const renameFromCollection = async (request: Request) => {
+    const renameFromCollection = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
         const name = prompt("Insert a name: ", request.name);
         if(name == null && name != request.name) {
             return;
@@ -123,7 +137,9 @@ export function CollectionColumn() {
         await fetchCollection();
     };
 
-    const clone = async (collection: ItemCollection) => {
+    const clone = async (item: LiteItemCollection) => {
+        const collection = await findCollection(item);
+
         const name = prompt("Insert a name: ", `${collection.name}-copy`);
         if(name == null) {
             return;
@@ -132,7 +148,7 @@ export function CollectionColumn() {
         await fetchCollection();
     }
 
-    const newCollectionRequest = async (collection: ItemCollection) => {
+    const newCollectionRequest = async (item: LiteItemCollection) => {
         const name = prompt("Insert a name: ");
         if(name == null) {
             return;
@@ -140,83 +156,87 @@ export function CollectionColumn() {
 
         const payload: RequestRequestCollect = {
             source_id: "",
-            target_id: collection._id,
-            target_name: collection.name,
+            target_id: item._id,
+            target_name: item.name,
             request: newRequest(userData.username, name),
             request_name: name,
-            move: data.move ? "move" : "clone",
+            move: modalData.move ? "move" : "clone",
         };
 
         await requestCollect(payload);
         await fetchCollection();
     }
 
-    const removeFrom = async (collection: ItemCollection, cursorRequest: Request) => {
-        await deleteFromCollection(collection, cursorRequest);
+    const removeFrom = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
+        await deleteFromCollection(itemCollection, itemRequest);
         await fetchCollection();
-        if(cursorRequest._id == request._id) {
+        if(itemRequest._id == request._id) {
             return cleanRequest();
         }
-        discardRequest(cursorRequest);
+        discardRequest(itemRequest);
     }
 
-    const takeFrom = async (collection: ItemCollection, cursorRequest: Request) => {
-        await takeFromCollection(collection, cursorRequest);
+    const takeFrom = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
+        await takeFromCollection(itemCollection, itemRequest);
         await fetchCollection();
         await fetchStored();
-        if(cursorRequest._id == request._id) {
+        if(itemRequest._id == request._id) {
             return cleanRequest();
         }
-        discardRequest(cursorRequest);
+        discardRequest(itemRequest);
     }
 
-    const defineCollectionRequest = async (collection: ItemCollection, request: Request) => {
-        const context = fromContext(collection.context);
-        fetchGroupRequest(collection._id, context._id, request);
+    const defineCollectionRequest = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
+        fetchGroupRequest(itemCollection._id, itemCollection.context._id, itemRequest);
     }
 
-    const cloneFromCollection = (request: Request) => {
-        const newRequest = {...request};
-        newRequest._id = "";
-        newRequest.status = 'draft';
-        defineFreeRequest(newRequest);
+    const cloneFromCollection = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        request._id = "";
+        request.status = 'draft';
+        defineFreeRequest(request);
     };
 
-    const openCloneModal = (request: Request, collection: ItemCollection) => {
-        setData((prevData) => ({
+    const openCloneModal = (itemRequest: LiteRequest, itemCollection: LiteItemCollection) => {
+        setModalData((prevData) => ({
             ...prevData,
             move: false, 
-            cursorCollection: collection, 
-            cursorRequest: request, 
-            modalCollection: true
+            collection: itemCollection, 
+            request: itemRequest, 
+            openCollect: true
         }));
     };
 
-    const openMoveModal = (request: Request, collection: ItemCollection) => {
-        setData((prevData) => ({
+    const openMoveModal = (itemRequest: LiteRequest, itemCollection: LiteItemCollection) => {
+        setModalData((prevData) => ({
             ...prevData,
             move: true, 
-            cursorCollection: collection, 
-            cursorRequest: request, 
-            modalCollection: true
+            collection: itemCollection, 
+            request: itemRequest, 
+            openCollect: true
         }));
     };
 
     const closeCollectionModal = () => {
-        setData((prevData) => ({
+        setModalData((prevData) => ({
             ...prevData,
-            modalCollection: false
+            openCollect: false
         }));
     };
 
-    const submitCollectionModal = async (collectionId: string, collectionName: string, request: Request, requestName: string) => {
+    const submitCollectionModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
+        const action = await findAction(item);
+        const request = action.request;
+
         const payload: RequestRequestCollect = {
-            source_id: data.cursorCollection ? data.cursorCollection?._id : "",
+            source_id: modalData.collection ? modalData.collection?._id : "",
             target_id: collectionId,
             target_name: collectionName,
             request: request,
             request_name: requestName,
-            move: data.move ? "move" : "clone",
+            move: modalData.move ? "move" : "clone",
         };
 
         await requestCollect(payload);
@@ -224,9 +244,9 @@ export function CollectionColumn() {
     }
 
     const openImportModal = () => {
-        setData((prevData) => ({
+        setModalData((prevData) => ({
             ...prevData,
-            modalImportCollection: true
+            openImportCollection: true
         }));
     };
 
@@ -246,16 +266,16 @@ export function CollectionColumn() {
     }
 
     const closeImportCollectionModal = () => {
-        setData((prevData) => ({
+        setModalData((prevData) => ({
             ...prevData,
-            modalImportCollection: false
+            openImportCollection: false
         }));
     };
 
     const openOpenaApiModal = () => {
-        setData((prevData) => ({
+        setModalData((prevData) => ({
             ...prevData,
-            modalImportOpenApi: true
+            openImportOpenApi: true
         }));
     };
 
@@ -278,27 +298,27 @@ export function CollectionColumn() {
     }
 
     const closeImportOpenaApiModal = () => {
-        setData((prevData) => ({
+        setModalData((prevData) => ({
             ...prevData,
-            modalImportOpenApi: false
+            openImportOpenApi: false
         }));
     };
 
-    const openImportRequestModal = (collection: ItemCollection) => {
-        setData((prevData) => ({
+    const openImportRequestModal = (items: LiteItemCollection) => {
+        setModalData((prevData) => ({
             ...prevData,
-            cursorCollection: collection,
-            modalImportRequest: true
+            collection: items,
+            openImportRequest: true
         }));
     };
 
-    const submitImportRequestModal = async (requests: ItemRequest[]) => {
-        if(!data.cursorCollection) {
+    const submitImportRequestModal = async (items: ItemRequest[]) => {
+        if(!modalData.collection) {
             closeImportCollectionModal();
             return;
         }
 
-        const collection = await importToCollection(data.cursorCollection._id, requests).catch(e =>
+        const collection = await importToCollection(modalData.collection._id, items).catch(e =>
             push({
                 title: `[${e.statusCode}] ${e.statusText}`,
                 category: EAlertCategory.ERRO,
@@ -313,10 +333,10 @@ export function CollectionColumn() {
     }
 
     const closeImportRequestModal = () => {
-        setData((prevData) => ({
+        setModalData((prevData) => ({
             ...prevData,
-            cursorCollection: undefined,
-            modalImportRequest: false
+            collection: undefined,
+            openImportRequest: false
         }));
     };
 
@@ -325,42 +345,42 @@ export function CollectionColumn() {
             ? value as keyof ItemCollection
             : DEFAULT_CURSOR;
         store(FILTER_TARGET_KEY, target);
-        setData((prevData) => ({
+        setFilterData((prevData) => ({
             ...prevData,
-            filterTarget: target,
+            target: target,
         }));
     }
 
     function onFilterValueChange(event: React.ChangeEvent<HTMLInputElement>): void {
         store(FILTER_VALUE_KEY, event.target.value);
-        setData((prevData) => ({
+        setFilterData((prevData) => ({
             ...prevData,
-            filterValue: event.target.value,
+            value: event.target.value,
         }));
     }
 
     function onFilterValueClean(): void {
         store(FILTER_VALUE_KEY, "");
-        setData((prevData) => ({
+        setFilterData((prevData) => ({
             ...prevData,
-            filterValue: "",
+            value: "",
         }));
     }
 
-    function applyFilter(value: ItemCollection): boolean {
-        if(data.filterValue == "") {
+    function applyFilter(item: LiteItemCollection): boolean {
+        if(filterData.value == "") {
             return true;
         }
         
-        let field = value[data.filterTarget].toString();
-        if(data.filterTarget == "timestamp") {
-            field = millisecondsToDate(value[data.filterTarget]);
+        let field = item[filterData.target].toString();
+        if(filterData.target == "timestamp") {
+            field = millisecondsToDate(item[filterData.target]);
         }
-        return field.toLowerCase().includes(data.filterValue.toLowerCase())
+        return field.toLowerCase().includes(filterData.value.toLowerCase())
     }
 
-    const makeKey = (collection: ItemCollection, request: Request): string => {
-        return `${collection.name}-${request.timestamp}-${request._id}-${request.method}-${request.uri}`;
+    const makeKey = (itemCollection: LiteItemCollection, itemRequest: LiteRequest): string => {
+        return `${itemCollection.name}-${itemRequest.timestamp}-${itemRequest._id}-${itemRequest.method}-${itemRequest.uri}`;
     }
 
     const exportAll = () => {
@@ -368,41 +388,43 @@ export function CollectionColumn() {
         downloadFile(name, collection);
     }
 
-    const exportCollection = (collection: ItemCollection) => {
+    const exportCollection = async (item: LiteItemCollection) => {
+        const collection = await findCollection(item);
         let name = collection.name.toLowerCase().replace(/\s+/g, "_");
         name = `collection_${name}_${Date.now()}.json`;
         downloadFile(name, collection);
     }
 
-    const exportRequests = (collection: ItemCollection) => {
+    const exportRequests = async (item: LiteItemCollection) => {
+        const collection = await findCollection(item);
         let name = collection.name.toLowerCase().replace(/\s+/g, "_");
         name = `requests_${name}_${Date.now()}.json`;
         const requests = collection.nodes.map(n => n.request);
         downloadFile(name, requests);
     }
 
-    const isCollectionDrag = (node: ItemCollection) => {
-        if(!data.dragCollection) {
+    const isCollectionDrag = (item: LiteItemCollection) => {
+        if(!dragData.collection) {
             return false
         }
-        return node._id == data.dragCollection._id;
+        return item._id == dragData.collection._id;
     }
 
-    const onCollectionDrag = async (item: PositionWrapper<ItemCollection>) => {
-        setData((prevData) => ({
+    const onCollectionDrag = async (item: PositionWrapper<LiteItemCollection>) => {
+        setDragData((prevData) => ({
             ...prevData,
-            dragCollection: item.item,
+            collection: item.item,
         }));
     };
 
     const onCollectionDrop = async () => {
-        setData((prevData) => ({
+        setDragData((prevData) => ({
             ...prevData,
-            dragCollection: undefined,
+            collection: undefined,
         }));
     };
 
-    const onCollectionOrderChange = async (items: PositionWrapper<ItemCollection>[]) => {
+    const onCollectionOrderChange = async (items: PositionWrapper<LiteItemCollection>[]) => {
         const ordered: RequestNode[] = items.map(e => ({
             order: e.index,
             item: e.item._id
@@ -411,32 +433,32 @@ export function CollectionColumn() {
         await fetchCollection();
     };
 
-    const isRequestSelected = (node: ItemNodeRequest) => {
-        return node.request._id == request._id;
+    const isRequestSelected = (item: LiteItemNodeRequest) => {
+        return item.request._id == request._id;
     }
 
-    const isRequestDrag = (node: ItemNodeRequest) => {
-        if(!data.dragRequest) {
+    const isRequestDrag = (item: LiteItemNodeRequest) => {
+        if(!dragData.request) {
             return false
         }
-        return node.request._id == data.dragRequest.request._id;
+        return item.request._id == dragData.request.request._id;
     }
 
-    const onRequestDrag = async (item: PositionWrapper<ItemNodeRequest>) => {
-        setData((prevData) => ({
+    const onRequestDrag = async (item: PositionWrapper<LiteItemNodeRequest>) => {
+        setDragData((prevData) => ({
             ...prevData,
-            dragRequest: item.item,
+            request: item.item,
         }));
     };
 
     const onRequestDrop = async () => {
-        setData((prevData) => ({
+        setDragData((prevData) => ({
             ...prevData,
-            dragRequest: undefined,
+            dragReqrequestuest: undefined,
         }));
     };
 
-    const onRequestOrderChange = async (items: PositionWrapper<ItemNodeRequest>[], collection?: ItemCollection) => {
+    const onRequestOrderChange = async (items: PositionWrapper<LiteItemNodeRequest>[], collection?: LiteItemCollection) => {
         if(!collection) {
             return;
         }
@@ -474,6 +496,12 @@ export function CollectionColumn() {
                             label: "Import",
                             title: "Import collections",
                             action: () => openImportModal()
+                        },
+                        {
+                            icon: "🔄",
+                            label: "Refresh",
+                            title: "Refresh",
+                            action: () => fetchCollection()
                         }
                     ]}/>
                 </div>
@@ -563,6 +591,7 @@ export function CollectionColumn() {
                             </div>
                         )}
                         isEmpty={ () => cursorCollection.nodes.length == 0 }
+                        onToggle={ () => fetchCollectionItem(cursorCollection) }
                         >
                         {!isCollectionDrag(cursorCollection) && (
                             <VerticalDragDrop
@@ -647,14 +676,14 @@ export function CollectionColumn() {
             />
             <div id="search-box">
                 <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
-                <input id="search-input" type="text" value={data.filterValue} onChange={onFilterValueChange} placeholder={data.filterTarget}/>
+                <input id="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target}/>
                 <div className="search-combo-container">
                     <Combo 
                         custom={(
                             <span>🔎</span>
                         )}
                         asSelect={true}
-                        selected={data.filterTarget}
+                        selected={filterData.target}
                         options={[
                             {
                                 label: "Name",
@@ -672,23 +701,23 @@ export function CollectionColumn() {
                 </div>
             </div>
             <CollectionModal 
-                isOpen={data.modalCollection} 
-                request={data.cursorRequest} 
-                parent={data.cursorCollection?._id}
+                isOpen={modalData.openCollect} 
+                request={modalData.request} 
+                parent={modalData.collection?._id}
                 onSubmit={submitCollectionModal}
                 onClose={closeCollectionModal}/>
             <ImportCollectionModal
-                isOpen={data.modalImportCollection}
+                isOpen={modalData.openImportCollection}
                 onSubmit={submitImportCollectionModal}
                 onClose={closeImportCollectionModal}
             />
             <ImportOpenApiModal
-                isOpen={data.modalImportOpenApi}
+                isOpen={modalData.openImportOpenApi}
                 onSubmit={submitImportOpenaApiModal}
                 onClose={closeImportOpenaApiModal}
             />
             <ImportRequestModal
-                isOpen={data.modalImportRequest}
+                isOpen={modalData.openImportRequest}
                 onSubmit={submitImportRequestModal}
                 onClose={closeImportRequestModal}
             />
@@ -696,6 +725,6 @@ export function CollectionColumn() {
     )
 }
 
-const cursorKey = (collection: ItemCollection) => {
-    return `${CURSOR_KEY}-${collection._id}`;
+const cursorKey = (lite: LiteItemCollection) => {
+    return `${CURSOR_KEY}-${lite._id}`;
 }

@@ -8,7 +8,14 @@ export interface SystemMetadata {
     render_name: string,
 	render_version: string
     front_name: string,
-	front_version: string
+	front_version: string,
+    viewer_sources: ViewerSource[]
+}
+
+export interface ViewerSource {
+    name: string,
+	route: string,
+	description: string
 }
 
 export function emptySystemMetadata(): SystemMetadata {
@@ -22,7 +29,8 @@ export function emptySystemMetadata(): SystemMetadata {
         render_name: "",
         render_version: "",
         front_name: "",
-        front_version: ""
+        front_version: "",
+        viewer_sources: []
     }
 }
 

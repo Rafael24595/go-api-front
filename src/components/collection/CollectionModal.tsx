@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Modal } from '../utils/modal/Modal';
-import { Request } from '../../interfaces/request/Request';
+import { LiteRequest } from '../../interfaces/request/Request';
 import { useStoreRequests } from '../../store/StoreProviderRequests';
 
 import './CollectionModal.css';
@@ -9,9 +9,9 @@ const NEW_COLLECTION = "";
 
 interface CollectionModalProps {
     isOpen: boolean,
-    request: Request,
+    request: LiteRequest,
     parent?: string,
-    onSubmit(collectionId: string, collectionName: string, request: Request, requestName: string): Promise<void>,
+    onSubmit(collectionId: string, collectionName: string, request: LiteRequest, requestName: string): Promise<void>,
     onClose: () => void,
 }
 

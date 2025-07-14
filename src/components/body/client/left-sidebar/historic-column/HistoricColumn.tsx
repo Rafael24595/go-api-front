@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { newRequest, Request } from '../../../../../interfaces/request/Request';
-import { deleteHistoric as fetchDeleteHistoric, requestCollect } from '../../../../../services/api/ServiceStorage';
+import { LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
+import { deleteHistoric as fetchDeleteHistoric, findAction, requestCollect } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
@@ -16,8 +16,8 @@ interface HistoricColumnProps {
     setCursor: (cursor: string) => void;
 }
 
-interface Payload {
-    request: Request;
+interface PayloadModal {
+    request: LiteRequest;
     modal: boolean;
 }
 
@@ -27,49 +27,57 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const { request, cleanRequest, defineFreeRequest, fetchFreeRequest, insertRequest } = useStoreRequest();
     const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreRequests();
 
-    const [data, setData] = useState<Payload>({
+    const [modalData, setModalData] = useState<PayloadModal>({
         request: newRequest(userData.username),
         modal: false,
     });
 
-    const defineHistoricRequest = async (request: Request) => {
-        await fetchFreeRequest(request);
+    const defineHistoricRequest = async (item: LiteRequest) => {
+        await fetchFreeRequest(item);
     }
 
-    const insertHistoric = async (request: Request) => {
+    const insertHistoric = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
         await insertRequest(request);
         await fetchStored();
         setCursor(VIEW_STORED);
     };
 
-    const deleteHistoric = async (request: Request) => {
+    const deleteHistoric = async (item: LiteRequest) => {
         try {
-            await fetchDeleteHistoric(request);
+            await fetchDeleteHistoric(item);
             await fetchHistoric();
         } catch (error) {
             console.error("Error fetching history:", error);
         }
     };
 
-    const cloneHistoric = (request: Request) => {
-        const newRequest = {...request};
-        newRequest._id = "";
-        defineFreeRequest(newRequest);
+    const cloneHistoric = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        request._id = "";
+        defineFreeRequest(request);
     };
     
-    const makeKey = (request: Request): string => {
-        return `${request.timestamp}-${request.method}-${request.uri}`;
+    const makeKey = (item: LiteRequest): string => {
+        return `${item.timestamp}-${item.method}-${item.uri}`;
     }
 
-    const openModal = (request: Request) => {
-        setData({request: request, modal: true});
+    const openModal = (item: LiteRequest) => {
+        setModalData({request: item, modal: true});
     };
 
     const closeModal = () => {
-        setData({...data, modal: false});
+        setModalData({...modalData, modal: false});
     };
 
-    const submitModal = async (collectionId: string, collectionName: string, request: Request, requestName: string) => {
+    const submitModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
+        const action = await findAction(item);
+        const request = action.request;
+
         const payload: RequestRequestCollect = {
             source_id: "",
             target_id: collectionId,
@@ -90,8 +98,15 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                     <Combo options={[]}/>
                 </div>
                 <button type="button" className="button-anchor" onClick={cleanRequest}>Clean</button>
-                <div id="right-options">
-                    <Combo options={[]}/>
+                <div id="right-options show">
+                    <Combo options={[
+                        {
+                            icon: "🔄",
+                            label: "Refresh",
+                            title: "Refresh",
+                            action: () => fetchHistoric()
+                        }
+                    ]}/>
                 </div>
             </div>
             <div id="actions-container">
@@ -141,8 +156,8 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                 )}
             </div>
             <CollectionModal 
-                isOpen={data.modal} 
-                request={data.request} 
+                isOpen={modalData.modal} 
+                request={modalData.request} 
                 onSubmit={submitModal}
                 onClose={closeModal}/>
         </>

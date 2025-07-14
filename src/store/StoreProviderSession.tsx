@@ -37,7 +37,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
 
     const interval = setInterval(() => {
       fetchUser();
-    }, 10000);
+    }, 30 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);

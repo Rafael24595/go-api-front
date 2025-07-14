@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { generateHash } from "../services/Utils";
-import { Auths, fromRequest, ItemBody, ItemRequest, newItemRequest, newRequest, Request, toRequest } from "../interfaces/request/Request";
+import { Auths, fromRequest, ItemBody, ItemRequest, LiteRequest, newItemRequest, newRequest, Request, toRequest } from "../interfaces/request/Request";
 import { cleanCopy, ItemStatusKeyValue } from "../interfaces/StatusKeyValue";
 import { fixOrder } from "../interfaces/StatusKeyValue";
 import { fromResponse, ItemResponse, newItemResponse, Response, toResponse } from "../interfaces/response/Response";
@@ -32,7 +32,7 @@ interface StoreProviderRequestType {
   waitingRequest: boolean;
   cancelRequest: () => void;
   cleanRequest: () => void;
-  discardRequest: (request?: Request) => void;
+  discardRequest: (request?: LiteRequest) => void;
   defineFreeRequest: (request: Request, response?: Response, oldRequest?: Request) => void;
   defineGroupRequest: (parent: string, context: string, request: Request, response?: Response, oldRequest?: Request) => void;
   updateRequest: (newRequest: Request, newResponse?: Response, oldRequest?: Request) => void;
@@ -45,12 +45,12 @@ interface StoreProviderRequestType {
   updateBody: (body: ItemBody) => void;
   updateAuth: (auth: Auths) => void;
   executeAction: () => Promise<void>;
-  fetchFreeRequest: (request: Request) => Promise<void>;
-  fetchGroupRequest: (parent: string, context: string, request: Request) => Promise<void>;
+  fetchFreeRequest: (request: LiteRequest) => Promise<void>;
+  fetchGroupRequest: (parent: string, context: string, request: LiteRequest) => Promise<void>;
   releaseAction: () => Promise<ResponseExecuteAction>;
   insertRequest: (request: Request, response?: Response) => Promise<ResponseExecuteAction>;
   isParentCached: (parent: string) => boolean;
-  isCached: (request: Request) => boolean;
+  isCached: (request: LiteRequest) => boolean;
   cacheComments: () => string[];
   cacheLenght: () => number;
   processUri: () => void;
@@ -143,7 +143,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     excise(CACHE_KEY);
   }
 
-  const discardRequest = (request?: Request) => {
+  const discardRequest = (request?: LiteRequest) => {
     if(!request || request._id == data.backup._id) {
       return releaseItemRequest(data.backup, data.response, toRequest(data.request));
     }
@@ -374,15 +374,15 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     }));
   };
 
-  const fetchFreeRequest = async (request: Request) => {
+  const fetchFreeRequest = async (request: LiteRequest) => {
     fetchRequest(request);
   }
 
-  const fetchGroupRequest = async (parent: string, context: string, request: Request) => {
+  const fetchGroupRequest = async (parent: string, context: string, request: LiteRequest) => {
     fetchRequest(request, parent, context);
   }
 
-  const fetchRequest = async (request: Request, parent?: string, context?: string) => {
+  const fetchRequest = async (request: LiteRequest, parent?: string, context?: string) => {
     const cached: Optional<CacheActionData> = search(CACHE_KEY, request._id);
     if (cached != undefined) {
       defineItemRequest(cached.backup, cached.request, cached.response, undefined, cached.parent, context);
@@ -466,7 +466,12 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       }
       request.name = name;
     }
-    return await insertAction(request, response);
+
+    const result = await insertAction(request, response)
+    
+    fetchAll();
+
+    return result;
   };
 
   const processUri = () => {
@@ -499,7 +504,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     return exists(CACHE_KEY, (_: string, i: CacheActionData) => i.parent == parent);
   }
 
-  const isCached = (request: Request) => {
+  const isCached = (request: LiteRequest) => {
     return search(CACHE_KEY, request._id) != undefined;
   }
 

@@ -1,27 +1,33 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { findAllAction, findAllCollection, findAllHistoric, sortCollectionRequests, sortCollections, sortRequests } from "../services/api/ServiceStorage";
-import { Request } from "../interfaces/request/Request";
-import { ItemCollection } from "../interfaces/collection/Collection";
+import { findAllAction, findAllCollection, findAllHistoric, findCollectionLite, sortCollectionRequests, sortCollections, sortRequests } from "../services/api/ServiceStorage";
+import { LiteRequest } from "../interfaces/request/Request";
+import { LiteItemCollection, newCollection } from "../interfaces/collection/Collection";
 import { useStoreSession } from "./StoreProviderSession";
 import { RequestNode } from "../services/api/Requests";
+import { generateHash } from "../services/Utils";
 
 interface StoreProviderRequestsType {
-  historic: Request[];
-  stored: Request[];
-  collection: ItemCollection[];
+  historic: LiteRequest[];
+  stored: LiteRequest[];
+  collection: LiteItemCollection[];
   fetchAll: () => Promise<void>;
   fetchHistoric: () => Promise<void>;
   fetchStored: () => Promise<void>;
   fetchCollection: () => Promise<void>;
+  fetchCollectionItem: (item: LiteItemCollection) => Promise<void>;
   updateStoredOrder: (nodes: RequestNode[]) => Promise<void>;
   updateCollectionsOrder: (nodes: RequestNode[]) => Promise<void>;
-  updateCollectionRequestsOrder: (collection: ItemCollection, nodes: RequestNode[]) => Promise<void>;
+  updateCollectionRequestsOrder: (lite: LiteItemCollection, nodes: RequestNode[]) => Promise<void>;
 }
 
-interface Payload {
-  historic: Request[];
-  stored: Request[];
-  collection: ItemCollection[];
+interface PayloadRequest {
+  items: LiteRequest[];
+  hash: string;
+}
+
+interface PayloadCollection {
+  items: LiteItemCollection[];
+  hash: string;
 }
 
 const TRIGGER_KEY = "StoreRequestsTrigger";
@@ -31,10 +37,19 @@ const StoreRequests = createContext<StoreProviderRequestsType | undefined>(undef
 export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { pushTrigger } = useStoreSession();
 
-  const [data, setData] = useState<Payload>({
-    historic: [],
-    stored: [],
-    collection: []
+  const [historic, setHistoric] = useState<PayloadRequest>({
+    items: [],
+    hash: ""
+  });
+
+  const [stored, setStored] = useState<PayloadRequest>({
+    items: [],
+    hash: ""
+  });
+
+  const [collection, setCollection] = useState<PayloadCollection>({
+    items: [],
+    hash: ""
   });
 
   useEffect(() => {
@@ -42,7 +57,7 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
 
     const interval = setInterval(() => {
       fetchAll();
-    }, 10000);
+    }, 30 * 60 * 1000);
 
     pushTrigger(TRIGGER_KEY, cleanFetchAll);
 
@@ -55,12 +70,18 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
   };
 
   const clean = async () => {
-    setData((prevData) => ({
-      ...prevData,
-      historic: [],
-      stored: [],
-      collection: [],
-    }));
+    setHistoric({
+      items: [],
+      hash: "",
+    });
+    setStored({
+      items: [],
+      hash: "",
+    });
+    setCollection({
+      items: [],
+      hash: "",
+    });
   };
 
   const fetchAll = async () => {
@@ -74,10 +95,19 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
       const data = (await findAllHistoric())
         .sort((a, b) => b.order - a.order)
         .map(n => n.request);
-      setData((prevData) => ({
-        ...prevData,
-        historic: data
-      }));
+
+      const newHash = await generateHash(data);
+      
+      setHistoric((prevData) => {
+        if(prevData.hash == newHash) {
+          return prevData;
+        }
+
+        return {
+          items: data,
+          hash: newHash
+        };
+      });
     } catch (error) {
       console.error("Error fetching history:", error);
     }
@@ -88,10 +118,19 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
       const data = (await findAllAction())
         .sort((a, b) => a.order - b.order)
         .map(n => n.request);
-      setData((prevData) => ({
-        ...prevData,
-        stored: data
-      }));
+      
+      const newHash = await generateHash(data);
+
+      setStored((prevData) => {
+        if(prevData.hash == newHash) {
+          return prevData;
+        }
+
+        return {
+          items: data,
+          hash: newHash
+        };
+      });
     } catch (error) {
       console.error("Error fetching stored:", error);
     }
@@ -102,62 +141,120 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
       const data = (await findAllCollection())
         .sort((a, b) => a.order - b.order)
         .map(n => n.collection);
-      setData((prevData) => ({
-        ...prevData,
-        collection: data
-      }));
+    
+      const newHash = await generateHash(data);
+
+      setCollection((prevData) => {
+        if(prevData.hash == newHash) {
+          return prevData;
+        }
+
+        return {
+          items: data,
+          hash: newHash
+        };
+      });
+    } catch (error) {
+      console.error("Error fetching collection:", error);
+    }
+  };
+
+  const fetchCollectionItem = async (item: LiteItemCollection) => {
+    try {
+      const source = await findCollectionLite(item);
+      const index = collection.items.findIndex(i => i._id == item._id);
+      if(index < 0) {
+        return;
+      }
+
+      const target = collection.items[index];
+
+      const sourceHash = await generateHash(source);
+      const targetHash = await generateHash(target);
+
+      if(sourceHash == targetHash) {
+        return;
+      }
+
+      fetchCollection();
     } catch (error) {
       console.error("Error fetching collection:", error);
     }
   };
 
   const updateStoredOrder = async (nodes: RequestNode[]) => {
-    setData((prevData) => {
-      const stored = nodes
-        .map(n => data.stored.find(r => r._id == n.item))
-        .filter(r => r != undefined);
-      return {
-        ...prevData,
-        stored
+    const items = nodes
+      .map(n => stored.items.find(r => r._id == n.item))
+      .filter(r => r != undefined);
+
+    const newHash = await generateHash(items);
+
+    setStored((prevData) => {
+      if(prevData.hash == newHash) {
+        return prevData;
       }
-    })
+
+      return {
+        items: items,
+        hash: newHash
+      };
+    });
+    
     await sortRequests(nodes)
   }
 
   const updateCollectionsOrder = async (nodes: RequestNode[]) => {
-    setData((prevData) => {
-      const collection = nodes
-        .map(n => data.collection.find(r => r._id == n.item))
-        .filter(r => r != undefined);
-      return {
-        ...prevData,
-        collection
+    const items = nodes
+      .map(n => collection.items.find(r => r._id == n.item))
+      .filter(r => r != undefined);
+
+    const newHash = await generateHash(items);
+
+    setCollection((prevData) => {
+      if(prevData.hash == newHash) {
+        return prevData;
       }
-    })
+
+      return {
+        items: items,
+        hash: newHash
+      };
+    });
+
     await sortCollections(nodes)
   }
 
-  const updateCollectionRequestsOrder = async (collection: ItemCollection, nodes: RequestNode[]) => {
-    setData((prevData) => {
-      const newCollection = [...prevData.collection];
-      for (let i = 0; i < newCollection.length; i++) {
-        const cursor = newCollection[i];
-        if(cursor._id = collection._id) {
-          newCollection[i].nodes = nodes
-            .map(n => cursor.nodes.find(r => r.request._id == n.item))
-            .filter(r => r != undefined);
-        } 
+  const updateCollectionRequestsOrder = async (item: LiteItemCollection, nodes: RequestNode[]) => {
+    const index = collection.items.findIndex(c => c._id == item._id);
+    if(index < 0) {
+      return;
+    }
+
+    const items = [...collection.items];
+    const cursor = items[index];
+
+    items[index].nodes = nodes
+      .map(n => cursor.nodes.find(r => r.request._id == n.item))
+      .filter(r => r != undefined);
+
+    const newHash = await generateHash(newCollection);
+
+    setCollection((prevData) => {
+      if(prevData.hash == newHash) {
+        return prevData;
       }
+
       return {
-        ...prevData,
-        collection: newCollection
-      }
-    })
-    await sortCollectionRequests(collection._id, nodes)
+        items: items,
+        hash: newHash
+      };
+    });
+
+    await sortCollectionRequests(item._id, nodes)
   }
 
   return (
-    <StoreRequests.Provider value={{ ...data, fetchAll, fetchHistoric, fetchStored, fetchCollection, updateStoredOrder, updateCollectionsOrder, updateCollectionRequestsOrder }}>
+    <StoreRequests.Provider value={{ historic: historic.items, stored: stored.items, collection: collection.items, fetchAll, fetchHistoric, fetchStored, fetchCollection, fetchCollectionItem, updateStoredOrder, updateCollectionsOrder, updateCollectionRequestsOrder }}>
       {children}
     </StoreRequests.Provider>
   );
