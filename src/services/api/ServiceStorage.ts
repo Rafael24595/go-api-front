@@ -117,9 +117,18 @@ export const deleteHistoric = async (request: LiteRequest): Promise<ResponseExec
   }
 };
 
-export const findCollection = async (request: LiteItemCollection): Promise<ItemCollection> => {
+export const findCollection = async (collection: LiteItemCollection): Promise<ItemCollection> => {
   try {
-    const apiResponse = await apiManager.get(`/api/v1/collection/${request._id}`);
+    const apiResponse = await apiManager.get(`/api/v1/collection/${collection._id}`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const findCollectionLite = async (collection: LiteItemCollection): Promise<LiteItemCollection> => {
+  try {
+    const apiResponse = await apiManager.get(`/api/v1/collection/${collection._id}/lite`);
     return apiResponse.data;
   } catch (error) {
     throw error;
