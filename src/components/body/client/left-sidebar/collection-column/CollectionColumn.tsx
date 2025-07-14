@@ -57,7 +57,7 @@ export function CollectionColumn() {
 
     const context = useStoreContext();
     const { parent, request, cleanRequest, discardRequest, defineFreeRequest, fetchGroupRequest, isParentCached, isCached } = useStoreRequest();
-    const { collection, fetchStored, fetchCollection, updateCollectionsOrder, updateCollectionRequestsOrder } = useStoreRequests();
+    const { collection, fetchStored, fetchCollection, fetchCollectionItem, updateCollectionsOrder, updateCollectionRequestsOrder } = useStoreRequests();
 
     const { push } = useAlert();
 
@@ -591,6 +591,7 @@ export function CollectionColumn() {
                             </div>
                         )}
                         isEmpty={ () => cursorCollection.nodes.length == 0 }
+                        onToggle={ () => fetchCollectionItem(cursorCollection) }
                         >
                         {!isCollectionDrag(cursorCollection) && (
                             <VerticalDragDrop

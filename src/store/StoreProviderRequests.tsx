@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { findAllAction, findAllCollection, findAllHistoric, sortCollectionRequests, sortCollections, sortRequests } from "../services/api/ServiceStorage";
+import { findAllAction, findAllCollection, findAllHistoric, findCollectionLite, sortCollectionRequests, sortCollections, sortRequests } from "../services/api/ServiceStorage";
 import { LiteRequest } from "../interfaces/request/Request";
 import { LiteItemCollection, newCollection } from "../interfaces/collection/Collection";
 import { useStoreSession } from "./StoreProviderSession";
@@ -14,6 +14,7 @@ interface StoreProviderRequestsType {
   fetchHistoric: () => Promise<void>;
   fetchStored: () => Promise<void>;
   fetchCollection: () => Promise<void>;
+  fetchCollectionItem: (item: LiteItemCollection) => Promise<void>;
   updateStoredOrder: (nodes: RequestNode[]) => Promise<void>;
   updateCollectionsOrder: (nodes: RequestNode[]) => Promise<void>;
   updateCollectionRequestsOrder: (lite: LiteItemCollection, nodes: RequestNode[]) => Promise<void>;
@@ -158,6 +159,29 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
     }
   };
 
+  const fetchCollectionItem = async (item: LiteItemCollection) => {
+    try {
+      const source = await findCollectionLite(item);
+      const index = collection.items.findIndex(i => i._id == item._id);
+      if(index < 0) {
+        return;
+      }
+
+      const target = collection.items[index];
+
+      const sourceHash = await generateHash(source);
+      const targetHash = await generateHash(target);
+
+      if(sourceHash == targetHash) {
+        return;
+      }
+
+      fetchCollection();
+    } catch (error) {
+      console.error("Error fetching collection:", error);
+    }
+  };
+
   const updateStoredOrder = async (nodes: RequestNode[]) => {
     const items = nodes
       .map(n => stored.items.find(r => r._id == n.item))
@@ -230,7 +254,7 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
   }
 
   return (
-    <StoreRequests.Provider value={{ historic: historic.items, stored: stored.items, collection: collection.items, fetchAll, fetchHistoric, fetchStored, fetchCollection, updateStoredOrder, updateCollectionsOrder, updateCollectionRequestsOrder }}>
+    <StoreRequests.Provider value={{ historic: historic.items, stored: stored.items, collection: collection.items, fetchAll, fetchHistoric, fetchStored, fetchCollection, fetchCollectionItem, updateStoredOrder, updateCollectionsOrder, updateCollectionRequestsOrder }}>
       {children}
     </StoreRequests.Provider>
   );
