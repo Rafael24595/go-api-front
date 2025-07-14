@@ -1,21 +1,23 @@
 import axios, { AxiosResponse } from "axios";
 
-const baseURL = (): string => {
+const url = "";
+
+export const apiURL = (): string => {
+  if(url != "") {
+    return url;
+  }
+  
   let port = import.meta.env.VITE_SERVICE_API_MANAGER_PORT;
   if(port == undefined) {
     port = window.location.port;
     console.warn(`Warning: back port is undefined, default port '${port}' will be used.`);
   }
-  const url = `${window.location.protocol}//${window.location.hostname}:${port}`;
-  if(url != undefined) {
-    return url
-  }
-
-  throw new Error("Manager service URI is not defined.")
+  
+  return `${window.location.protocol}//${window.location.hostname}:${port}`;
 }
 
 const apiManager = axios.create({
-  baseURL: baseURL(),
+  baseURL: apiURL(),
   withCredentials: true,
 });
 

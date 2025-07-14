@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { emptySystemMetadata, Record, SystemMetadata } from "../../interfaces/Metadata";
+import { emptySystemMetadata, Record, SystemMetadata, ViewerSource } from "../../interfaces/Metadata";
 import { fetchSystemMetadata, fetchSystemRecords } from "../../services/api/ServiceManager";
 import { Modal } from "../../components/utils/modal/Modal";
 import { millisecondsToDate } from "../../services/Tools";
@@ -7,6 +7,7 @@ import { useStoreSession } from "../StoreProviderSession";
 import { useStoreTheme } from "../theme/StoreProviderTheme";
 import useInactivityRefresh from "../../hook/InactivityRefresh";
 import { generateHash } from "../../services/Utils";
+import { apiURL } from "../../services/api/ApiManager";
 
 import './StoreProviderSystem.css';
 
@@ -120,6 +121,10 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
     return `${ millisecondsToDate(record.timestamp) } - [${ record.category }]: ${record.message}`;
   }
 
+  const viewerUrl = (source: ViewerSource) => {
+    return `${apiURL()}${source.route}`;
+  }
+
   return (
     <StoreTheme.Provider value={{ openModal, closeModal }}>
       {children}
@@ -188,6 +193,21 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
                   <p><span className="system-data-title">Started at: </span> <span>{ millisecondsToDate(metadata.metadata.session_time) }</span></p>
               </div>
             </div>
+             {metadata.metadata.viewer_sources.length > 0 && (
+              <>
+                <h3 className="system-title">Viewer:</h3>
+                <div className="system-metadata-subcontainer">
+                  <div className="system-metadata-fragment">
+                    {metadata.metadata.viewer_sources.map(s => (
+                      <p><span className="system-data-title">{s.name}: </span> <a className="unstyled-anchor" 
+                      href={`${viewerUrl(s)}`} 
+                      target="_blank" 
+                      title={`${s.description}`}>{ viewerUrl(s) }</a></p>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
             <div id="system-metadata-footer">
               {userData.is_admin && (
                 <>
