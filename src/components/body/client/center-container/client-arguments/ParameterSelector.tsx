@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { QueryArguments } from './query-arguments/QueryArguments';
 import { HeaderArguments } from './header-arguments/HeaderArguments';
 import { AuthArguments } from './auth-arguments/AuthArguments';
 import { BodyArguments } from './body-arguments/BodyArguments';
-import { Auths, Body, Headers, Queries } from '../../../../../interfaces/request/Request';
 import { ContextModal } from '../../../../context/ContextModal';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { CookieArguments } from './cookie-arguments/CookieArguments';
+import { KeyValue } from '../../../../../interfaces/KeyValue';
 
 import './ParameterSelector.css';
 
@@ -17,44 +17,50 @@ const VIEW_COOKIE = "cookie";
 const VIEW_AUTH = "auth";
 const VIEW_BODY = "body";
 
-const VALID_CURSORS = [VIEW_QUERY, VIEW_HEADER, VIEW_COOKIE, VIEW_AUTH, VIEW_BODY];
+const cursors: KeyValue[] = [
+    {
+        key: VIEW_QUERY,
+        value: "Query",
+    },
+    {
+        key: VIEW_HEADER,
+        value: "Headers",
+    },
+    {
+        key: VIEW_COOKIE,
+        value: "Cookies",
+    },
+    {
+        key: VIEW_AUTH,
+        value: "Auth",
+    },
+    {
+        key: VIEW_BODY,
+        value: "Body",
+    },
+];
 
+const VALID_CURSORS = cursors.map(c => c.key);
 const DEFAULT_CURSOR = VIEW_QUERY;
 
 const CURSOR_KEY = "ParameterSelectorCursor";
 
-export interface ItemRequestParameters {
-    query: Queries;
-    header: Headers;
-    body: Body;
-    auth: Auths;
-}
-
-interface Payload {
-    cursor: string;
-    modalStatus: boolean;
-}
-
 export function ParameterSelector() {
     const { find, store } = useStoreStatus();
 
-    const [data, setData] = useState<Payload>({
-        cursor: find(CURSOR_KEY, {
+    const [cursor, setCursor] = useState<string>(
+        find(CURSOR_KEY, {
             def: DEFAULT_CURSOR,
             range: VALID_CURSORS
-        }),
-        modalStatus: false,
-    });
+        }));
+
+    const [modalStatus, setModalStatus] = useState<boolean>(false);
 
     const { initialHash, actualHash } = useStoreContext();
 
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         store(CURSOR_KEY, e.target.value);
-        setData({...data, cursor: e.target.value});
-    };
-
-    const setModalStatus = (status: boolean) => {
-        setData({...data, modalStatus: status});
+        setCursor(e.target.value);
     };
 
     return (
@@ -62,31 +68,15 @@ export function ParameterSelector() {
             <div id="client-argument-headers">
                 <div id="parameter-selector-components" className="border-bottom">    
                     <div className="radio-button-group">
-                        <input type="radio" id="tag-client-query" className="client-tag" name="cursor-client"
-                            checked={data.cursor === VIEW_QUERY} 
-                            value={VIEW_QUERY} 
-                            onChange={cursorChange}/>
-                        <label htmlFor="tag-client-query" id="client-label-query">Query</label>
-                        <input type="radio" id="tag-client-header" className="client-tag" name="cursor-client"
-                            checked={data.cursor === VIEW_HEADER} 
-                            value={VIEW_HEADER} 
-                            onChange={cursorChange}/>
-                        <label htmlFor="tag-client-header" id="client-label-header">Headers</label>
-                        <input type="radio" id="tag-client-cookie" className="client-tag" name="cursor-client"
-                            checked={data.cursor === VIEW_COOKIE} 
-                            value={VIEW_COOKIE} 
-                            onChange={cursorChange}/>
-                        <label htmlFor="tag-client-cookie" id="client-label-cookie">Cookies</label>
-                        <input type="radio" id="tag-client-auth" className="client-tag" name="cursor-client"
-                            checked={data.cursor === VIEW_AUTH} 
-                            value={VIEW_AUTH} 
-                            onChange={cursorChange}/>
-                        <label htmlFor="tag-client-auth" id="client-label-auth">Auth</label>
-                        <input type="radio" id="tag-client-body" className="client-tag" name="cursor-client"
-                            checked={data.cursor === VIEW_BODY} 
-                            value={VIEW_BODY} 
-                            onChange={cursorChange}/>
-                        <label htmlFor="tag-client-body" id="client-label-body">Body</label>
+                        {cursors.map(c => (
+                            <Fragment key={c.key}>
+                                <input type="radio" id={`tag-client-${c.key.toLowerCase()}`} className="client-tag" name="cursor-client"
+                                    checked={cursor === c.key} 
+                                    value={c.key} 
+                                    onChange={cursorChange}/>
+                                <label htmlFor={`tag-client-${c.key.toLowerCase()}`}>{c.value}</label>
+                            </Fragment>
+                        ))}
                         <div id="context-buttons">
                             <button type="button" className="button-tag" onClick={() => setModalStatus(true)}>
                                 <span className={`button-modified-status small display ${ initialHash != actualHash && "visible" }`}></span>
@@ -96,13 +86,23 @@ export function ParameterSelector() {
                     </div>
                 </div>
             </div>
-            {data.cursor === VIEW_QUERY && <QueryArguments/>}
-            {data.cursor === VIEW_HEADER && <HeaderArguments/>}
-            {data.cursor === VIEW_COOKIE && <CookieArguments/>}
-            {data.cursor === VIEW_AUTH && <AuthArguments/>}
-            {data.cursor === VIEW_BODY && <BodyArguments/>}
+            <div className={`client-argument-content-items ${cursor === VIEW_QUERY ? "show" : ""}`}>
+                <QueryArguments/>
+            </div>
+            <div className={`client-argument-content-items ${cursor === VIEW_HEADER ? "show" : ""}`}>
+               <HeaderArguments/>
+            </div>
+            <div className={`client-argument-content-items ${cursor === VIEW_COOKIE ? "show" : ""}`}>
+                <CookieArguments/>
+            </div>
+            <div className={`client-argument-content-items ${cursor === VIEW_AUTH ? "show" : ""}`}>
+                <AuthArguments/>
+            </div>
+            <div className={`client-argument-content-items ${cursor === VIEW_BODY ? "show" : ""}`}>
+                <BodyArguments/>
+            </div>
             <ContextModal
-                isOpen={data.modalStatus}
+                isOpen={modalStatus}
                 onClose={() => setModalStatus(false)}/>
         </>
     )

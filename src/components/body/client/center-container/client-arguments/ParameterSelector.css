@@ -3,6 +3,17 @@
     justify-content: space-between;
 }
 
+.client-argument-content-items {
+    flex: 1 1 auto;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.client-argument-content-items.show {
+    display: flex;
+}
+
 #client-argument-content, #sub-argument-content {
     display: flex;
     flex-direction: column;
