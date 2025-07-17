@@ -199,10 +199,13 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
                 <div className="system-metadata-subcontainer">
                   <div className="system-metadata-fragment">
                     {metadata.metadata.viewer_sources.map(s => (
-                      <p><span className="system-data-title">{s.name}: </span> <a className="unstyled-anchor" 
-                      href={`${viewerUrl(s)}`} 
-                      target="_blank" 
-                      title={`${s.description}`}>{ viewerUrl(s) }</a></p>
+                      <p key={s.route}>
+                        <span className="system-data-title">{s.name}: </span>
+                        <a className="unstyled-anchor" 
+                          href={`${viewerUrl(s)}`} 
+                          target="_blank" 
+                          title={`${s.description}`}>{ viewerUrl(s) }</a>
+                      </p>
                     ))}
                   </div>
                 </div>
