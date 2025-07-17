@@ -476,7 +476,7 @@ export function CollectionColumn() {
                 <div id="left-options">
                     <Combo options={[]}/>
                 </div>
-                <button type="button" className="button-anchor" onClick={() => insert()}>New</button>
+                <button type="button" className="button-anchor" onClick={insert}>New</button>
                 <div id="right-options show">
                     <Combo options={[
                         {
@@ -676,7 +676,7 @@ export function CollectionColumn() {
             />
             <div id="search-box">
                 <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
-                <input id="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target}/>
+                <input className="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target}/>
                 <div className="search-combo-container">
                     <Combo 
                         custom={(

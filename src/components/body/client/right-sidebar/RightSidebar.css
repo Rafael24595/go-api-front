@@ -23,10 +23,22 @@
 }
 
 #response-container {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.response-container-items {
+    display: none;
     position: relative;
     flex: 1 1 auto;
     overflow: auto;
     padding: 10px;
+}
+
+.response-container-items.show {
+    display: initial;
 }
 
 .response-code {

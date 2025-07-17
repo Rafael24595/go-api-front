@@ -410,7 +410,7 @@ export function StoredColumn() {
                 />
                 <div id="search-box">
                     <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
-                    <input id="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target}/>
+                    <input className="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target}/>
                     <div className="search-combo-container">
                         <Combo 
                             custom={(

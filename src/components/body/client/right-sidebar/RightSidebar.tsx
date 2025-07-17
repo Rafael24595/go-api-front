@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { formatBytes, millisecondsToTime } from '../../../../services/Tools';
 import { PayloadColumn } from './payload-column/PayloadColumn';
 import { HeaderColumn } from './header-column/HeaderColumn';
@@ -6,6 +6,7 @@ import { CookieColumn } from './cookie-column/CookieColumn';
 import { useStoreRequest } from '../../../../store/StoreProviderRequest';
 import { useStoreStatus } from '../../../../store/StoreProviderStatus';
 import { httpStatusDescriptions } from '../../../../constants/HttpMethod';
+import { KeyValue } from '../../../../interfaces/KeyValue';
 
 import './RightSidebar.css';
 
@@ -13,8 +14,22 @@ const VIEW_PAYLOAD = "payload";
 const VIEW_HEADER = "header";
 const VIEW_COOKIE = "cookie";
 
-const VALID_CURSORS = [VIEW_PAYLOAD, VIEW_HEADER, VIEW_COOKIE];
+const cursors: KeyValue[] = [
+    {
+        key: VIEW_PAYLOAD,
+        value: "Payload",
+    },
+    {
+        key: VIEW_HEADER,
+        value: "Header",
+    },
+    {
+        key: VIEW_COOKIE,
+        value: "Cookie",
+    }
+];
 
+const VALID_CURSORS = cursors.map(c => c.key);
 const DEFAULT_CURSOR = VIEW_PAYLOAD;
 
 const CURSOR_KEY = "RightSidebarCursor";
@@ -57,21 +72,15 @@ export function RightSidebar() {
                 <span className="section-header-element response-data"><span className="response-title select-none">Size:</span> { formatBytes(response.size) }</span>
             </div>
             <div className="radio-button-group border-bottom">
-                <input type="radio" id="tag-right-sidebar-payload" className="client-tag" name="cursor-right-sidebar"
-                    checked={cursor === VIEW_PAYLOAD} 
-                    value={VIEW_PAYLOAD} 
-                    onChange={cursorChange}/>
-                <label htmlFor="tag-right-sidebar-payload">Payload</label>
-                <input type="radio" id="tag-right-sidebar-stored" className="client-tag" name="cursor-right-sidebar"
-                    checked={cursor === VIEW_HEADER}
-                    value={VIEW_HEADER} 
-                    onChange={cursorChange}/>
-                <label htmlFor="tag-right-sidebar-stored">Header {response.headers.length > 0 && `(${response.headers.length})`}</label>
-                <input type="radio" id="tag-right-sidebar-collection" className="client-tag" name="cursor-right-sidebar"
-                    checked={cursor === VIEW_COOKIE} 
-                    value={VIEW_COOKIE} 
-                    onChange={cursorChange}/>
-                <label htmlFor="tag-right-sidebar-collection">Cookie {response.cookies.length > 0 && `(${response.cookies.length})`}</label>
+                {cursors.map(c => (
+                    <Fragment key={c.key}>
+                        <input type="radio" id={`tag-right-sidebar-${c.key.toLowerCase()}`} className="client-tag" name="cursor-right-sidebar"
+                            checked={cursor === c.key} 
+                            value={c.key} 
+                            onChange={cursorChange}/>
+                        <label htmlFor={`tag-right-sidebar-${c.key.toLowerCase()}`}>{c.value}</label>
+                    </Fragment>
+                ))}
             </div>
             <div id="response-container">
                 {waitingRequest && (
@@ -82,9 +91,15 @@ export function RightSidebar() {
                         </div>
                     </div>
                 )}
-                {cursor === VIEW_PAYLOAD && <PayloadColumn/>}
-                {cursor === VIEW_HEADER && <HeaderColumn/>}
-                {cursor === VIEW_COOKIE && <CookieColumn/>}
+                <div className={`response-container-items ${cursor === VIEW_PAYLOAD ? "show" : ""}`}>
+                    <PayloadColumn/>
+                </div>
+                <div className={`response-container-items ${cursor === VIEW_HEADER ? "show" : ""}`}>
+                    <HeaderColumn/>
+                </div>
+                <div className={`response-container-items ${cursor === VIEW_COOKIE ? "show" : ""}`}>
+                    <CookieColumn/>
+                </div>
             </div>
         </div>
     )

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { TextData } from './text/TextData';
 import { ItemBody, ItemBodyParameter, orderItemBodyParameter } from '../../../../../../interfaces/request/Request';
 import { JsonData } from './json/JsonData';
@@ -7,6 +7,7 @@ import { formatJson, formatXml } from '../../../../../../utils/Formatter';
 import { FormData } from './form-data/FormData';
 import { Dict } from '../../../../../../types/Dict';
 import { XmlData } from './xml/XmlData';
+import { KeyValue } from '../../../../../../interfaces/KeyValue';
 
 import './BodyArguments.css';
 
@@ -19,48 +20,62 @@ const VIEW_XML = "xml";
 const VIEW_JSON = "json";
 const VIEW_FORM = "form";
 
+const cursors: KeyValue[] = [
+    {
+        key: VIEW_TEXT,
+        value: "Text",
+    },
+    {
+        key: VIEW_XML,
+        value: "Xml",
+    },
+    {
+        key: VIEW_JSON,
+        value: "Json",
+    },
+    {
+        key: VIEW_FORM,
+        value: "Form",
+    }
+];
+
 const DEFAULT_CURSOR = VIEW_TEXT;
 
-//const CURSOR_KEY = "BodyArgumentsCursor";
-
 interface Payload {
-    cursor: string;
     status: boolean;
     content: string;
     parameters: Dict<ItemBodyParameter[]>;
 }
 
 export function BodyArguments() {
-    //const { find, store } = useStoreStatus();
-
     const { request, updateBody } = useStoreRequest();
 
+    const [cursor, setCursor] = useState<string>(request.body.content_type || DEFAULT_CURSOR);
+
     const [data, setData] = useState<Payload>({
-        cursor: request.body.content_type || DEFAULT_CURSOR,
         status: request.body.status, 
         content: request.body.content_type,
         parameters: request.body.parameters,
     });
 
     useEffect(() => {
-        setData(prevData => ({
-            ...prevData,
-            cursor: request.body.content_type || DEFAULT_CURSOR,
+        setData({
             status: request.body.status, 
             content: request.body.content_type,
             parameters: request.body.parameters,
-        }));
+        });
+        setCursor(request.body.content_type || DEFAULT_CURSOR);
     }, [request.body]);
     
     const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newData = {
             ...data, 
             content: e.target.value,
-            cursor: e.target.value
         };
-        //store(CURSOR_KEY, e.target.value);
+        
+        setCursor(e.target.value);
         setData(newData);
-        //TODO: Find another solution, one more elegant.
+
         if(Object.entries(request.body.parameters).length > 0) {
             updateBody(makeBody(newData));
         }
@@ -129,25 +144,24 @@ export function BodyArguments() {
             return;
         }
 
-        if(data.cursor == VIEW_JSON) {
+        if(cursor == VIEW_JSON) {
             document.value = await formatJson(document.value);
         }
 
-        if(data.cursor == VIEW_XML) {
+        if(cursor == VIEW_XML) {
             document.value = await formatXml(document.value);
         }
+
+        const newData = {
+            ...data,
+            parameters: {
+                ...data.parameters,
+                [DOCUMENT_PARAM]: [document]
+            }
+        };
            
-        setData((prevData) => { 
-            const newData = {
-                ...prevData,
-                parameters: { 
-                    ...prevData.parameters, 
-                    [DOCUMENT_PARAM]: [document] 
-                }
-            };
-            updateBody(makeBody(newData));
-            return newData;
-        });
+        setData(newData);
+        updateBody(makeBody(newData));
     }
 
     return (
@@ -161,37 +175,26 @@ export function BodyArguments() {
                         type="checkbox" 
                         checked={data.status}
                         onChange={statusChange}/>
-                    <input type="radio" id="tag-body-text" className="client-tag" name="cursor-body" 
-                        checked={data.cursor === VIEW_TEXT} 
-                        value={VIEW_TEXT} 
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-body-text">Text</label>
-                    <input type="radio" id="tag-body-xml" className="client-tag" name="cursor-body" 
-                        checked={data.cursor === VIEW_XML} 
-                        value={VIEW_XML}
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-body-xml">Xml</label>
-                    <input type="radio" id="tag-body-json" className="client-tag" name="cursor-body" 
-                        checked={data.cursor === VIEW_JSON} 
-                        value={VIEW_JSON} 
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-body-json">Json</label>
-                    <input type="radio" id="tag-body-form" className="client-tag" name="cursor-body" 
-                        checked={data.cursor === VIEW_FORM} 
-                        value={VIEW_FORM} 
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-body-form">Form</label>
+                    {cursors.map(c => (
+                        <Fragment key={c.key}>
+                            <input type="radio" id={`tag-body-${c.key.toLowerCase()}`} className="client-tag" name="cursor-body"
+                                checked={cursor === c.key} 
+                                value={c.key} 
+                                onChange={cursorChange}/>
+                            <label htmlFor={`tag-body-${c.key.toLowerCase()}`}>{c.value}</label>
+                        </Fragment>
+                    ))}
                     </div>
-                    {(data.cursor === VIEW_JSON || data.cursor === VIEW_XML) && (
+                    {(cursor === VIEW_JSON || cursor === VIEW_XML) && (
                         <div>
                             <button type="button" className="button-tag" onClick={formatPayload}>Format</button>
                         </div>
                     )}
                 </div>
-                {data.cursor === VIEW_TEXT && <TextData onValueChange={documentChange}/>}
-                {data.cursor === VIEW_XML && <XmlData onValueChange={documentChange}/>}
-                {data.cursor === VIEW_JSON && <JsonData onValueChange={documentChange}/>}
-                {data.cursor === VIEW_FORM && <FormData onValueChange={formDataChange}/>}
+                {cursor === VIEW_TEXT && <TextData onValueChange={documentChange}/>}
+                {cursor === VIEW_XML && <XmlData onValueChange={documentChange}/>}
+                {cursor === VIEW_JSON && <JsonData onValueChange={documentChange}/>}
+                {cursor === VIEW_FORM && <FormData onValueChange={formDataChange}/>}
             </div>
         </>
     )
