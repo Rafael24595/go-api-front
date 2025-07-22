@@ -149,8 +149,8 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
       ? findUserContext()
       : findContext(id);
 
-    const context = await request.catch(
-      () => newContext(userData.username));
+    const context = await request.catch(() => 
+      newContext(userData.username));
   
     if (data.loading) {
       cached = search(CACHE_KEY, context._id);
