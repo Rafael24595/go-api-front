@@ -13,7 +13,7 @@ interface Payload {
 }
 
 export function Header() {
-    const { userData } = useStoreSession();
+    const { userData, fetchUser } = useStoreSession();
     const { openModal } = useStoreSystem();
     const request = useStoreRequest();
     const context = useStoreContext();
@@ -39,6 +39,7 @@ export function Header() {
     };
 
     const openSessionModal = () => {
+        fetchUser();
         setData((prevData) => ({
             ...prevData,
             modalSession: true

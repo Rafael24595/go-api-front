@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { findAllAction, findAllCollection, findAllHistoric, findCollectionLite, sortCollectionRequests, sortCollections, sortRequests } from "../services/api/ServiceStorage";
-import { LiteRequest } from "../interfaces/request/Request";
-import { LiteItemCollection, newCollection } from "../interfaces/collection/Collection";
+import { LiteRequest, Request } from "../interfaces/request/Request";
+import { ItemCollection, LiteItemCollection, newCollection } from "../interfaces/collection/Collection";
 import { useStoreSession } from "./StoreProviderSession";
 import { RequestNode } from "../services/api/Requests";
 import { generateHash } from "../services/Utils";
@@ -35,7 +35,7 @@ const TRIGGER_KEY = "StoreRequestsTrigger";
 const StoreRequests = createContext<StoreProviderRequestsType | undefined>(undefined);
 
 export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { pushTrigger } = useStoreSession();
+  const { userData, fetchUser, pushTrigger } = useStoreSession();
 
   const [historic, setHistoric] = useState<PayloadRequest>({
     items: [],
@@ -53,10 +53,10 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
   });
 
   useEffect(() => {
-    fetchAll();
+    fetchAllWithoutValidation();
 
     const interval = setInterval(() => {
-      fetchAll();
+      fetchAllWithoutValidation();
     }, 30 * 60 * 1000);
 
     pushTrigger(TRIGGER_KEY, cleanFetchAll);
@@ -65,11 +65,11 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
   }, []);
 
   const cleanFetchAll = async () => {
-    clean();
-    fetchAll();
+    cleanAll();
+    fetchAllWithoutValidation();
   };
 
-  const clean = async () => {
+  const cleanAll = async () => {
     setHistoric({
       items: [],
       hash: "",
@@ -90,7 +90,20 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
     fetchCollection();
   };
 
+   const fetchAllWithoutValidation = async () => {
+    fetchHistoricWithoutValidation();
+    fetchStoredWithoutValidation();
+    fetchCollectionWithoutValidation();
+  };
+
   const fetchHistoric = async () => {
+    const data = await fetchHistoricWithoutValidation();
+    if(data.find(c => c.owner != userData.username)) {
+      fetchUser();
+    }
+  };
+
+  const fetchHistoricWithoutValidation = async (): Promise<Request[]> => {
     try {
       const data = (await findAllHistoric())
         .sort((a, b) => b.order - a.order)
@@ -108,12 +121,22 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
           hash: newHash
         };
       });
+
+      return data;
     } catch (error) {
       console.error("Error fetching history:", error);
+      return [];
     }
   };
 
   const fetchStored = async () => {
+    const data = await fetchStoredWithoutValidation();
+    if(data.find(c => c.owner != userData.username)) {
+      fetchUser();
+    }
+  };
+
+  const fetchStoredWithoutValidation = async (): Promise<Request[]> => {
     try {
       const data = (await findAllAction())
         .sort((a, b) => a.order - b.order)
@@ -131,12 +154,22 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
           hash: newHash
         };
       });
+
+      return data;
     } catch (error) {
       console.error("Error fetching stored:", error);
+      return [];
     }
   };
 
   const fetchCollection = async () => {
+    const data = await fetchCollectionWithoutValidation();
+    if(data.find(c => c.owner != userData.username)) {
+      fetchUser();
+    }
+  };
+
+  const fetchCollectionWithoutValidation = async (): Promise<ItemCollection[]> => {
     try {
       const data = (await findAllCollection())
         .sort((a, b) => a.order - b.order)
@@ -154,8 +187,11 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
           hash: newHash
         };
       });
+
+      return data;
     } catch (error) {
       console.error("Error fetching collection:", error);
+      return [];
     }
   };
 
