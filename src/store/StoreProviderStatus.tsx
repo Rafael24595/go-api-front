@@ -34,6 +34,7 @@ interface StoreProviderStatusType {
     findAll: <T>(key: string, options: FindAllOptions<T>) => T[];
     store: <T>(key: string, value: T, options?: StoreOptions<T>) => T;
     remove: <T>(key: string, options?: RemoveOptions<T>) => Optional<T>;
+    clean: () => void;
 }
 
 interface Payload {
@@ -152,6 +153,15 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
 
         return parsed;
     }
+
+    const clean = (): void => {
+        setData((prevData) => {
+            return {
+                ...prevData,
+                status: {}
+            }
+        });
+    }
   
     const tryParse = <T,K>(value: string, def: K, parser?: (value: string) => T) => {
         try {
@@ -162,7 +172,7 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
     }
 
     return (
-        <StoreStatus.Provider value={{ find, findOrDefault, findAll, store, remove }}>
+        <StoreStatus.Provider value={{ find, findOrDefault, findAll, store, remove, clean }}>
           {children}
         </StoreStatus.Provider>
       );
