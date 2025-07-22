@@ -86,6 +86,10 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
+    if(userData.username == "") {
+      return;
+    }
+    
     store(makeCacheKey(userData), theme);
     document.documentElement.setAttribute('data-theme', theme);
     setModalData((prevData) => ({
