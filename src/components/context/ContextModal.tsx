@@ -11,7 +11,7 @@ import { ImportContext } from './ImportContext';
 import { EAlertCategory } from '../../interfaces/AlertData';
 import { useAlert } from '../utils/alert/Alert';
 import { useStoreStatus } from '../../store/StoreProviderStatus';
-import { PositionWrapper, VerticalDragDrop } from '../utils/drag/VerticalDragDrop';
+import { FilterResult, PositionWrapper, VerticalDragDrop } from '../utils/drag/VerticalDragDrop';
 import { Combo } from '../utils/combo/Combo';
 
 import './ContextModal.css';
@@ -182,21 +182,21 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         store(FILTER_KEY, JSON.stringify(EMPTY_FILTER));
     }
 
-    const filterContext = (item: ItemStatusCategoryKeyValue): boolean => {
+    const filterContext = (item: ItemStatusCategoryKeyValue): FilterResult<ItemStatusCategoryKeyValue> => {
         if(data.filter.status != "none" && data.filter.status != `${item.status}`) {
-            return false;
+            return { matches: false };
         }
         if(data.filter.category != "none" && data.filter.category != item.category) {
-            return false;
+            return { matches: false };
         }
         if(data.filter.key != "") {
-            return matches(data.filter.key, item.key);
+            return { matches: matches(data.filter.key, item.key) };
             
         }
         if(data.filter.value != "") {
-            return matches(data.filter.value, item.value);
+            return { matches: matches(data.filter.value, item.value) };
         }
-        return true;
+        return { matches: true };
     }
 
     const matches = (pattern: string, value: string): boolean => {

@@ -18,7 +18,7 @@ import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useStoreSession } from '../../../../../store/StoreProviderSession';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
-import { PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
+import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
 import { Optional } from '../../../../../types/Optional';
 
 import './CollectionColumn.css';
@@ -29,10 +29,10 @@ const CURSOR_KEY = "CollectionColumnDetailsCursor";
 
 const DEFAULT_CURSOR = "name";
 const VALID_CURSORS = Object.keys(newItemCollection("anonymous"))
-    .map(k => k as keyof ItemCollection )
+    .map(k => k as keyof ItemCollection)
 
 interface PayloadFilter {
-    target: keyof ItemCollection;
+    target: string;
     value: string;
 }
 
@@ -71,7 +71,7 @@ export function CollectionColumn() {
         })
     });
 
-     const [dragData, setDragData] = useState<PayloadDrag>({
+    const [dragData, setDragData] = useState<PayloadDrag>({
         request: undefined,
         collection: undefined,
     });
@@ -88,10 +88,10 @@ export function CollectionColumn() {
 
     const insert = async () => {
         const name = prompt("New collection name:");
-        if(name == null) {
+        if (name == null) {
             return;
         }
-        
+
         const collection = newCollection(userData.username);
         collection.name = name;
 
@@ -101,7 +101,7 @@ export function CollectionColumn() {
 
     const remove = async (item: LiteItemCollection) => {
         await deleteCollection(item);
-        if(parent == item._id) {
+        if (parent == item._id) {
             cleanRequest();
         }
         await fetchCollection();
@@ -114,7 +114,7 @@ export function CollectionColumn() {
 
     const renameCollection = async (item: LiteItemCollection) => {
         const name = prompt("Insert a name: ", item.name);
-        if(name == null && name != item.name) {
+        if (name == null && name != item.name) {
             return;
         }
 
@@ -129,7 +129,7 @@ export function CollectionColumn() {
         const request = action.request;
 
         const name = prompt("Insert a name: ", request.name);
-        if(name == null && name != request.name) {
+        if (name == null && name != request.name) {
             return;
         }
         request.name = name;
@@ -141,18 +141,18 @@ export function CollectionColumn() {
         const collection = await findCollection(item);
 
         const name = prompt("Insert a name: ", `${collection.name}-copy`);
-        if(name == null) {
+        if (name == null) {
             return;
-        }            
+        }
         await cloneCollection(collection, name);
         await fetchCollection();
     }
 
     const newCollectionRequest = async (item: LiteItemCollection) => {
         const name = prompt("Insert a name: ");
-        if(name == null) {
+        if (name == null) {
             return;
-        }   
+        }
 
         const payload: RequestRequestCollect = {
             source_id: "",
@@ -170,7 +170,7 @@ export function CollectionColumn() {
     const removeFrom = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
         await deleteFromCollection(itemCollection, itemRequest);
         await fetchCollection();
-        if(itemRequest._id == request._id) {
+        if (itemRequest._id == request._id) {
             return cleanRequest();
         }
         discardRequest(itemRequest);
@@ -180,7 +180,7 @@ export function CollectionColumn() {
         await takeFromCollection(itemCollection, itemRequest);
         await fetchCollection();
         await fetchStored();
-        if(itemRequest._id == request._id) {
+        if (itemRequest._id == request._id) {
             return cleanRequest();
         }
         discardRequest(itemRequest);
@@ -202,9 +202,9 @@ export function CollectionColumn() {
     const openCloneModal = (itemRequest: LiteRequest, itemCollection: LiteItemCollection) => {
         setModalData((prevData) => ({
             ...prevData,
-            move: false, 
-            collection: itemCollection, 
-            request: itemRequest, 
+            move: false,
+            collection: itemCollection,
+            request: itemRequest,
             openCollect: true
         }));
     };
@@ -212,9 +212,9 @@ export function CollectionColumn() {
     const openMoveModal = (itemRequest: LiteRequest, itemCollection: LiteItemCollection) => {
         setModalData((prevData) => ({
             ...prevData,
-            move: true, 
-            collection: itemCollection, 
-            request: itemRequest, 
+            move: true,
+            collection: itemCollection,
+            request: itemRequest,
             openCollect: true
         }));
     };
@@ -257,10 +257,10 @@ export function CollectionColumn() {
                 category: EAlertCategory.ERRO,
                 content: e.message,
             }));
-        if(!collection) {
+        if (!collection) {
             return;
         }
-        
+
         closeImportCollectionModal();
         await fetchCollection();
     }
@@ -289,10 +289,10 @@ export function CollectionColumn() {
                 category: EAlertCategory.ERRO,
                 content: e.message,
             }));
-        if(!collection) {
+        if (!collection) {
             return;
         }
-        
+
         closeImportOpenaApiModal();
         await fetchCollection();
     }
@@ -313,7 +313,7 @@ export function CollectionColumn() {
     };
 
     const submitImportRequestModal = async (items: ItemRequest[]) => {
-        if(!modalData.collection) {
+        if (!modalData.collection) {
             closeImportCollectionModal();
             return;
         }
@@ -324,10 +324,10 @@ export function CollectionColumn() {
                 category: EAlertCategory.ERRO,
                 content: e.message,
             }));
-        if(!collection) {
+        if (!collection) {
             return;
         }
-        
+
         closeImportRequestModal();
         await fetchCollection();
     }
@@ -341,13 +341,10 @@ export function CollectionColumn() {
     };
 
     const onFilterTargetChange = (value: string) => {
-        const target = VALID_CURSORS.find(c => c == value)
-            ? value as keyof ItemCollection
-            : DEFAULT_CURSOR;
-        store(FILTER_TARGET_KEY, target);
+        store(FILTER_TARGET_KEY, value);
         setFilterData((prevData) => ({
             ...prevData,
-            target: target,
+            target: value,
         }));
     }
 
@@ -367,16 +364,55 @@ export function CollectionColumn() {
         }));
     }
 
-    function applyFilter(item: LiteItemCollection): boolean {
-        if(filterData.value == "") {
-            return true;
+    function applyFilter(item: LiteItemCollection): FilterResult<LiteItemCollection> {
+        if (filterData.value == "") {
+            return { matches: true };
+        }
+
+        if (filterData.target == "timestamp" || filterData.target ==  "name") {
+            let field = item[filterData.target].toString();
+
+            if (filterData.target == "timestamp") {
+                field = millisecondsToDate(item[filterData.target]);
+            }
+    
+            const result = field.toLowerCase().includes(filterData.value.toLowerCase())
+            if(!result) {
+                return { matches: result }
+            }
         }
         
-        let field = item[filterData.target].toString();
-        if(filterData.target == "timestamp") {
-            field = millisecondsToDate(item[filterData.target]);
+        const newItem = {
+            ...item,
+            nodes: item.nodes.filter(applyRequestFilter)
+        };
+
+        return {
+            matches: true,
+            item: newItem
         }
-        return field.toLowerCase().includes(filterData.value.toLowerCase())
+    }
+
+    function applyRequestFilter(item: LiteItemNodeRequest): boolean {
+        let field;
+        switch (filterData.target) {
+            case "req-name":
+                field = item.request.name;
+                break;
+            case "req-timestamp":
+                field = millisecondsToDate(item.request.timestamp);
+                break;
+            case "method":
+            case "uri":
+                field = item.request[filterData.target];
+                break;
+        }
+
+        if(field == undefined) {
+            return true;
+        }
+
+        return field.toLowerCase().includes(filterData.value.toLowerCase());
     }
 
     const makeKey = (itemCollection: LiteItemCollection, itemRequest: LiteRequest): string => {
@@ -404,7 +440,7 @@ export function CollectionColumn() {
     }
 
     const isCollectionDrag = (item: LiteItemCollection) => {
-        if(!dragData.collection) {
+        if (!dragData.collection) {
             return false
         }
         return item._id == dragData.collection._id;
@@ -438,7 +474,7 @@ export function CollectionColumn() {
     }
 
     const isRequestDrag = (item: LiteItemNodeRequest) => {
-        if(!dragData.request) {
+        if (!dragData.request) {
             return false
         }
         return item.request._id == dragData.request.request._id;
@@ -459,7 +495,7 @@ export function CollectionColumn() {
     };
 
     const onRequestOrderChange = async (items: PositionWrapper<LiteItemNodeRequest>[], collection?: LiteItemCollection) => {
-        if(!collection) {
+        if (!collection) {
             return;
         }
         const ordered: RequestNode[] = items.map(e => ({
@@ -474,7 +510,7 @@ export function CollectionColumn() {
         <>
             <div className="column-option options border-bottom">
                 <div id="left-options">
-                    <Combo options={[]}/>
+                    <Combo options={[]} />
                 </div>
                 <button type="button" className="button-anchor" onClick={insert}>New</button>
                 <div id="right-options show">
@@ -503,7 +539,7 @@ export function CollectionColumn() {
                             title: "Refresh",
                             action: () => fetchCollection()
                         }
-                    ]}/>
+                    ]} />
                 </div>
             </div>
             <VerticalDragDrop
@@ -515,7 +551,7 @@ export function CollectionColumn() {
                 onItemDrop={onCollectionDrop}
                 onItemsChange={onCollectionOrderChange}
                 renderItem={(cursorCollection) => (
-                    <Details 
+                    <Details
                         key={cursorCollection._id}
                         identity={cursorKey(cursorCollection)}
                         summary={
@@ -523,7 +559,7 @@ export function CollectionColumn() {
                                 {(isParentCached(cursorCollection._id) || context.isParentCached(cursorCollection._id)) && (
                                     <span className="button-modified-status small visible"></span>
                                 )}
-                                <span className={`${ cursorCollection._id == parent && "collection-selected"}`} title={cursorCollection.name}>{cursorCollection.name}</span>
+                                <span className={`${cursorCollection._id == parent && "collection-selected"}`} title={cursorCollection.name}>{cursorCollection.name}</span>
                             </>
                         }
                         options={(
@@ -577,22 +613,22 @@ export function CollectionColumn() {
                                     disable: !isParentCached(cursorCollection._id),
                                     action: () => discardCollection(cursorCollection)
                                 },
-                                 {
+                                {
                                     icon: "🧹",
                                     label: "Context",
                                     title: "Discard context changes",
                                     disable: !context.isParentCached(cursorCollection._id),
                                     action: () => context.discardContext(cursorCollection.context)
                                 },
-                            ]}/>)}
+                            ]} />)}
                         subsummary={(
                             <div className="request-sign-date">
-                                <span className="request-sign-timestamp" title={millisecondsToDate(cursorCollection.timestamp)}>{ millisecondsToDate(cursorCollection.timestamp) }</span>
+                                <span className="request-sign-timestamp" title={millisecondsToDate(cursorCollection.timestamp)}>{millisecondsToDate(cursorCollection.timestamp)}</span>
                             </div>
                         )}
-                        isEmpty={ () => cursorCollection.nodes.length == 0 }
-                        onToggle={ () => fetchCollectionItem(cursorCollection) }
-                        >
+                        isEmpty={() => cursorCollection.nodes.length == 0}
+                        onToggle={() => fetchCollectionItem(cursorCollection)}
+                    >
                         {!isCollectionDrag(cursorCollection) && (
                             <VerticalDragDrop
                                 items={cursorCollection.nodes}
@@ -602,18 +638,18 @@ export function CollectionColumn() {
                                 onItemDrop={onRequestDrop}
                                 onItemsChange={onRequestOrderChange}
                                 renderItem={(node) => (
-                                    <div key={ makeKey(cursorCollection, node.request) } className={`request-preview ${ isRequestSelected(node) && "request-selected"} ${ isRequestDrag(node) && "request-float" }`}>
-                                        <a className="request-link" title={ node.request.uri }
+                                    <div key={makeKey(cursorCollection, node.request)} className={`request-preview ${isRequestSelected(node) && "request-selected"} ${isRequestDrag(node) && "request-float"}`}>
+                                        <a className="request-link" title={node.request.uri}
                                             onClick={() => defineCollectionRequest(cursorCollection, node.request)}>
                                             <div className="request-sign">
                                                 {isCached(node.request) && (
                                                     <span className="button-modified-status small visible"></span>
                                                 )}
-                                                <span className={`request-sign-method ${node.request.method}`}>{ node.request.method }</span>
-                                                <span className="request-sign-url">{ node.request.name }</span>
+                                                <span className={`request-sign-method ${node.request.method}`}>{node.request.method}</span>
+                                                <span className="request-sign-url">{node.request.name}</span>
                                             </div>
                                             <div className="request-sign-date">
-                                                <span className="request-sign-timestamp" title={millisecondsToDate(node.request.timestamp)}>{ millisecondsToDate(node.request.timestamp) }</span>
+                                                <span className="request-sign-timestamp" title={millisecondsToDate(node.request.timestamp)}>{millisecondsToDate(node.request.timestamp)}</span>
                                             </div>
                                         </a>
                                         <Combo options={[
@@ -660,7 +696,7 @@ export function CollectionColumn() {
                                                 disable: !isCached(node.request),
                                                 action: () => discardRequest(node.request)
                                             },
-                                        ]}/>
+                                        ]} />
                                     </div>
                                 )}
                                 emptyTemplate={(
@@ -676,9 +712,9 @@ export function CollectionColumn() {
             />
             <div id="search-box">
                 <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
-                <input className="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target}/>
+                <input className="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target} />
                 <div className="search-combo-container">
-                    <Combo 
+                    <Combo
                         custom={(
                             <span>🔎</span>
                         )}
@@ -697,15 +733,39 @@ export function CollectionColumn() {
                                 title: "Filter by date",
                                 action: () => onFilterTargetChange("timestamp")
                             },
-                    ]}/>
+                            {
+                                label: "Request Name",
+                                name: "req-name",
+                                title: "Filter by request name",
+                                action: () => onFilterTargetChange("req-name")
+                            },
+                            {
+                                label: "Request Date",
+                                name: "req-timestamp",
+                                title: "Filter by request date",
+                                action: () => onFilterTargetChange("req-timestamp")
+                            },
+                            {
+                                label: "Method",
+                                name: "method",
+                                title: "Filter by method",
+                                action: () => onFilterTargetChange("method")
+                            },
+                            {
+                                label: "Uri",
+                                name: "uri",
+                                title: "Filter by Uri",
+                                action: () => onFilterTargetChange("uri")
+                            },
+                        ]} />
                 </div>
             </div>
-            <CollectionModal 
-                isOpen={modalData.openCollect} 
-                request={modalData.request} 
+            <CollectionModal
+                isOpen={modalData.openCollect}
+                request={modalData.request}
                 parent={modalData.collection?._id}
                 onSubmit={submitCollectionModal}
-                onClose={closeCollectionModal}/>
+                onClose={closeCollectionModal} />
             <ImportCollectionModal
                 isOpen={modalData.openImportCollection}
                 onSubmit={submitImportCollectionModal}

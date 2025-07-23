@@ -12,7 +12,7 @@ import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useStoreSession } from '../../../../../store/StoreProviderSession';
-import { VerticalDragDrop, PositionWrapper } from '../../../../utils/drag/VerticalDragDrop';
+import { VerticalDragDrop, PositionWrapper, FilterResult } from '../../../../utils/drag/VerticalDragDrop';
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
 import { Optional } from '../../../../../types/Optional';
 
@@ -204,17 +204,19 @@ export function StoredColumn() {
         }));
     }
 
-    const applyFilter = (item: LiteRequest): boolean => {
+    const applyFilter = (item: LiteRequest): FilterResult<LiteRequest> => {
         let field = item[filterData.target]
         if(filterData.value == "" || field == undefined) {
-            return true;
+            return { matches: true };
         }
 
         field = field.toString();
         if(filterData.target == "timestamp") {
             field = millisecondsToDate(item[filterData.target]);
         }
-        return field.toLowerCase().includes(filterData.value.toLowerCase())
+        return { 
+            matches: field.toLowerCase().includes(filterData.value.toLowerCase())
+        }
     }
 
     const openImportModal = () => {
