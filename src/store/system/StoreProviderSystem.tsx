@@ -85,18 +85,26 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   };
 
   const fetchRecords = async () => {
-    const records = await fetchSystemRecords();
-    const newHash = await generateHash(records);
-    setRecordsData((prevData) => {
-      if(prevData.hash == newHash) {
-        return prevData;
+    try {
+      const records = await fetchSystemRecords();
+      const newHash = await generateHash(records);
+      setRecordsData((prevData) => {
+        if(prevData.hash == newHash) {
+          return prevData;
+        }
+  
+        return {
+          hash: newHash,
+          records: records
+        };
+      });
+    } catch (error: any) {
+      if(error.statusCode == 403) {
+        console.error("The user does not have privileges to view the logs.")
+        return;
       }
-
-      return {
-        hash: newHash,
-        records: records
-      };
-    });
+      console.error(error);
+    }
   };
 
   const openModal = async () => {
