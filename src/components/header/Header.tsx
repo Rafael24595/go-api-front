@@ -60,7 +60,7 @@ export function Header() {
             </button>
             <div id="user-container">
                 {(request.cacheLenght() > 0 || context.cacheLenght() > 0) && (
-                    <div id="unsafe-container">
+                    <div id="unsave-container">
                         <span className="button-modified-status visible" title={makeUnsavedTitle()}></span>
                     </div>
                 )}

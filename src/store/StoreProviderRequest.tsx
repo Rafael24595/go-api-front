@@ -537,7 +537,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       name = `${cached.request.method} ${cached.request.uri}`;
     }
 
-    return `Unsafe${collected}request '${name}'.`;
+    return `Unsaved${collected}request '${name}'.`;
   }
 
   const cacheLenght = () => {

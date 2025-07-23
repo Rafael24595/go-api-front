@@ -177,7 +177,7 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
       collected = "collected";
     }
 
-    return `Unsafe ${collected} context.`;
+    return `Unsaved ${collected} context.`;
   }
 
   const cacheLenght = () => {
