@@ -61,6 +61,15 @@ export const fetchSignin = async (username: string, password1: string, password2
   }
 };
 
+export const fetchUserData = async (): Promise<UserData> => {
+  try {
+    const apiResponse = await authApiManager.get(`/user`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const fetchRemove = async (): Promise<UserData> => {
   try {
     const apiResponse = await authApiManager.delete(`/user`);
@@ -85,18 +94,9 @@ export const fetchAuthenticate = async (oldPassword: string, newPassword1: strin
   }
 };
 
-export const fetchUserData = async (): Promise<UserData> => {
-  try {
-    const apiResponse = await authApiManager.get(`/user`);
-    return apiResponse.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const fetchRefresh = async (): Promise<UserData> => {
   try {
-    const apiResponse = await sessionApiManager.get(`/refresh`);
+    const apiResponse = await sessionApiManager.get(`/token/refresh`);
     return apiResponse.data;
   } catch (error) {
     throw error;
