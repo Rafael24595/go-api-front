@@ -4,6 +4,7 @@ import { cleanCopy, fixOrder, ItemStatusKeyValue, StatusKeyValue as StrStatusKey
 import { StatusKeyValue } from '../status-key-value/StatusKeyValue';
 import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
 import { PositionWrapper, VerticalDragDrop } from '../../../../../utils/drag/VerticalDragDrop';
+import { HttpHeader } from '../../../../../../constants/HttpHeader';
 
 import './HeaderArguments.css';
 
@@ -17,6 +18,8 @@ interface Payload {
     empty: string
     items: ItemStatusKeyValue[]
 }
+
+const HTTP_HEADERS = "http-headers";
 
 export function HeaderArguments() {
     const { request, updateHeader } = useStoreRequest();
@@ -94,37 +97,46 @@ export function HeaderArguments() {
     };
 
     return (
-        <VerticalDragDrop
-            id="client-argument-content"
-            items={data.items}
-            itemId={makeKey}
-            onItemsChange={updateOrder}
-            renderItem={(item, i) => (
-                <StatusKeyValue
-                    key={makeKey(item)}
-                    order={i}
-                    focus={item.focus}
-                    value={{
-                        order: item.order,
-                        status: item.status,
-                        key: item.key,
-                        value: item.value
-                    }}
-                    definition={{ 
-                        ...ROW_DEFINITION, 
-                        disabled: false}}
-                    rowPush={rowPush}
-                    rowTrim={rowTrim}
-                />
-            )}
-            afterTemplate={(
-                <StatusKeyValue 
-                    key={data.empty}
-                    definition={ ROW_DEFINITION }
-                    rowPush={rowPush}
-                    rowTrim={rowTrim}
-                />
-            )}
-        />
+        <>
+            <datalist id={HTTP_HEADERS}>
+                {HttpHeader.map(h => (
+                    <option value={h}/>
+                ))}
+            </datalist>
+            <VerticalDragDrop
+                id="client-argument-content"
+                items={data.items}
+                itemId={makeKey}
+                onItemsChange={updateOrder}
+                renderItem={(item, i) => (
+                    <StatusKeyValue
+                        key={makeKey(item)}
+                        order={i}
+                        focus={item.focus}
+                        value={{
+                            order: item.order,
+                            status: item.status,
+                            key: item.key,
+                            value: item.value
+                        }}
+                        definition={{ 
+                            ...ROW_DEFINITION, 
+                            disabled: false}}
+                        rowPush={rowPush}
+                        rowTrim={rowTrim}
+                        keyList={HTTP_HEADERS}
+                    />
+                )}
+                afterTemplate={(
+                    <StatusKeyValue 
+                        key={data.empty}
+                        definition={ ROW_DEFINITION }
+                        rowPush={rowPush}
+                        rowTrim={rowTrim}
+                        keyList={HTTP_HEADERS}
+                    />
+                )}
+            />
+        </>
     )
 }
