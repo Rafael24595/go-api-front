@@ -1393,7 +1393,7 @@ export const ThemesDefault: IThemes = {
             "button-hover-color": "#f9f9f9",
             "button-border-color": "#d1d1d1",
             "button-delete-color": "#e4c1c1",
-            "modal-color": "#ffffff",
+            "modal-color": "#f5f5f5",
             "modal-button-color": "#f9f9f9",
             "modal-border-color": "#d1d1d1",
             "combo-color": "#efefef",
