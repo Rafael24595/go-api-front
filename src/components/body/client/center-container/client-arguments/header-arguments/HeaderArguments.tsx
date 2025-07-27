@@ -100,7 +100,7 @@ export function HeaderArguments() {
         <>
             <datalist id={HTTP_HEADERS}>
                 {HttpHeader.map(h => (
-                    <option value={h}/>
+                    <option key={h} value={h}/>
                 ))}
             </datalist>
             <VerticalDragDrop

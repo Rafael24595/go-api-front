@@ -64,7 +64,7 @@ export function BearerData({value, onValueChange}: BearerDataProps) {
         <>
             <datalist id={AUTH_SCHEMES}>
                 {AuthScheme.map(h => (
-                    <option value={h}/>
+                    <option key={h} value={h}/>
                 ))}
             </datalist>
             <div className="parameter-container">
