@@ -15,6 +15,7 @@ import { useStoreSession } from '../../../../../store/StoreProviderSession';
 import { VerticalDragDrop, PositionWrapper, FilterResult } from '../../../../utils/drag/VerticalDragDrop';
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
 import { Optional } from '../../../../../types/Optional';
+import { VoidCallback } from '../../../../../interfaces/Callback';
 
 import './StoredColumn.css';
 
@@ -48,7 +49,7 @@ export function StoredColumn() {
     const { request, cleanRequest, discardRequest, defineFreeRequest, fetchFreeRequest, insertRequest, isCached } = useStoreRequest();
     const { stored, fetchStored, fetchCollection, updateStoredOrder } = useStoreRequests();
 
-    const { push } = useAlert();
+    const { push, ask } = useAlert();
 
     const [modalData, setModalData] = useState<PayloadModal>({
         request: newRequest(userData.username),
@@ -98,7 +99,7 @@ export function StoredColumn() {
         const request = action.request;
 
         const name = prompt("Insert a name: ", request.name);
-        if(name == null && name != request.name) {
+        if (name == null && name != request.name) {
             return;
         }
 
@@ -108,16 +109,33 @@ export function StoredColumn() {
     };
 
     const deleteStored = async (item: LiteRequest) => {
-        try {
-            await deleteAction(item);
-            discardRequest(item);
-            await fetchStored();
-            if(request._id == item._id) {
-                cleanRequest();
-            }
-        } catch (error) {
-            console.error("Error fetching history:", error);
-        }
+        ask({
+            content: `The request '${item.name}' will be deleted, are you sure?`,
+            buttons: [
+                {
+                    title: "Yes",
+                    type: "submit",
+                    callback: {
+                        func: async () => {
+                            try {
+                                await deleteAction(item);
+                                discardRequest(item);
+                                await fetchStored();
+                                if (request._id == item._id) {
+                                    cleanRequest();
+                                }
+                            } catch (error) {
+                                console.error("Error deleting request:", error);
+                            }
+                        }
+                    }
+                },
+                {
+                    title: "No",
+                    callback: VoidCallback
+                }
+            ]
+        });
     };
 
     const cloneStored = async (item: LiteRequest) => {
@@ -172,7 +190,7 @@ export function StoredColumn() {
         await fetchStored();
         await fetchCollection();
 
-        if(modalData.move) {
+        if (modalData.move) {
             discardRequest(request);
         }
     }
@@ -206,15 +224,15 @@ export function StoredColumn() {
 
     const applyFilter = (item: LiteRequest): FilterResult<LiteRequest> => {
         let field = item[filterData.target]
-        if(filterData.value == "" || field == undefined) {
+        if (filterData.value == "" || field == undefined) {
             return { matches: true };
         }
 
         field = field.toString();
-        if(filterData.target == "timestamp") {
+        if (filterData.target == "timestamp") {
             field = millisecondsToDate(item[filterData.target]);
         }
-        return { 
+        return {
             matches: field.toLowerCase().includes(filterData.value.toLowerCase())
         }
     }
@@ -233,10 +251,10 @@ export function StoredColumn() {
                 category: EAlertCategory.ERRO,
                 content: e.message,
             }));
-        if(!collection) {
+        if (!collection) {
             return;
         }
-        
+
         closeImportModal();
         await fetchStored();
     }
@@ -271,7 +289,7 @@ export function StoredColumn() {
     }
 
     const isRequestDrag = (item: LiteRequest) => {
-        if(!dragData.request) {
+        if (!dragData.request) {
             return false
         }
         return item._id == modalData.request._id;
@@ -301,162 +319,162 @@ export function StoredColumn() {
     };
 
     return (
-            <>
-                <div className="column-option options border-bottom">
-                    <div id="left-options">
-                        <Combo options={[]}/>
-                    </div>
-                    <button type="button" className="button-anchor" onClick={() => insertNewRequest()}>New</button>
-                    <div id="right-options show">
+        <>
+            <div className="column-option options border-bottom">
+                <div id="left-options">
+                    <Combo options={[]} />
+                </div>
+                <button type="button" className="button-anchor" onClick={() => insertNewRequest()}>New</button>
+                <div id="right-options show">
+                    <Combo options={[
+                        {
+                            icon: "💾",
+                            label: "Export",
+                            title: "Export all",
+                            action: exportAll
+                        },
+                        {
+                            icon: "💽",
+                            label: "Import",
+                            title: "Import collections",
+                            action: () => openImportModal()
+                        },
+                        {
+                            icon: "🔄",
+                            label: "Refresh",
+                            title: "Refresh",
+                            action: () => fetchStored()
+                        }
+                    ]} />
+                </div>
+            </div>
+            <VerticalDragDrop
+                id="actions-container"
+                items={stored}
+                applyFilter={applyFilter}
+                itemId={makeKey}
+                onItemDrag={onRequestDrag}
+                onItemDrop={onRequestDrop}
+                onItemsChange={updateOrder}
+                renderItem={(cursor) => (
+                    <div key={makeKey(cursor)} className={`request-preview ${isRequestSelected(cursor) && "request-selected"} ${isRequestDrag(cursor) && "request-float"}`}>
+                        <a className="request-link" title={cursor.uri}
+                            onClick={() => defineHistoricRequest(cursor)}>
+                            <div className="request-sign">
+                                {isCached(cursor) && (
+                                    <span className="button-modified-status small visible"></span>
+                                )}
+                                <span className={`request-sign-method ${cursor.method}`}>{cursor.method}</span>
+                                <span className="request-sign-url">{cursor.name}</span>
+                            </div>
+                            <div className="request-sign-date">
+                                <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{millisecondsToDate(cursor.timestamp)}</span>
+                            </div>
+                        </a>
                         <Combo options={[
+                            {
+                                icon: "🗑️",
+                                label: "Delete",
+                                title: "Delete request",
+                                action: () => deleteStored(cursor)
+                            },
+                            {
+                                icon: "✏️",
+                                label: "Rename",
+                                title: "Rename request",
+                                action: () => renameStored(cursor)
+                            },
+                            {
+                                icon: "🐑",
+                                label: "Clone",
+                                title: "Clone request",
+                                action: () => cloneStored(cursor)
+                            },
+                            {
+                                icon: "🐏",
+                                label: "Duplicate",
+                                title: "Duplicate request",
+                                action: () => duplicateStored(cursor)
+                            },
+                            {
+                                icon: "📚",
+                                label: "Collect",
+                                title: "Copy to collection",
+                                action: () => openCollectModal(cursor)
+                            },
+                            {
+                                icon: "📦",
+                                label: "Move",
+                                title: "Move to collection",
+                                action: () => openMoveModal(cursor)
+                            },
                             {
                                 icon: "💾",
                                 label: "Export",
-                                title: "Export all",
-                                action: exportAll
+                                title: "Export request",
+                                action: () => exportRequest(cursor)
                             },
                             {
-                                icon: "💽",
-                                label: "Import",
-                                title: "Import collections",
-                                action: () => openImportModal()
+                                icon: "🧹",
+                                label: "Discard",
+                                title: "Discard changes",
+                                disable: !isCached(cursor),
+                                action: () => discardRequest(cursor)
+                            },
+                        ]} />
+                    </div>
+                )}
+                emptyTemplate={(
+                    <p className="no-data"> - No requests found - </p>
+                )}
+            />
+            <div id="search-box">
+                <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
+                <input className="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target} />
+                <div className="search-combo-container">
+                    <Combo
+                        custom={(
+                            <span>🔎</span>
+                        )}
+                        asSelect={true}
+                        selected={filterData.target}
+                        options={[
+                            {
+                                label: "Name",
+                                name: "name",
+                                title: "Filter by name",
+                                action: () => onFilterTargetChange("name")
                             },
                             {
-                                icon: "🔄",
-                                label: "Refresh",
-                                title: "Refresh",
-                                action: () => fetchStored()
-                            }
-                        ]}/>
-                    </div>
+                                label: "Date",
+                                name: "timestamp",
+                                title: "Filter by date",
+                                action: () => onFilterTargetChange("timestamp")
+                            },
+                            {
+                                label: "Method",
+                                name: "method",
+                                title: "Filter by method",
+                                action: () => onFilterTargetChange("method")
+                            },
+                            {
+                                label: "Uri",
+                                name: "uri",
+                                title: "Filter by Uri",
+                                action: () => onFilterTargetChange("uri")
+                            },
+                        ]} />
                 </div>
-                <VerticalDragDrop
-                    id="actions-container"
-                    items={stored}
-                    applyFilter={applyFilter}
-                    itemId={makeKey}
-                    onItemDrag={onRequestDrag}
-                    onItemDrop={onRequestDrop}
-                    onItemsChange={updateOrder}
-                    renderItem={(cursor) => (
-                        <div key={ makeKey(cursor) } className={`request-preview ${ isRequestSelected(cursor) && "request-selected" } ${ isRequestDrag(cursor) && "request-float" }`}>
-                            <a className="request-link" title={ cursor.uri }
-                                onClick={() => defineHistoricRequest(cursor)}>
-                                <div className="request-sign">
-                                    {isCached(cursor) && (
-                                        <span className="button-modified-status small visible"></span>
-                                    )}
-                                    <span className={`request-sign-method ${cursor.method}`}>{ cursor.method }</span>
-                                    <span className="request-sign-url">{ cursor.name }</span>
-                                </div>
-                                <div className="request-sign-date">
-                                    <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{ millisecondsToDate(cursor.timestamp) }</span>
-                                </div>
-                            </a>
-                            <Combo options={[
-                                {
-                                    icon: "🗑️",
-                                    label: "Delete",
-                                    title: "Delete request",
-                                    action: () => deleteStored(cursor)
-                                },
-                                {
-                                    icon: "✏️",
-                                    label: "Rename",
-                                    title: "Rename request",
-                                    action: () => renameStored(cursor)
-                                },
-                                {
-                                    icon: "🐑",
-                                    label: "Clone",
-                                    title: "Clone request",
-                                    action: () => cloneStored(cursor)
-                                },
-                                {
-                                    icon: "🐏",
-                                    label: "Duplicate",
-                                    title: "Duplicate request",
-                                    action: () => duplicateStored(cursor)
-                                },
-                                {
-                                    icon: "📚",
-                                    label: "Collect",
-                                    title: "Copy to collection",
-                                    action: () => openCollectModal(cursor)
-                                },
-                                {
-                                    icon: "📦",
-                                    label: "Move",
-                                    title: "Move to collection",
-                                    action: () => openMoveModal(cursor)
-                                },
-                                {
-                                    icon: "💾",
-                                    label: "Export",
-                                    title: "Export request",
-                                    action: () => exportRequest(cursor)
-                                },
-                                {
-                                    icon: "🧹",
-                                    label: "Discard",
-                                    title: "Discard changes",
-                                    disable: !isCached(cursor),
-                                    action: () => discardRequest(cursor)
-                                },
-                            ]}/>
-                        </div>
-                    )}
-                    emptyTemplate={(
-                        <p className="no-data"> - No requests found - </p>
-                    )}
-                />
-                <div id="search-box">
-                    <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
-                    <input className="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target}/>
-                    <div className="search-combo-container">
-                        <Combo 
-                            custom={(
-                                <span>🔎</span>
-                            )}
-                            asSelect={true}
-                            selected={filterData.target}
-                            options={[
-                                {
-                                    label: "Name",
-                                    name: "name",
-                                    title: "Filter by name",
-                                    action: () => onFilterTargetChange("name")
-                                },
-                                {
-                                    label: "Date",
-                                    name: "timestamp",
-                                    title: "Filter by date",
-                                    action: () => onFilterTargetChange("timestamp")
-                                },
-                                {
-                                    label: "Method",
-                                    name: "method",
-                                    title: "Filter by method",
-                                    action: () => onFilterTargetChange("method")
-                                },
-                                {
-                                    label: "Uri",
-                                    name: "uri",
-                                    title: "Filter by Uri",
-                                    action: () => onFilterTargetChange("uri")
-                                },
-                        ]}/>
-                    </div>
-                </div>
-                <ImportRequestModal
-                    isOpen={modalData.openImport}
-                    onSubmit={submitImportModal}
-                    onClose={closeImportModal}/>
-                <CollectionModal
-                    isOpen={modalData.openMove} 
-                    request={modalData.request} 
-                    onSubmit={submitModal}
-                    onClose={closeMoveModal}/>
-            </>
-        );
+            </div>
+            <ImportRequestModal
+                isOpen={modalData.openImport}
+                onSubmit={submitImportModal}
+                onClose={closeImportModal} />
+            <CollectionModal
+                isOpen={modalData.openMove}
+                request={modalData.request}
+                onSubmit={submitModal}
+                onClose={closeMoveModal} />
+        </>
+    );
 }

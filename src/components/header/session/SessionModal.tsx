@@ -6,6 +6,7 @@ import { ProfileImage } from './ProfileImage';
 import { EAlertCategory } from '../../../interfaces/AlertData';
 import { useAlert } from '../../utils/alert/Alert';
 import { useStoreTheme } from '../../../store/theme/StoreProviderTheme';
+import { VoidCallback } from '../../../interfaces/Callback';
 
 import './SessionModal.css';
 
@@ -27,12 +28,12 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     const { userData, login, logout, authenticate, signin, remove } = useStoreSession();
     const { isDark, openModal, toggleDefaultThemes } = useStoreTheme();
 
-    const { push } = useAlert();
+    const { push, ask } = useAlert();
 
     const onLogin = async () => {
         await login(data.username, data.newPassword1)
             .then(onLocalClose)
-            .catch(e =>push({
+            .catch(e => push({
                 title: `[${e.statusCode}] ${e.statusText}`,
                 category: EAlertCategory.ERRO,
                 content: e.message,
@@ -59,7 +60,7 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     const onAuthenticate = async () => {
         await authenticate(data.oldPassword, data.newPassword1, data.newPassword2)
             .then(onLocalClose)
-            .catch(e =>push({
+            .catch(e => push({
                 title: `[${e.statusCode}] ${e.statusText}`,
                 category: EAlertCategory.ERRO,
                 content: e.message,
@@ -72,17 +73,29 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     };
 
     const onRemove = async () => {
-        if (!confirm(`The user ${userData.username} will be removed. Are you sure?`)) {
-            return;
-        } 
-
-        await remove()
-            .then(onLocalClose)
-            .catch(e =>push({
-                title: `[${e.statusCode}] ${e.statusText}`,
-                category: EAlertCategory.ERRO,
-                content: e.message,
-            }));
+        ask({
+            content: `The user ${userData.username} will be removed, are you sure?`,
+            buttons: [
+                {
+                    title: "Yes",
+                    callback: {
+                        func: async () => {
+                            await remove()
+                                .then(onLocalClose)
+                                .catch(e => push({
+                                    title: `[${e.statusCode}] ${e.statusText}`,
+                                    category: EAlertCategory.ERRO,
+                                    content: e.message,
+                                }));
+                        }
+                    }
+                },
+                {
+                    title: "No",
+                    callback: VoidCallback
+                }
+            ]
+        });
     };
 
     const onLocalClose = () => {
@@ -103,7 +116,7 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
         newPassword2: "",
         isAdmin: false,
     });
-    
+
     const viewLogin = () => {
         setData((prevData) => ({
             ...prevData,
@@ -130,35 +143,35 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
         }));
     };
 
-    const onUsernameChange = (e: React.ChangeEvent<HTMLInputElement>)  => {
+    const onUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setData((prevData) => ({
             ...prevData,
             username: e.target.value
         }));
     }
 
-    const onOldPasswordChange = (e: React.ChangeEvent<HTMLInputElement>)  => {
+    const onOldPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setData((prevData) => ({
             ...prevData,
             oldPassword: e.target.value
         }));
     }
 
-    const onNewPassword1Change = (e: React.ChangeEvent<HTMLInputElement>)  => {
+    const onNewPassword1Change = (e: React.ChangeEvent<HTMLInputElement>) => {
         setData((prevData) => ({
             ...prevData,
             newPassword1: e.target.value
         }));
     }
 
-    const onNewPassword2Change = (e: React.ChangeEvent<HTMLInputElement>)  => {
+    const onNewPassword2Change = (e: React.ChangeEvent<HTMLInputElement>) => {
         setData((prevData) => ({
             ...prevData,
             newPassword2: e.target.value
         }));
     }
 
-    const onIsAdminChange = (e: React.ChangeEvent<HTMLInputElement>)  => {
+    const onIsAdminChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setData((prevData) => ({
             ...prevData,
             isAdmin: e.target.checked
@@ -216,11 +229,11 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
             <div id="session-data">
                 <div className="session-form-fragment">
                     <label htmlFor="username">Username:</label>
-                    <input type="text" name="username" value={data.username} onChange={onUsernameChange}/>
+                    <input type="text" name="username" value={data.username} onChange={onUsernameChange} />
                 </div>
                 <div className="session-form-fragment">
                     <label htmlFor="password">Password:</label>
-                    <input type="password" name="password" value={data.newPassword1} onChange={onNewPassword1Change} autoComplete="on"/>
+                    <input type="password" name="password" value={data.newPassword1} onChange={onNewPassword1Change} autoComplete="on" />
                 </div>
             </div>
             <div id="session-links">
@@ -234,19 +247,19 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
             <div id="session-data">
                 <div className="session-form-fragment">
                     <label htmlFor="username">Username:</label>
-                    <input type="text" name="username" value={data.username} onChange={onUsernameChange}/>
+                    <input type="text" name="username" value={data.username} onChange={onUsernameChange} />
                 </div>
                 <div className="session-form-fragment">
                     <label htmlFor="password-1">Password:</label>
-                    <input type="password" name="password-1" value={data.newPassword1} onChange={onNewPassword1Change} autoComplete="on"/>
+                    <input type="password" name="password-1" value={data.newPassword1} onChange={onNewPassword1Change} autoComplete="on" />
                 </div>
                 <div className="session-form-fragment">
                     <label htmlFor="password-2">Repeat Password:</label>
-                    <input type="password" name="password-2" value={data.newPassword2} onChange={onNewPassword2Change} autoComplete="on"/>
+                    <input type="password" name="password-2" value={data.newPassword2} onChange={onNewPassword2Change} autoComplete="on" />
                 </div>
                 <div id="admin-fragment" className="session-form-fragment line">
                     <label htmlFor="admin">Register as admin:</label>
-                    <input type="checkbox" name="admin" value={data.username} onChange={onIsAdminChange}/>
+                    <input type="checkbox" name="admin" value={data.username} onChange={onIsAdminChange} />
                 </div>
             </div>
             <div id="session-links">
@@ -260,15 +273,15 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
             <div id="session-data">
                 <div className="session-form-fragment">
                     <label htmlFor="old-password">Old Password:</label>
-                    <input type="password" name="old-password" value={data.oldPassword} onChange={onOldPasswordChange} autoComplete="on"/>
+                    <input type="password" name="old-password" value={data.oldPassword} onChange={onOldPasswordChange} autoComplete="on" />
                 </div>
                 <div className="session-form-fragment">
                     <label htmlFor="new-password-1">New Password:</label>
-                    <input type="password" name="new-password-1" value={data.newPassword1} onChange={onNewPassword1Change} autoComplete="on"/>
+                    <input type="password" name="new-password-1" value={data.newPassword1} onChange={onNewPassword1Change} autoComplete="on" />
                 </div>
                 <div className="session-form-fragment">
                     <label htmlFor="new-password-2">Repeat Password:</label>
-                    <input type="password" name="new-password-2" value={data.newPassword2} onChange={onNewPassword2Change} autoComplete="on"/>
+                    <input type="password" name="new-password-2" value={data.newPassword2} onChange={onNewPassword2Change} autoComplete="on" />
                 </div>
             </div>
             <div id="session-links">
@@ -284,8 +297,8 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
         <div id="login-container">
             <div id="session-data">
                 <div id="loged-data" title={`Registered on ${millisecondsToDate(userData.timestamp)}`}>
-                    <ProfileImage/>
-                    <span id="loged-name">{ userData.username }</span>
+                    <ProfileImage />
+                    <span id="loged-name">{userData.username}</span>
                 </div>
             </div>
             <div id="session-links">
@@ -301,17 +314,17 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
             </div>
         </div>
     );
-    
+
     const loadButtons = () => {
-        if(data.view == 'login') {
+        if (data.view == 'login') {
             return loginButtons;
         }
 
-        if(data.view == 'signin') {
+        if (data.view == 'signin') {
             return signinButtons;
         }
 
-        if(userData.first_time){
+        if (userData.first_time) {
             return validButtons
         }
 
@@ -319,15 +332,15 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     }
 
     const loadTitle = () => {
-        if(data.view == 'login') {
+        if (data.view == 'login') {
             return loginTitle;
         }
 
-        if(data.view == 'signin') {
+        if (data.view == 'signin') {
             return signinTitle;
         }
 
-        if(userData.first_time){
+        if (userData.first_time) {
             return validTitle
         }
 
@@ -335,15 +348,15 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     }
 
     const loadView = () => {
-        if(data.view == 'login') {
+        if (data.view == 'login') {
             return loginView;
         }
 
-        if(data.view == 'signin') {
+        if (data.view == 'signin') {
             return signinView;
         }
 
-        if(userData.first_time){
+        if (userData.first_time) {
             return validView;
         }
 
@@ -351,23 +364,23 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     }
 
     return (
-        <Modal 
-            buttons={loadButtons()}  
-            titleCustom={ 
+        <Modal
+            buttons={loadButtons()}
+            titleCustom={
                 <div id="session-title-container">
-                    <span className="select-none">{ loadTitle() }</span>
-                    <button className={`toggle-theme-button ${ isDark() ? "off" : ""}`} onClick={toggleDefaultThemes} type="button"></button>
+                    <span className="select-none">{loadTitle()}</span>
+                    <button className={`toggle-theme-button ${isDark() ? "off" : ""}`} onClick={toggleDefaultThemes} type="button"></button>
                 </div>
             }
             style={{
-               height: "400px",
-               width: "250px",
-               minHeight: "350px",
-               minWidth: "250px"
+                height: "400px",
+                width: "250px",
+                minHeight: "350px",
+                minWidth: "250px"
             }}
-            isOpen={isOpen} 
+            isOpen={isOpen}
             onClose={onLocalClose}>
-                {loadView()}
+            {loadView()}
         </Modal>
     )
 }

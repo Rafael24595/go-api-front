@@ -20,6 +20,7 @@ import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
 import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
 import { Optional } from '../../../../../types/Optional';
+import { VoidCallback } from '../../../../../interfaces/Callback';
 
 import './CollectionColumn.css';
 
@@ -59,7 +60,7 @@ export function CollectionColumn() {
     const { parent, request, cleanRequest, discardRequest, defineFreeRequest, fetchGroupRequest, isParentCached, isCached } = useStoreRequest();
     const { collection, fetchStored, fetchCollection, fetchCollectionItem, updateCollectionsOrder, updateCollectionRequestsOrder } = useStoreRequests();
 
-    const { push } = useAlert();
+    const { push, ask } = useAlert();
 
     const [filterData, setFilterData] = useState<PayloadFilter>({
         target: findOrDefault(FILTER_TARGET_KEY, {
@@ -100,12 +101,29 @@ export function CollectionColumn() {
     }
 
     const remove = async (item: LiteItemCollection) => {
-        await deleteCollection(item);
-        if (parent == item._id) {
-            cleanRequest();
-        }
-        await fetchCollection();
-        discardCollection(item);
+        ask({
+            content: `The collection '${item.name}' will be deleted, are you sure?`,
+            buttons: [
+                {
+                    title: "Yes",
+                    type: "submit",
+                    callback: {
+                        func: async () => {
+                            await deleteCollection(item);
+                            if (parent == item._id) {
+                                cleanRequest();
+                            }
+                            await fetchCollection();
+                            discardCollection(item);
+                        }
+                    }
+                },
+                {
+                    title: "No",
+                    callback: VoidCallback
+                }
+            ]
+        });
     }
 
     const discardCollection = async (item: LiteItemCollection) => {
@@ -168,12 +186,29 @@ export function CollectionColumn() {
     }
 
     const removeFrom = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
-        await deleteFromCollection(itemCollection, itemRequest);
-        await fetchCollection();
-        if (itemRequest._id == request._id) {
-            return cleanRequest();
-        }
-        discardRequest(itemRequest);
+        ask({
+            content: `The request '${itemRequest.name}' from collection '${itemCollection.name}' will be deleted, are you sure?`,
+            buttons: [
+                {
+                    title: "Yes",
+                    type: "submit",
+                    callback: {
+                        func: async () => {
+                            await deleteFromCollection(itemCollection, itemRequest);
+                            await fetchCollection();
+                            if (itemRequest._id == request._id) {
+                                return cleanRequest();
+                            }
+                            discardRequest(itemRequest);
+                        }
+                    }
+                },
+                {
+                    title: "No",
+                    callback: VoidCallback
+                }
+            ]
+        });
     }
 
     const takeFrom = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
@@ -369,19 +404,19 @@ export function CollectionColumn() {
             return { matches: true };
         }
 
-        if (filterData.target == "timestamp" || filterData.target ==  "name") {
+        if (filterData.target == "timestamp" || filterData.target == "name") {
             let field = item[filterData.target].toString();
 
             if (filterData.target == "timestamp") {
                 field = millisecondsToDate(item[filterData.target]);
             }
-    
+
             const result = field.toLowerCase().includes(filterData.value.toLowerCase())
-            if(!result) {
+            if (!result) {
                 return { matches: result }
             }
         }
-        
+
         const newItem = {
             ...item,
             nodes: item.nodes.filter(applyRequestFilter)
@@ -408,7 +443,7 @@ export function CollectionColumn() {
                 break;
         }
 
-        if(field == undefined) {
+        if (field == undefined) {
             return true;
         }
 

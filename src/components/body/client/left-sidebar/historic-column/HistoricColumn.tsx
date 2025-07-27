@@ -9,6 +9,8 @@ import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';
 import { useStoreSession } from '../../../../../store/StoreProviderSession';
 import { RequestRequestCollect } from '../../../../../services/api/Requests';
+import { useAlert } from '../../../../utils/alert/Alert';
+import { VoidCallback } from '../../../../../interfaces/Callback';
 
 import './HistoricColumn.css';
 
@@ -22,6 +24,8 @@ interface PayloadModal {
 }
 
 export function HistoricColumn({ setCursor }: HistoricColumnProps) {
+    const { ask } = useAlert();
+
     const { userData } = useStoreSession();
 
     const { request, cleanRequest, defineFreeRequest, fetchFreeRequest, insertRequest } = useStoreRequest();
@@ -46,12 +50,29 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     };
 
     const deleteHistoric = async (item: LiteRequest) => {
-        try {
-            await fetchDeleteHistoric(item);
-            await fetchHistoric();
-        } catch (error) {
-            console.error("Error fetching history:", error);
-        }
+        ask({
+            content: `The request '${item.name}' will be deleted, are you sure?`,
+            buttons: [
+                {
+                    title: "Yes",
+                    type: "button",
+                    callback: {
+                        func: async () => {
+                            try {
+                                await fetchDeleteHistoric(item);
+                                await fetchHistoric();
+                            } catch (error) {
+                                console.error("Error deleting request:", error);
+                            }
+                        }
+                    }
+                },
+                {
+                    title: "No",
+                    callback: VoidCallback
+                }
+            ]
+        });
     };
 
     const cloneHistoric = async (item: LiteRequest) => {
@@ -61,17 +82,17 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
         request._id = "";
         defineFreeRequest(request);
     };
-    
+
     const makeKey = (item: LiteRequest): string => {
         return `${item.timestamp}-${item.method}-${item.uri}`;
     }
 
     const openModal = (item: LiteRequest) => {
-        setModalData({request: item, modal: true});
+        setModalData({ request: item, modal: true });
     };
 
     const closeModal = () => {
-        setModalData({...modalData, modal: false});
+        setModalData({ ...modalData, modal: false });
     };
 
     const submitModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
@@ -95,7 +116,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
         <>
             <div className="column-option options border-bottom">
                 <div id="left-options">
-                    <Combo options={[]}/>
+                    <Combo options={[]} />
                 </div>
                 <button type="button" className="button-anchor" onClick={cleanRequest}>Clean</button>
                 <div id="right-options show">
@@ -106,21 +127,21 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                             title: "Refresh",
                             action: () => fetchHistoric()
                         }
-                    ]}/>
+                    ]} />
                 </div>
             </div>
             <div id="actions-container">
                 {historic.length > 0 ? (
                     historic.map((cursor) => (
-                        <div key={ makeKey(cursor) } className={`request-preview ${ cursor._id == request._id && "request-selected"}`}>
-                            <a className="request-link" title={ cursor.uri }
+                        <div key={makeKey(cursor)} className={`request-preview ${cursor._id == request._id && "request-selected"}`}>
+                            <a className="request-link" title={cursor.uri}
                                 onClick={() => defineHistoricRequest(cursor)}>
                                 <div className="request-sign">
-                                    <span className={`request-sign-method ${cursor.method}`}>{ cursor.method }</span>
-                                    <span className="request-sign-url">{ cursor.uri }</span>
+                                    <span className={`request-sign-method ${cursor.method}`}>{cursor.method}</span>
+                                    <span className="request-sign-url">{cursor.uri}</span>
                                 </div>
                                 <div className="request-sign-date">
-                                    <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{ millisecondsToDate(cursor.timestamp) }</span>
+                                    <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{millisecondsToDate(cursor.timestamp)}</span>
                                 </div>
                             </a>
                             <Combo options={[
@@ -148,18 +169,18 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                                     title: "Copy to collection",
                                     action: () => openModal(cursor)
                                 }
-                            ]}/>
+                            ]} />
                         </div>
                     ))
                 ) : (
                     <p className="no-data"> - No history found - </p>
                 )}
             </div>
-            <CollectionModal 
-                isOpen={modalData.modal} 
-                request={modalData.request} 
+            <CollectionModal
+                isOpen={modalData.modal}
+                request={modalData.request}
                 onSubmit={submitModal}
-                onClose={closeModal}/>
+                onClose={closeModal} />
         </>
     );
 }
