@@ -4,6 +4,7 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
+    pointer-events: none;
 }
 
 .alert-component {
@@ -16,6 +17,7 @@
     background-color: var(--modal-color);
     box-shadow: 2px 2px 2px 0px var(--combo-shadow-color);
     z-index: 999;
+    pointer-events: auto;
 }
 
 .alert-title-container {
@@ -42,4 +44,16 @@
 .alert-content-container {
     padding-left: 3px;
     padding-right: 3px;
+}
+
+.alert-buttons {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.alert-button {
+    margin-left: 5px;
+    margin-right: 5px;
 }

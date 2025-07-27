@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { AlertData } from "../../../interfaces/AlertData";
+import { AlertData, AlertDataAsk, EAlertCategory } from "../../../interfaces/AlertData";
 import { v4 as uuidv4 } from 'uuid';
+import { Callback } from "../../../interfaces/Callback";
 
 import './Alert.css';
 
 interface AlertType {
   push: (alert: AlertData) => void;
+  ask: (alert: AlertDataAsk) => void;
   remove: (alert: AlertData) => void;
 }
 
@@ -27,6 +29,20 @@ export const Alert: React.FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     manage();
   }, [data.pending]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && data.showing.length > 0) {
+        const lastAlert = data.showing[data.showing.length - 1];
+        remove(lastAlert);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [data.showing]);
 
   const manage = () => {
     if (data.executing) {
@@ -65,6 +81,16 @@ export const Alert: React.FC<{ children: ReactNode }> = ({ children }) => {
     }));
   }
 
+  const ask = (ask: AlertDataAsk) => {
+    push({
+      title: ask.title,
+      content: ask.content,
+      category: EAlertCategory.QUES,
+      buttons: ask.buttons,
+      time: 5 * 60 * 1000
+    });
+  }
+
   const release = (): AlertData | undefined => {
     const newData = { ...data }
     const alert = newData.pending.shift();
@@ -89,8 +115,13 @@ export const Alert: React.FC<{ children: ReactNode }> = ({ children }) => {
     });
   }
 
+  const callback = (alert: AlertData, callback: Callback) => {
+    callback.func(callback.args);
+    remove(alert);
+  }
+
   return (
-    <StoreContext.Provider value={{ push, remove }}>
+    <StoreContext.Provider value={{ push, ask, remove }}>
       <div id="alert-queue">
         {data.showing.map(a => (
           <div key={uuidv4()} className="alert-component">
@@ -101,6 +132,20 @@ export const Alert: React.FC<{ children: ReactNode }> = ({ children }) => {
             <div className="alert-content-container">
               {a.content}
             </div>
+            {a.buttons && (
+              <form id={uuidv4()} className="alert-buttons">
+                {a.buttons.map(b => (
+                  <button
+                    key={b.title}
+                    className="alert-button"
+                    type={b.type}
+                    autoFocus={b.type == "submit"}
+                    onClick={() => callback(a, b.callback)}>
+                    {b.title}
+                  </button>
+                ))}
+              </form>
+            )}
           </div>
         ))}
       </div>
