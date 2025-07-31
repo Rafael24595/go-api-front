@@ -25,6 +25,18 @@
 #selector-type {
     display: flex;
     margin-right: 15px;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+#selector-input {
+    display: flex;
+    align-items: center;
+}
+
+#selector-button {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 #selector-type label {

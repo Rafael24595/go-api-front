@@ -3,6 +3,8 @@ import type { StatusKeyValue } from '../../../../../../interfaces/StatusKeyValue
 
 import './StatusKeyValue.css'
 
+const DATA_LIST_MIN = 2;
+
 interface StatusKeyValueProps {
     order?: number
     focus?: string
@@ -14,6 +16,7 @@ interface StatusKeyValueProps {
     }     
     rowPush: (row: StatusKeyValue, focus: string, order?: number) => void;
     rowTrim: (order: number) => void;
+    keyList?: string;
 }
 
 interface Payload {
@@ -23,7 +26,7 @@ interface Payload {
     value: string;
 }
 
-export function StatusKeyValue({order, focus, value, definition, rowPush, rowTrim}: StatusKeyValueProps) {
+export function StatusKeyValue({order, focus, value, definition, rowPush, rowTrim, keyList}: StatusKeyValueProps) {
     const inputKey = useRef<HTMLInputElement>(null);
     const inputValue = useRef<HTMLInputElement>(null);
 
@@ -78,7 +81,7 @@ export function StatusKeyValue({order, focus, value, definition, rowPush, rowTri
         <>
             <div className="parameter-container">
                 <input name="status" type="checkbox" onChange={handleChecked} disabled={definition.disabled} checked={row.status}/>
-                <input className="parameter-input" ref={inputKey} name="key" type="text" onChange={handleChange} placeholder={definition.key} value={row.key}/>
+                <input className="parameter-input" ref={inputKey} name="key" type="text" list={ row.key.length < DATA_LIST_MIN ? "" : keyList} onChange={handleChange} placeholder={definition.key} value={row.key}/>
                 <input className="parameter-input" ref={inputValue} name="value" type="text" onChange={handleChange} placeholder={definition.value} value={row.value}/>
                 <button type="button" className={`remove-button ${!definition.disabled ? "show" : ''}`} onClick={handleDelete} disabled={definition.disabled}></button>
             </div>

@@ -180,28 +180,32 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
                         <h3 className="selector-title">Selector:</h3>
                         <div id="selector-container">
                             <div id="selector-type">
-                                <label htmlFor="file-type">File: </label>
-                                <select name="file-type" value={data.fileType} onChange={changeFileType}>
-                                    <option value={CURSOR_LOCAL}>Local</option>
-                                    <option value={CURSOR_REMOTE}>Remote</option>
-                                    <option value={CURSOR_TEXT}>Text</option>
-                                </select>
+                                <div id="selector-input">
+                                    <label htmlFor="file-type">File: </label>
+                                    <select name="file-type" value={data.fileType} onChange={changeFileType}>
+                                        <option value={CURSOR_LOCAL}>Local</option>
+                                        <option value={CURSOR_REMOTE}>Remote</option>
+                                        <option value={CURSOR_TEXT}>Text</option>
+                                    </select>
+                                </div>
+                                <div id="selector-button">
+                                    {data.fileType == CURSOR_REMOTE && (
+                                        <button type="button" onClick={fetchUriFile}>Load</button>
+                                    )}
+                                    {data.fileType == CURSOR_TEXT && (
+                                        <button type="button" onClick={loadFileBlob}>Load</button>
+                                    )}
+                                </div>
                             </div>
                             <div id="selector-file">
                                 {data.fileType == CURSOR_LOCAL && (
                                     <input type="file" onChange={handleFileChange}/>
                                 )}
                                 {data.fileType == CURSOR_REMOTE && (
-                                    <>
-                                        <input type="text" placeholder="https://swagger.io/docs/specification/v3_0/basic-structure" value={data.fileUri} onChange={changeFileUri}/>
-                                        <button type="button" onClick={fetchUriFile}>Load</button>
-                                    </>
+                                    <input type="text" placeholder="https://swagger.io/docs/specification/v3_0/basic-structure" value={data.fileUri} onChange={changeFileUri}/>
                                 )}
                                 {data.fileType == CURSOR_TEXT && (
-                                    <>
-                                        <textarea value={data.fileBlob} onChange={changeFileBlob}></textarea>
-                                        <button type="button" onClick={loadFileBlob}>Load</button>
-                                    </>
+                                    <textarea value={data.fileBlob} onChange={changeFileBlob}></textarea>
                                 )}
                             </div>
                             

@@ -32,8 +32,8 @@ export function HeaderColumn() {
                             <th>Name</th>
                             <th>Value</th>
                         </tr>
-                            {response.headers.map((header) => (
-                                <tr key={header.key}>
+                            {response.headers.map((header, i) => (
+                                <tr key={ `${header.key}-${i}` }>
                                     <td>
                                         { header.key }
                                     </td>

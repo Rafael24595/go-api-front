@@ -7,7 +7,8 @@ import { useStoreSession } from "../StoreProviderSession";
 import { useStoreTheme } from "../theme/StoreProviderTheme";
 import useInactivityRefresh from "../../hook/InactivityRefresh";
 import { generateHash } from "../../services/Utils";
-import { apiURL } from "../../services/api/ApiManager";
+import { hostURL } from "../../services/api/ApiManager";
+import { useStoreStatus } from "../StoreProviderStatus";
 
 import './StoreProviderSystem.css';
 
@@ -34,6 +35,8 @@ interface PayloadRecords {
 
 export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ children }) => {
   useInactivityRefresh(import.meta.env.VITE_INACTIVITY_REFRESH, import.meta.env.VITE_INACTIVITY_WARNING);
+
+    const { clean } = useStoreStatus();
   
   const { userData } = useStoreSession();
   const { loadThemeWindow } = useStoreTheme();
@@ -82,18 +85,26 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   };
 
   const fetchRecords = async () => {
-    const records = await fetchSystemRecords();
-    const newHash = await generateHash(records);
-    setRecordsData((prevData) => {
-      if(prevData.hash == newHash) {
-        return prevData;
+    try {
+      const records = await fetchSystemRecords();
+      const newHash = await generateHash(records);
+      setRecordsData((prevData) => {
+        if(prevData.hash == newHash) {
+          return prevData;
+        }
+  
+        return {
+          hash: newHash,
+          records: records
+        };
+      });
+    } catch (error: any) {
+      if(error.statusCode == 403) {
+        console.error("The user does not have privileges to view the logs.")
+        return;
       }
-
-      return {
-        hash: newHash,
-        records: records
-      };
-    });
+      console.error(error);
+    }
   };
 
   const openModal = async () => {
@@ -122,7 +133,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   const viewerUrl = (source: ViewerSource) => {
-    return `${apiURL()}${source.route}`;
+    return `${hostURL()}${source.route}`;
   }
 
   return (
@@ -212,6 +223,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
               </>
             )}
             <div id="system-metadata-footer">
+              <button className="button-anchor" onClick={clean} title="View system logs">Clear Storage</button>
               {userData.is_admin && (
                 <>
                   <button className="button-anchor" onClick={showLogs} title="View system logs">Logs</button>

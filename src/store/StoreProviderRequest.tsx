@@ -73,7 +73,7 @@ interface PayloadFectch {
 const StoreRequest = createContext<StoreProviderRequestType | undefined>(undefined);
 
 export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, pushTrigger } = useStoreSession();
+  const { userData, fetchUser, pushTrigger } = useStoreSession();
   const { fetchContext } = useStoreContext();
   const { getContext } = useStoreContext();
   const { fetchAll } = useStoreRequests();
@@ -389,8 +389,21 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       return;
     }
 
-    const apiResponse = await findAction(request);
-    defineRequest(apiResponse.request, apiResponse.response, undefined, parent, context);
+     await findAction(request)
+      .then(apiResponse => {
+        if(apiResponse.request.owner != userData.username) {
+          fetchUser();
+        }
+
+        defineRequest(apiResponse.request, apiResponse.response, undefined, parent, context);
+      })
+      .catch(err => { 
+        if(err.statusCode == 404) {
+          fetchUser();
+          return;
+        } 
+        throw err;
+      });
   }
 
   const executeAction = async () => {
@@ -524,7 +537,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       name = `${cached.request.method} ${cached.request.uri}`;
     }
 
-    return `Unsafe${collected}request '${name}'.`;
+    return `Unsaved${collected}request '${name}'.`;
   }
 
   const cacheLenght = () => {

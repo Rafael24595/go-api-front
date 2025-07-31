@@ -13,10 +13,15 @@ interface Position {
     view: number;
 }
 
+export interface FilterResult<T> {
+    matches: boolean;
+    item?: T;
+}
+
 interface DragDropProps<T, K> extends React.HTMLAttributes<HTMLDivElement> {
     items: T[];
     parameters?: K;
-    applyFilter?: (value: T) => boolean;
+    applyFilter?: (value: T) => FilterResult<T>;
     onItemDrag?: (item: PositionWrapper<T>) => void;
     onItemDrop?: (item: PositionWrapper<T>) => void;
     onItemsChange: (items: PositionWrapper<T>[], parameters?: K) => void;
@@ -210,6 +215,33 @@ export const VerticalDragDrop = <T, K>({ items, parameters, emptyTemplate, befor
         setDragFormElement(!!isFormElement);
     };
 
+    const implementFilter = (position:  PositionWrapper<T>): PositionWrapper<Optional<T>> => {
+        if(!applyFilter) {
+            return position;
+        }
+
+        const result = applyFilter(position.item);
+        if(!result.matches) {
+            return {
+                index: position.index,
+                item: undefined
+            };
+        }
+
+        if(result.item == undefined) {
+            return position;
+        }
+
+        return {
+            index: position.index,
+            item: result.item
+        };
+    };
+
+    function isDefined<T>(position: PositionWrapper<Optional<T>>): position is PositionWrapper<T> {
+        return position.item !== undefined;
+    }
+
     return (
         <div
             ref={containerRef}
@@ -223,7 +255,7 @@ export const VerticalDragDrop = <T, K>({ items, parameters, emptyTemplate, befor
                 {wrappedItems.length > 0 ? (
                     <>
                         {
-                            wrappedItems.filter(e => applyFilter ? applyFilter(e.item) : true).map((item, index) => (
+                            wrappedItems.map(e => implementFilter(e)).filter(isDefined).map((item, index) => (
                                 <div
                                     key={item.index}
                                     draggable

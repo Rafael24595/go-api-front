@@ -101,7 +101,7 @@ export function QueryArguments() {
         <>
             <div id="client-argument-content" className="no-scroll">
                 <div id="query-process-group" className="border-bottom">
-                    <div>
+                    <div style={{visibility: 'hidden'}}>
                         <label htmlFor="process-uri">Auto: </label>
                         <input 
                             name="status" 
@@ -110,7 +110,7 @@ export function QueryArguments() {
                             checked={false}
                             onChange={statusChange}/>
                     </div>
-                    <button type="button" className="button-tag" onClick={processUri}>Process</button>
+                    <button type="button" className="button-tag" onClick={processUri} title="Extract query parameters from the URI.">Process</button>
                 </div>
                 <VerticalDragDrop
                     id="sub-argument-content"

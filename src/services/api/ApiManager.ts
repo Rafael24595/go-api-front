@@ -1,52 +1,133 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
 
 const url = "";
+const api = "/api/v1";
 
-export const apiURL = (): string => {
-  if(url != "") {
+let isRefreshing = false;
+let failedQueue: any[] = [];
+let refreshHandlers: ((...any: any) => any)[] = [];
+
+export const putRefreshHandler = (handler: (...any: any) => any) => {
+  refreshHandlers.push(handler);
+}
+
+const processQueue = (error: any) => {
+  failedQueue.forEach(prom => (error ? prom.reject(error) : prom.resolve()));
+  failedQueue = [];
+};
+
+export const hostURL = (): string => {
+  if (url != "") {
     return url;
   }
-  
+
   let port = import.meta.env.VITE_SERVICE_API_MANAGER_PORT;
-  if(port == undefined) {
+  if (port == undefined) {
     port = window.location.port;
     console.warn(`Warning: back port is undefined, default port '${port}' will be used.`);
   }
-  
+
   return `${window.location.protocol}//${window.location.hostname}:${port}`;
 }
 
-const apiManager = axios.create({
+export const apiURL = (): string => {
+  return `${hostURL()}${api}`;
+}
+
+export const apiManager = axios.create({
+  baseURL: apiURL()
+});
+
+export const authApiManager = axios.create({
   baseURL: apiURL(),
-  withCredentials: true,
+  withCredentials: true
+});
+
+export const sessionApiManager = axios.create({
+  baseURL: apiURL(),
+  withCredentials: true
 });
 
 export const pushInterceptor = (
-    onFulfilled?: ((value: AxiosResponse<any, any>) => AxiosResponse<any, any> | Promise<AxiosResponse<any, any>>) | null | undefined, 
-    onRejected?: ((error: any) => any) | null)
+  manager: AxiosInstance,
+  onFulfilled?: ((value: AxiosResponse<any, any>) => AxiosResponse<any, any> | Promise<AxiosResponse<any, any>>) | null | undefined,
+  onRejected?: ((error: any) => any) | null)
   : number => {
-  return apiManager.interceptors.response.use(
+  return manager.interceptors.response.use(
     onFulfilled,
     onRejected
   );
 };
 
-pushInterceptor(
-  (response) => response,
-  (error) => {
-    //TODO: Remove log.
-    console.error("API Error:", error.response || error.message);
+const response = (response: AxiosResponse<any, any>) => {
+  return response;
+}
 
-    if(axios.isCancel(error)) {
-      return Promise.reject();
-    }
-
-    return Promise.reject({
-      statusCode: error.status,
-      statusText: error.response.statusText,
-      message: error.response.data || error.message
-    });
+const cancelRequest = (error: any) => {
+  if (axios.isCancel(error)) {
+    return Promise.reject();
   }
+
+  return Promise.reject({
+    statusCode: error.status,
+    statusText: error.response.statusText,
+    message: error.response.data || error.message
+  });
+}
+
+const refresh = async (error: any) => {
+  const originalRequest = error.config;
+
+  if (error.response?.status !== 498 || originalRequest._retry) {
+    return Promise.reject(error);
+  }
+
+  if (isRefreshing) {
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    }).then(() => apiManager(originalRequest));
+  }
+
+  originalRequest._retry = true;
+  isRefreshing = true;
+
+  try {
+    for (const func of refreshHandlers) {
+      await func();
+    }
+    processQueue(null);
+    return apiManager(originalRequest);
+  } catch (err) {
+    processQueue(err);
+    location.reload();
+    return Promise.reject(err);
+  } finally {
+    isRefreshing = false;
+  }
+}
+
+const combinedErrorHandler = async (error: any) => {
+  try {
+    return await refresh(error);
+  } catch (refreshError) {
+    return cancelRequest(refreshError);
+  }
+};
+
+pushInterceptor(
+  apiManager,
+  response,
+  cancelRequest,
 )
 
-export default apiManager;
+pushInterceptor(
+  sessionApiManager,
+  response,
+  cancelRequest,
+)
+
+pushInterceptor(
+  authApiManager,
+  response,
+  combinedErrorHandler,
+)

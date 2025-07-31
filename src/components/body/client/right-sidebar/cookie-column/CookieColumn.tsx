@@ -33,8 +33,8 @@ export function CookieColumn() {
                             <th>Name</th>
                             <th>Value</th>
                         </tr>
-                        {response.cookies.map((cookie) => (
-                            <tr key={ cookie.code }>
+                        {response.cookies.map((cookie, i) => (
+                            <tr key={ `${cookie.code}-${i}` }>
                                 <td>
                                     { cookie.code }
                                 </td>

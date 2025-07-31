@@ -13,7 +13,7 @@ interface Payload {
 }
 
 export function Header() {
-    const { userData } = useStoreSession();
+    const { userData, fetchUser } = useStoreSession();
     const { openModal } = useStoreSystem();
     const request = useStoreRequest();
     const context = useStoreContext();
@@ -39,6 +39,7 @@ export function Header() {
     };
 
     const openSessionModal = () => {
+        fetchUser();
         setData((prevData) => ({
             ...prevData,
             modalSession: true
@@ -59,7 +60,7 @@ export function Header() {
             </button>
             <div id="user-container">
                 {(request.cacheLenght() > 0 || context.cacheLenght() > 0) && (
-                    <div id="unsafe-container">
+                    <div id="unsave-container">
                         <span className="button-modified-status visible" title={makeUnsavedTitle()}></span>
                     </div>
                 )}

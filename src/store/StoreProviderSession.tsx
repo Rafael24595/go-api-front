@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { fetchAuthenticate, fetchLogin, fetchLogout, fetchRemove, fetchSignin, fetchUserData } from "../services/api/ServiceManager";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from "react";
+import { fetchAuthenticate, fetchLogin, fetchLogout, fetchRefresh, fetchRemove, fetchSignin, fetchUserData } from "../services/api/ServiceManager";
 import { newUserData, UserData } from "../interfaces/UserData";
 import { Dict } from "../types/Dict";
+import { generateHash } from "../services/Utils";
+import { putRefreshHandler } from "../services/api/ApiManager";
 
 interface StoreProviderSessionType {
   userData: UserData;
-  loaded: boolean;
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
   signin: (username: string, password1: string, password2: string, isAdmin: boolean) => Promise<void>
@@ -19,6 +20,7 @@ type Trigger = (userData: UserData) => void
 
 interface Payload {
   userData: UserData;
+  hash: string;
   triggers: Dict<Trigger>
   loaded: boolean;
 }
@@ -28,19 +30,29 @@ const StoreSession = createContext<StoreProviderSessionType | undefined>(undefin
 export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState<Payload>({
     userData: newUserData(),
+    hash: "",
     triggers: {},
     loaded: false
   });
 
+  const triggersRef = useRef(data.triggers);
+  const fetchingRef = useRef(false);
+
   useEffect(() => {
-    fetchUser();
+    fetchUserRetry();
 
     const interval = setInterval(() => {
-      fetchUser();
+      fetchUserRetry();
     }, 30 * 60 * 1000);
+
+    putRefreshHandler(refresh);
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    triggersRef.current = data.triggers
+  }, [data.triggers]);
 
   const login = async (username: string, password: string) => {
     const userData = await fetchLogin(username, password);
@@ -86,42 +98,83 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     executeTriggers(userData);
   };
 
-  const fetchUser = async (intent?: number) => {
+  const fetchUser = async () => {
+    if (fetchingRef.current == true) {
+      return;
+    }
+
+    fetchingRef.current = true;
+
+    await fetchUserRetry();
+
+    fetchingRef.current = false;
+  };
+
+  const fetchUserRetry = async (retry?: number) => {
     await fetchUserData()
-      .then((userData) => {
+      .then(async (userData) => {
         if (userData.username != data.userData.username) {
           executeTriggers(userData);
         }
-        
+
+        const newHash = await generateHash(userData);
+
         setData(prevData => {
+          if (prevData.hash == newHash) {
+            return {
+              ...prevData,
+              loaded: true,
+            }
+          }
+
           return {
             ...prevData,
             userData: userData,
-            loaded: true
+            hash: newHash,
+            loaded: true,
           }
         });
       }).catch((e) => {
-        if(intent == undefined && e != undefined && e.statusCode == 401) {
-          fetchUser(1);
+        if (retry == undefined && e != undefined && e.statusCode == 401) {
+          fetchUserRetry(1);
         }
       });
   };
 
-  const executeTriggers = (userData: UserData, triggers?: Dict<Trigger>) => {
-    triggers = triggers == undefined ? data.triggers : triggers;
-    Object.values(triggers).forEach(f => f(userData));
+  const refresh = async () => {
+    const userData = await fetchRefresh();
+    const newHash = await generateHash(userData);
+
+    setData(prevData => {
+      if (prevData.hash === newHash) {
+        return { ...prevData, loaded: true };
+      }
+
+      return {
+        ...prevData,
+        userData,
+        hash: newHash,
+        loaded: true,
+      };
+    });
+
+    executeTriggers(userData);
+  };
+
+  const executeTriggers = (userData: UserData) => {
+    Object.values(triggersRef.current).forEach(f => f(userData));
   };
 
   const pushTrigger = async (key: string, trigger: Trigger) => {
     setData(prevData => ({
       ...prevData,
-      triggers: {...prevData.triggers, [key]: trigger}
+      triggers: { ...prevData.triggers, [key]: trigger }
     }));
   };
 
   return (
     <StoreSession.Provider value={{ ...data, login, logout, signin, remove, fetchUser, authenticate, pushTrigger }}>
-      {data.loaded ? children : 
+      {data.loaded ? children :
         <>
           <span className="loader"></span>
           <div id="blur-content">
