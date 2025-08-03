@@ -7,12 +7,15 @@ import { useStoreRequest } from '../../../../store/StoreProviderRequest';
 import { useStoreStatus } from '../../../../store/StoreProviderStatus';
 import { httpStatusDescriptions } from '../../../../constants/HttpMethod';
 import { KeyValue } from '../../../../interfaces/KeyValue';
+import { useStoreSystem } from '../../../../store/system/StoreProviderSystem';
 
 import './RightSidebar.css';
 
 const VIEW_PAYLOAD = "payload";
 const VIEW_HEADER = "header";
 const VIEW_COOKIE = "cookie";
+
+const SECRET_JS_TETRIS = "play://Rafael24595/js-tetris";
 
 const cursors: KeyValue[] = [
     {
@@ -37,7 +40,8 @@ const CURSOR_KEY = "RightSidebarCursor";
 export function RightSidebar() {
     const { find, store } = useStoreStatus();
 
-    const { response, waitingRequest, cancelRequest } = useStoreRequest();
+    const { metadata } = useStoreSystem();
+    const { request, response, waitingRequest, cancelRequest } = useStoreRequest();
 
     const [cursor, setCursor] = useState<string>(
         find(CURSOR_KEY, {
@@ -92,7 +96,14 @@ export function RightSidebar() {
                     </div>
                 )}
                 <div className={`response-container-items ${cursor === VIEW_PAYLOAD ? "show" : ""}`}>
-                    <PayloadColumn/>
+                    { metadata.enable_secrets && request.uri == SECRET_JS_TETRIS ? (
+                        <iframe
+                            src="http://localhost:8080/api/v1/dev/js-tetris/play"
+                            className="secret-iframe"
+                        />
+                    ) : (
+                        <PayloadColumn/>
+                    )}
                 </div>
                 <div className={`response-container-items ${cursor === VIEW_HEADER ? "show" : ""}`}>
                     <HeaderColumn/>

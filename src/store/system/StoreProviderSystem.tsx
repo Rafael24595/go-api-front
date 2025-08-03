@@ -13,6 +13,7 @@ import { useStoreStatus } from "../StoreProviderStatus";
 import './StoreProviderSystem.css';
 
 interface StoreProviderSystemType {
+  metadata: SystemMetadata;
   openModal: () => void;
   closeModal: () => void;
 }
@@ -36,8 +37,8 @@ interface PayloadRecords {
 export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ children }) => {
   useInactivityRefresh(import.meta.env.VITE_INACTIVITY_REFRESH, import.meta.env.VITE_INACTIVITY_WARNING);
 
-    const { clean } = useStoreStatus();
-  
+  const { clean } = useStoreStatus();
+
   const { userData } = useStoreSession();
   const { loadThemeWindow } = useStoreTheme();
 
@@ -73,7 +74,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
     const metadata = await fetchSystemMetadata();
     const newHash = await generateHash(metadata);
     setMetadata((prevData) => {
-      if(prevData.hash == newHash) {
+      if (prevData.hash == newHash) {
         return prevData;
       }
 
@@ -89,17 +90,17 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
       const records = await fetchSystemRecords();
       const newHash = await generateHash(records);
       setRecordsData((prevData) => {
-        if(prevData.hash == newHash) {
+        if (prevData.hash == newHash) {
           return prevData;
         }
-  
+
         return {
           hash: newHash,
           records: records
         };
       });
     } catch (error: any) {
-      if(error.statusCode == 403) {
+      if (error.statusCode == 403) {
         console.error("The user does not have privileges to view the logs.")
         return;
       }
@@ -111,14 +112,14 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
     fetchMetadata();
     fetchRecords();
 
-    setModalData({isOpen: true});
+    setModalData({ isOpen: true });
   }
 
   const closeModal = async () => {
-    setModalData({isOpen: false});
+    setModalData({ isOpen: false });
   }
 
-  const showLogs = () => {    
+  const showLogs = () => {
     let html = recordsData.records
       .map(r => `<p class="log-row">${formatRecord(r)}</p>`)
       .join('');
@@ -129,7 +130,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   const formatRecord = (record: Record) => {
-    return `${ millisecondsToDate(record.timestamp) } - [${ record.category }]: ${record.message}`;
+    return `${millisecondsToDate(record.timestamp)} - [${record.category}]: ${record.message}`;
   }
 
   const viewerUrl = (source: ViewerSource) => {
@@ -137,7 +138,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   return (
-    <StoreTheme.Provider value={{ openModal, closeModal }}>
+    <StoreTheme.Provider value={{ metadata: metadata.metadata, openModal, closeModal }}>
       {children}
       <Modal
         buttons={[
@@ -149,7 +150,9 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
           }
         ]}
         titleCustom={
-          <span>System metadata</span>
+          <span title={ metadata.metadata.enable_secrets ? "Secrets enabled" : "" }>
+            System metadata
+          </span>
         }
         style={{
           width: "800px"
@@ -158,53 +161,55 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
         onClose={closeModal}>
         <>
           <div id="system-metadata-container">
-            <h3 className="system-title">System:</h3>
+            <h3 className="system-title">
+              <span>System:</span>
+            </h3>
             <div className="system-metadata-subcontainer">
               <div className="system-metadata-fragment">
-                  <p><span className="system-data-title">Core name: </span> <a className="unstyled-anchor" 
-                    href={`https://${metadata.metadata.core_name}`} 
-                    target="_blank"
-                    title="Go to Rafael24595's core project page">{ metadata.metadata.core_name }</a></p>
-                  <p>
-                    <span className="system-data-title">Core version: </span>
-                    {metadata.metadata.core_replace && (
-                      <span className="replace-icon" title="This dependency has been replaced"></span>
-                    )}
-                    <span>{ metadata.metadata.core_version }</span>
-                  </p>
+                <p><span className="system-data-title">Core name: </span> <a className="unstyled-anchor"
+                  href={`https://${metadata.metadata.core_name}`}
+                  target="_blank"
+                  title="Go to Rafael24595's core project page">{metadata.metadata.core_name}</a></p>
+                <p>
+                  <span className="system-data-title">Core version: </span>
+                  {metadata.metadata.core_replace && (
+                    <span className="replace-icon" title="This dependency has been replaced"></span>
+                  )}
+                  <span>{metadata.metadata.core_version}</span>
+                </p>
               </div>
               <div className="system-metadata-fragment">
-                  <p><span className="system-data-title">Render name: </span> <a className="unstyled-anchor" 
-                    href={`https://${metadata.metadata.render_name}`} 
-                    target="_blank" 
-                    title="Go to Rafael24595's render project page">{ metadata.metadata.render_name }</a></p>
-                  <p>
-                    <span className="system-data-title">Render version: </span> 
-                    {metadata.metadata.render_release != metadata.metadata.render_version && (
-                      <span className="replace-icon" title={`This dependency is not up to date; the latest version available is ${metadata.metadata.render_release}`}></span>
-                    )}
-                    <span>{ metadata.metadata.render_version }</span></p>
+                <p><span className="system-data-title">Render name: </span> <a className="unstyled-anchor"
+                  href={`https://${metadata.metadata.render_name}`}
+                  target="_blank"
+                  title="Go to Rafael24595's render project page">{metadata.metadata.render_name}</a></p>
+                <p>
+                  <span className="system-data-title">Render version: </span>
+                  {metadata.metadata.render_release != metadata.metadata.render_version && (
+                    <span className="replace-icon" title={`This dependency is not up to date; the latest version available is ${metadata.metadata.render_release}`}></span>
+                  )}
+                  <span>{metadata.metadata.render_version}</span></p>
               </div>
             </div>
             {metadata.metadata.front_name != "" && metadata.metadata.front_version != "" && (
               <div className="system-metadata-subcontainer">
                 <div className="system-metadata-fragment">
-                    <p><span className="system-data-title">Front name: </span> <a className="unstyled-anchor" 
-                      href={`https://github.com/Rafael24595/${metadata.metadata.front_name}`} 
-                      target="_blank" 
-                      title="Go to Rafael24595's render project page">{ metadata.metadata.front_name }</a></p>
-                    <p><span className="system-data-title">Front version: </span> <span>{ metadata.metadata.front_version }</span></p>
+                  <p><span className="system-data-title">Front name: </span> <a className="unstyled-anchor"
+                    href={`https://github.com/Rafael24595/${metadata.metadata.front_name}`}
+                    target="_blank"
+                    title="Go to Rafael24595's render project page">{metadata.metadata.front_name}</a></p>
+                  <p><span className="system-data-title">Front version: </span> <span>{metadata.metadata.front_version}</span></p>
                 </div>
               </div>
             )}
             <h3 className="system-title">Session: </h3>
             <div className="system-metadata-subcontainer">
               <div className="system-metadata-fragment">
-                  <p><span className="system-data-title">Session ID: </span> <span>{ metadata.metadata.session_id }</span></p>
-                  <p><span className="system-data-title">Started at: </span> <span>{ millisecondsToDate(metadata.metadata.session_time) }</span></p>
+                <p><span className="system-data-title">Session ID: </span> <span>{metadata.metadata.session_id}</span></p>
+                <p><span className="system-data-title">Started at: </span> <span>{millisecondsToDate(metadata.metadata.session_time)}</span></p>
               </div>
             </div>
-             {metadata.metadata.viewer_sources.length > 0 && (
+            {metadata.metadata.viewer_sources.length > 0 && (
               <>
                 <h3 className="system-title">Viewer:</h3>
                 <div className="system-metadata-subcontainer">
@@ -212,10 +217,10 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
                     {metadata.metadata.viewer_sources.map(s => (
                       <p key={s.route}>
                         <span className="system-data-title">{s.name}: </span>
-                        <a className="unstyled-anchor" 
-                          href={`${viewerUrl(s)}`} 
-                          target="_blank" 
-                          title={`${s.description}`}>{ viewerUrl(s) }</a>
+                        <a className="unstyled-anchor"
+                          href={`${viewerUrl(s)}`}
+                          target="_blank"
+                          title={`${s.description}`}>{viewerUrl(s)}</a>
                       </p>
                     ))}
                   </div>
