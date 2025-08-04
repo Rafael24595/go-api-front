@@ -98,7 +98,7 @@ export function RightSidebar() {
                 <div className={`response-container-items ${cursor === VIEW_PAYLOAD ? "show" : ""}`}>
                     { metadata.enable_secrets && request.uri == SECRET_JS_TETRIS ? (
                         <iframe
-                            src="http://localhost:8080/api/v1/dev/js-tetris/play"
+                            src="http://localhost:8080/api/v1/secret/js-tetris/play"
                             className="secret-iframe"
                         />
                     ) : (
