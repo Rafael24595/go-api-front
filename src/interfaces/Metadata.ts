@@ -9,7 +9,8 @@ export interface SystemMetadata {
 	render_version: string
     front_name: string,
 	front_version: string,
-    viewer_sources: ViewerSource[]
+    viewer_sources: ViewerSource[],
+    enable_secrets: boolean
 }
 
 export interface ViewerSource {
@@ -30,7 +31,8 @@ export function emptySystemMetadata(): SystemMetadata {
         render_version: "",
         front_name: "",
         front_version: "",
-        viewer_sources: []
+        viewer_sources: [],
+        enable_secrets: false
     }
 }
 
