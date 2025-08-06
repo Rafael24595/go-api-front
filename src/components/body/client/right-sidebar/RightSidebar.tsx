@@ -8,6 +8,7 @@ import { useStoreStatus } from '../../../../store/StoreProviderStatus';
 import { httpStatusDescriptions } from '../../../../constants/HttpMethod';
 import { KeyValue } from '../../../../interfaces/KeyValue';
 import { useStoreSystem } from '../../../../store/system/StoreProviderSystem';
+import { apiURL } from '../../../../services/api/ApiManager';
 
 import './RightSidebar.css';
 
@@ -98,7 +99,7 @@ export function RightSidebar() {
                 <div className={`response-container-items ${cursor === VIEW_PAYLOAD ? "show" : ""}`}>
                     { metadata.enable_secrets && request.uri == SECRET_JS_TETRIS ? (
                         <iframe
-                            src="http://localhost:8080/api/v1/secret/js-tetris/play"
+                            src={`${apiURL()}/secret/js-tetris/play`}
                             className="secret-iframe"
                         />
                     ) : (
