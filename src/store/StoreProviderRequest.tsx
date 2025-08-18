@@ -269,20 +269,24 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const fixRequest = (request: Request, oldRequest?: Request) => {
-    const itemRequest = fromRequest(request);
+    let itemRequest = fromRequest(request);
     setData(prevData => {
       if (oldRequest && oldRequest._id != request._id) {
         remove(CACHE_KEY, oldRequest._id);
       }
+
+      const prevRequest = oldRequest ? fromRequest(oldRequest) : prevData.request;
+      itemRequest = {
+        ...prevRequest,
+        _id: itemRequest._id,
+        modified: itemRequest.modified,
+        owner: itemRequest.owner,
+        timestamp: itemRequest.timestamp
+      }
+
       return {
         ...prevData,
-        request: {
-          ...prevData.request,
-          _id: itemRequest._id,
-          modified: itemRequest.modified,
-          owner: itemRequest.owner,
-          timestamp: itemRequest.timestamp
-        }
+        request: itemRequest
     }});
   }
 
