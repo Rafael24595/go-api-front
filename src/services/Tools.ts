@@ -34,7 +34,7 @@ export function millisecondsToDate(milliseconds: number): string {
 }
 
 export function formatBytes(bytes: number): string {
-    if(Number.isNaN(bytes)) {
+    if(bytes == null || Number.isNaN(bytes)) {
         return "";
     }
 
