@@ -525,7 +525,7 @@ export function CollectionColumn() {
     const onRequestDrop = async () => {
         setDragData((prevData) => ({
             ...prevData,
-            dragReqrequestuest: undefined,
+            request: undefined,
         }));
     };
 
