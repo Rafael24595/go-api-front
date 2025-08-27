@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { cleanCopy, fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
 import { StatusCategoryKeyValue } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
 import { Context, ItemContext, toContext } from '../../interfaces/context/Context';
-import { importContext, insertContext } from '../../services/api/ServiceStorage';
+import { importContext } from '../../services/api/ServiceStorage';
 import { useStoreContext } from '../../store/StoreProviderContext';
 import { downloadFile } from '../../services/Utils';
 import { ImportContext } from './ImportContext';
@@ -120,7 +120,7 @@ interface Payload {
 export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     const { find, findOrDefault, store } = useStoreStatus();
 
-    const { initialHash, actualHash, context, getContext, discardContext, defineItemContext, updateContext, fetchContext } = useStoreContext();
+    const { initialHash, actualHash, context, getContext, discardContext, updateContext, fetchContext, releaseContext } = useStoreContext();
 
     const { push } = useAlert();
 
@@ -330,13 +330,6 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         }));
     }
 
-    const submitContext = async () => {
-        const newContext = getContext();
-        const response = await insertContext(newContext);
-        context._id = response._id;
-        defineItemContext(context);
-    }
-
     const makeContext = (status: boolean, argument: ItemStatusCategoryKeyValue[]): ItemContext => {
         return {...context, 
             status: status,
@@ -385,7 +378,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                     title: "Save",
                     type: "submit",
                     callback: {
-                        func: submitContext
+                        func: releaseContext
                     }
                 },
                 {
@@ -414,7 +407,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                                     icon: "💾",
                                     label: "Save",
                                     title: "Save context",
-                                    action: submitContext
+                                    action: releaseContext
                                 },
                             ]}
                         />

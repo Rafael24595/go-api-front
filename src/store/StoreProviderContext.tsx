@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../interfaces/context/Context";
-import { findContext, findUserContext } from "../services/api/ServiceStorage";
+import { findContext, findUserContext, insertContext } from "../services/api/ServiceStorage";
 import { generateHash } from "../services/Utils";
 import { CacheContext } from "../interfaces/CacheContext";
 import { useStoreCache } from "./StoreProviderCache";
@@ -21,6 +21,7 @@ interface StoreProviderContextType {
   defineItemContext: (context: ItemContext, parent?: string) => void;
   updateContext: (context: ItemContext) => void;
   fetchContext: (id?: string, parent?: string) => Promise<void>;
+  releaseContext: () => Promise<Context>;
   isParentCached: (parent: string) => boolean;
   cacheComments: () => string[];
   cacheLenght: () => number;
@@ -162,6 +163,19 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     defineContext(context, parent);
   };
 
+  const releaseContext = async () => {
+      const context = toContext(data.context)
+      const response = await insertContext(context);
+
+      const fixContext = { ...context };
+
+      fixContext._id = response;
+      
+      defineContext(fixContext);
+
+      return fixContext;
+  }
+
   const isParentCached = (parent: string) => {
     return exists(CACHE_KEY, (_: string, i: CacheContext) => i.parent == parent);
   }
@@ -188,7 +202,8 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     <StoreContext.Provider value={{ ...data, 
       getContext, discardContext, defineContext, 
       defineItemContext, updateContext, fetchContext, 
-      isParentCached, cacheComments, cacheLenght }}>
+      releaseContext, isParentCached, cacheComments, 
+      cacheLenght }}>
       {children}
     </StoreContext.Provider>
   );
