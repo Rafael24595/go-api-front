@@ -16,6 +16,7 @@ import { useAlert } from "../components/utils/alert/Alert";
 import { executeFormAction } from "../services/api/ServiceManager";
 import { EAlertCategory } from "../interfaces/AlertData";
 import { CacheRequestFocus } from "../interfaces/CacheRequestFocus";
+import { UserData } from "../interfaces/UserData";
 
 const TRIGGER_KEY_VIEW = "StoreProviderRequestViewTrigger";
 const TRIGGER_KEY_CACHE = "StoreProviderRequestCacheTrigger";
@@ -147,13 +148,13 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     return await generateHash(toRequest(request));
   }
 
-  const focusOrClean = () => {
-    if (!focusLastRequest()) {
+  const focusOrClean = (newUser: UserData, oldUser: UserData) => {
+    if (newUser.username != oldUser.username || !focusLastRequest()) {
       cleanRequest();
     }
   }
 
-   const focusLastRequest = () => {
+  const focusLastRequest = () => {
     const focus: Optional<CacheRequestFocus> = search(CACHE_ITEM_FOCUS, CACHE_REQUEST_FOCUS);
     if (focus != undefined) {
       fetchRequestById(focus.request, focus.parent, focus.context);
@@ -167,6 +168,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const cleanCache = () => {
+    remove(CACHE_KEY, CACHE_REQUEST_FOCUS);
     excise(CACHE_KEY);
   }
 
