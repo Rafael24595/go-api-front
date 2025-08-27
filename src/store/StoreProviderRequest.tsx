@@ -4,7 +4,7 @@ import { Auths, fromRequest, ItemBody, ItemRequest, LiteRequest, newItemRequest,
 import { cleanCopy, ItemStatusKeyValue } from "../interfaces/StatusKeyValue";
 import { fixOrder } from "../interfaces/StatusKeyValue";
 import { fromResponse, ItemResponse, newItemResponse, Response, toResponse } from "../interfaces/response/Response";
-import { findAction, insertAction, pushHistoric } from "../services/api/ServiceStorage";
+import { findActionById, insertAction, pushHistoric } from "../services/api/ServiceStorage";
 import { ResponseExecuteAction, ResponseFetch } from "../services/api/Responses";
 import { useStoreCache } from "./StoreProviderCache";
 import { Optional } from "../types/Optional";
@@ -15,10 +15,14 @@ import { useStoreRequests } from "./StoreProviderRequests";
 import { useAlert } from "../components/utils/alert/Alert";
 import { executeFormAction } from "../services/api/ServiceManager";
 import { EAlertCategory } from "../interfaces/AlertData";
+import { CacheRequestFocus } from "../interfaces/CacheRequestFocus";
 
 const TRIGGER_KEY_VIEW = "StoreProviderRequestViewTrigger";
 const TRIGGER_KEY_CACHE = "StoreProviderRequestCacheTrigger";
 const CACHE_KEY = "StoreProviderRequestCache";
+
+const CACHE_ITEM_FOCUS = "StoreProviderCacheFocus";
+const CACHE_REQUEST_FOCUS = "StoreProviderRequestCacheFocus";
 
 const VOID_FUNCTION = () => { };
 
@@ -63,6 +67,7 @@ interface Payload {
   backup: ItemRequest;
   request: ItemRequest;
   response: ItemResponse;
+  context: Optional<string>
 }
 
 interface PayloadFectch {
@@ -89,6 +94,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     backup: newItemRequest(userData.username),
     request: newItemRequest(userData.username),
     response: newItemResponse(userData.username),
+    context: undefined
   });
 
   const [dataFetch, setDataFetch] = useState<PayloadFectch>({
@@ -97,7 +103,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   });
 
   useEffect(() => {
-    pushTrigger(TRIGGER_KEY_VIEW, cleanRequest);
+    pushTrigger(TRIGGER_KEY_VIEW, focusOrClean);
     pushTrigger(TRIGGER_KEY_CACHE, cleanCache);
   }, []);
 
@@ -124,6 +130,12 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       remove(CACHE_KEY, request._id);
     }
 
+    insert(CACHE_ITEM_FOCUS, CACHE_REQUEST_FOCUS, {
+      request: request._id,
+      parent: data.parent,
+      context: data.context
+    })
+
     setData(prevData => ({
       ...prevData,
       initialHash,
@@ -135,6 +147,21 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     return await generateHash(toRequest(request));
   }
 
+  const focusOrClean = () => {
+    if (!focusLastRequest()) {
+      cleanRequest();
+    }
+  }
+
+   const focusLastRequest = () => {
+    const focus: Optional<CacheRequestFocus> = search(CACHE_ITEM_FOCUS, CACHE_REQUEST_FOCUS);
+    if (focus != undefined) {
+      fetchRequestById(focus.request, focus.parent, focus.context);
+      return true;
+    }
+    return false;
+  }
+
   const cleanRequest = () => {
     defineFreeRequest(newRequest(userData.username));
   }
@@ -144,12 +171,12 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const discardRequest = (request?: LiteRequest) => {
-    if(!request || request._id == data.backup._id) {
+    if (!request || request._id == data.backup._id) {
       return releaseItemRequest(data.backup, data.response, toRequest(data.request));
     }
 
     remove(CACHE_KEY, request._id);
-    
+
     setData(prevData => {
       return { ...prevData };
     });
@@ -172,7 +199,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const defineItemRequest = (backup: ItemRequest, request: ItemRequest, response?: ItemResponse, oldRequest?: Request, parent?: string, context?: string) => {
     const loadResponse = dataFetch.waiting && data.request._id == request._id;
     response = loadResponse ? undefined : response;
-    
+
     response = !response ? newItemResponse(userData.username) : response;
 
     evalueCancelRequest(request);
@@ -190,6 +217,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
         backup: { ...backup },
         request: { ...request },
         response: { ...response },
+        context: context,
       }
     });
 
@@ -287,7 +315,8 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       return {
         ...prevData,
         request: itemRequest
-    }});
+      }
+    });
   }
 
   const updateResponse = (response?: Response) => {
@@ -387,25 +416,29 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const fetchRequest = async (request: LiteRequest, parent?: string, context?: string) => {
-    const cached: Optional<CacheActionData> = search(CACHE_KEY, request._id);
+    return fetchRequestById(request._id, parent, context);
+  }
+
+  const fetchRequestById = async (request: string, parent?: string, context?: string) => {
+    const cached: Optional<CacheActionData> = search(CACHE_KEY, request);
     if (cached != undefined) {
       defineItemRequest(cached.backup, cached.request, cached.response, undefined, cached.parent, context);
       return;
     }
 
-     await findAction(request)
+    await findActionById(request)
       .then(apiResponse => {
-        if(apiResponse.request.owner != userData.username) {
+        if (apiResponse.request.owner != userData.username) {
           fetchUser();
         }
 
         defineRequest(apiResponse.request, apiResponse.response, undefined, parent, context);
       })
-      .catch(err => { 
-        if(err.statusCode == 404) {
+      .catch(err => {
+        if (err.statusCode == 404) {
           fetchUser();
           return;
-        } 
+        }
         throw err;
       });
   }
@@ -450,7 +483,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     fetchAll();
   };
-  
+
   const releaseAction = async () => {
     const request = toRequest(data.request);
     const response = toResponse(data.response);
@@ -485,7 +518,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     }
 
     const result = await insertAction(request, response)
-    
+
     fetchAll();
 
     return result;
@@ -567,12 +600,12 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       ...data,
       waitingRequest: dataFetch.waiting,
       cancelRequest: dataFetch.cancel,
-      cleanRequest, discardRequest, defineFreeRequest, 
-      defineGroupRequest, updateRequest, updateName, 
+      cleanRequest, discardRequest, defineFreeRequest,
+      defineGroupRequest, updateRequest, updateName,
       updateMethod, updateUri, updateQuery,
-      updateHeader, updateCookie, updateBody, 
+      updateHeader, updateCookie, updateBody,
       updateAuth, executeAction, fetchFreeRequest,
-      fetchGroupRequest, releaseAction, insertRequest, 
+      fetchGroupRequest, releaseAction, insertRequest,
       processUri, isParentCached, isCached,
       cacheComments, cacheLenght
     }}>
