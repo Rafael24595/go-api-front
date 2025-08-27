@@ -24,7 +24,7 @@ export const findContext = async (id: string): Promise<Context> => {
   }
 };
 
-export const insertContext = async (context: Context): Promise<Context> => {
+export const insertContext = async (context: Context): Promise<string> => {
   try {
     const apiResponse = await authApiManager.put(`/context`, context);
     return apiResponse.data;
@@ -34,8 +34,12 @@ export const insertContext = async (context: Context): Promise<Context> => {
 };
 
 export const findAction = async (request: LiteRequest): Promise<ResponseExecuteAction> => {
+  return findActionById(request._id);
+};
+
+export const findActionById = async (request: string): Promise<ResponseExecuteAction> => {
   try {
-    const apiResponse = await authApiManager.get(`/request/${request._id}`);
+    const apiResponse = await authApiManager.get(`/request/${request}`);
     return apiResponse.data;
   } catch (error) {
     throw error;
