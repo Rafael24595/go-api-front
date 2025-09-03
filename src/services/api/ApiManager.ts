@@ -11,8 +11,13 @@ export const putRefreshHandler = (handler: (...any: any) => any) => {
   refreshHandlers.push(handler);
 }
 
-const processQueue = (error: any) => {
-  failedQueue.forEach(prom => (error ? prom.reject(error) : prom.resolve()));
+const resolveQueue = () => {
+  failedQueue.forEach(prom => prom.resolve());
+  failedQueue = [];
+};
+
+const rejectQueue = (error: any) => {
+  failedQueue.forEach(prom => prom.reject(error));
   failedQueue = [];
 };
 
@@ -82,23 +87,24 @@ const refresh = async (error: any) => {
     return Promise.reject(error);
   }
 
+  originalRequest._retry = true;
+
   if (isRefreshing) {
     return new Promise((resolve, reject) => {
       failedQueue.push({ resolve, reject });
     }).then(() => apiManager(originalRequest));
   }
 
-  originalRequest._retry = true;
   isRefreshing = true;
 
   try {
     for (const func of refreshHandlers) {
       await func();
     }
-    processQueue(null);
+    resolveQueue();
     return apiManager(originalRequest);
   } catch (err) {
-    processQueue(err);
+    rejectQueue(err);
     location.reload();
     return Promise.reject(err);
   } finally {
