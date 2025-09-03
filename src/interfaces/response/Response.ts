@@ -47,7 +47,6 @@ export interface CookieServer {
 }
 
 export interface Body {
-    status: boolean;
     content_type: string;
     payload: string;
 }
@@ -99,7 +98,7 @@ export const toResponse = (response: ItemResponse): Response => {
     status: Number(response.status),
     headers: { headers: mergeStatusKeyValue(response.headers) },
     cookies: { cookies: mergeCookies(response.cookies) },
-    body: { status: true, content_type: response.body.content_type, payload: response.body.payload },
+    body: { content_type: response.body.content_type, payload: response.body.payload },
     size: response.size,
     owner: response.owner,
   }
