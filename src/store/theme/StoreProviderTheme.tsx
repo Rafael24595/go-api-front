@@ -10,6 +10,7 @@ import { Dict } from "../../types/Dict";
 import { Optional } from "../../types/Optional";
 import { useStoreSession } from "../StoreProviderSession";
 import { UserData } from "../../interfaces/UserData";
+import { createRoot } from "react-dom/client";
 
 const STORAGE_THEME_KEY = "StoreProviderThemeCache";
 const TRIGGER_KEY = "StoreProviderThemeTrigger";
@@ -35,7 +36,7 @@ interface StoreProviderThemeType {
   closeModal: () => void;
   loadCustom: (themeName: string, themeObj: IThemeData) => void;
   toggleDefaultThemes: () => void;
-  loadThemeWindow: (width: number, height: number, content: string | Blob) => void
+  loadThemeWindow: (width: number, height: number, content: string | Blob | ReactNode) => void
 }
 
 interface Payload {
@@ -182,9 +183,9 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     });
   }
 
-  const loadThemeWindow = (width: number, height: number, content: string | Blob) => {
+  const loadThemeWindow = (width: number, height: number, content: string | Blob | ReactNode) => {
     let url = "";
-    if(typeof content != 'string') {
+    if(content instanceof Blob) {
       url = URL.createObjectURL(content);
     }
 
@@ -195,7 +196,11 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     
     if(typeof content == 'string') {
       newWindow.document.body.innerHTML = content;
+    } else {
+      const root = createRoot(newWindow.document.body);
+      root.render(<>{content}</>);
     }
+
     newWindow.document.documentElement.setAttribute('data-theme', theme);
 
     document.querySelectorAll('link[rel="stylesheet"], style')

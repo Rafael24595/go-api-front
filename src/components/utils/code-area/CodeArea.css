@@ -1,0 +1,15 @@
+.terminal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #333333;
+    height: 100%;
+    color: white;
+    padding: 10px;
+    font-weight: 600;
+}
+
+.terminal pre {
+    border: 1px solid;
+    padding: 12px;
+}

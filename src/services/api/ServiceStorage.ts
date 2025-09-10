@@ -277,3 +277,28 @@ export const importContext = async (target: Context, source: Context): Promise<I
     throw error;
   }
 };
+
+export const formatCurl = async (request: string, context?: string, inline?: boolean): Promise<string> => {
+  try {
+    const query = queryHelper(
+      ["id_context", context],
+      ["inline", inline]);
+
+    const apiResponse = await authApiManager.get(`format/${request}/curl${query}`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const queryHelper = (...query: [string, any][]): string => {
+  const result = query.filter(([_k, v]) => v != undefined)
+    .map(([k, v]) => `${k}=${v}`)
+    .join("&");
+
+  if (result == "") {
+    return result
+  }
+
+  return `?${result}`
+};
