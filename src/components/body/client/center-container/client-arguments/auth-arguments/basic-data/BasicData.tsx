@@ -42,7 +42,7 @@ export function BasicData({value, onValueChange}: BasicProps) {
         }
         
         return {
-            code: AUTH_CODE_BASIC,
+            type: AUTH_CODE_BASIC,
             status: payload.status,
             parameters: {
                 "username": payload.username,

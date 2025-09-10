@@ -59,16 +59,16 @@ export function AuthArguments() {
         updateAuth(makeAuth(newData));
     };
 
-    const authChange = (code: string, auth: Auth | undefined) => {
+    const authChange = (type: string, auth: Auth | undefined) => {
         let newData = {...data};
         if(auth != undefined) {
-            auth.code = code;
+            auth.type = type;
         }
 
-        if(code == AUTH_CODE_BASIC) {
+        if(type == AUTH_CODE_BASIC) {
             newData.basic = auth;
         } 
-        if(code == AUTH_CODE_BEARER) {
+        if(type == AUTH_CODE_BEARER) {
             newData.bearer = auth;
         }
 
