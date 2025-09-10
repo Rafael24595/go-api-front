@@ -94,6 +94,7 @@ export function StoredColumn() {
         const request = action.request;
 
         request._id = "";
+        request.name = `${request.name}-copy`;
         request.status = 'draft';
 
         await insertRequest(request);
@@ -155,9 +156,11 @@ export function StoredColumn() {
     };
 
     const openCollectModal = (item: LiteRequest) => {
+        const newItem = {...item};
+        newItem.name = `${item.name}-copy`;
         setModalData((prevData) => ({
             ...prevData,
-            request: item,
+            request: newItem,
             move: false,
             openMove: true
         }));
