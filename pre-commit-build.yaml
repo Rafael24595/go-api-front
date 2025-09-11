@@ -1,10 +1,23 @@
+# installer: https://github.com/Rafael24595/bash-hooks/blob/main/install-pre-commit
+
 hooks:
   remote:
     repos:
-      - id: run-npm-run
-        origin: https://github.com/Rafael24595/hooks
-        tag: 0.5.0
+      - id: check-node-context
+        origin: https://github.com/Rafael24595/bash-hooks
+        tag: 0.8.3
         target: node/sh
-        name: run-npm-run.sh
-        args:
-          - build
+        name: check-node-context.sh
+        expect: false
+        return: true
+        flags:
+          - project
+          - js-staged
+          - ts-staged
+          - install
+
+      - id: run-eslint
+        origin: https://github.com/Rafael24595/bash-hooks
+        tag: 0.8.3
+        target: node/sh
+        name: run-eslint.sh

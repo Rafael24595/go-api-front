@@ -51,7 +51,7 @@ export function BearerData({value, onValueChange}: BearerDataProps) {
         }
 
         return {
-            code: AUTH_CODE_BEARER,
+            type: AUTH_CODE_BEARER,
             status: payload.status,
             parameters: {
                 "bearer": payload.bearer,

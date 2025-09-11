@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
-import { deleteHistoric as fetchDeleteHistoric, findAction, requestCollect } from '../../../../../services/api/ServiceStorage';
+import { deleteHistoric as fetchDeleteHistoric, findAction, formatCurl, requestCollect } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
@@ -11,8 +11,12 @@ import { useStoreSession } from '../../../../../store/StoreProviderSession';
 import { RequestRequestCollect } from '../../../../../services/api/Requests';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { VoidCallback } from '../../../../../interfaces/Callback';
+import { historicOptions } from './Constants';
+import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
+import { CodeArea } from '../../../../utils/code-area/CodeArea';
 
 import './HistoricColumn.css';
+import { ModalButton } from '../../../../../interfaces/ModalButton';
 
 interface HistoricColumnProps {
     setCursor: (cursor: string) => void;
@@ -27,6 +31,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const { ask } = useAlert();
 
     const { userData } = useStoreSession();
+    const { loadThemeWindow } = useStoreTheme();
 
     const { request, cleanRequest, defineFreeRequest, fetchFreeRequest, insertRequest } = useStoreRequest();
     const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreRequests();
@@ -50,29 +55,28 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     };
 
     const deleteHistoric = async (item: LiteRequest) => {
-        ask({
-            content: `The request '${item.name}' will be deleted, are you sure?`,
-            buttons: [
-                {
-                    title: "Yes",
-                    type: "button",
-                    callback: {
-                        func: async () => {
-                            try {
-                                await fetchDeleteHistoric(item);
-                                await fetchHistoric();
-                            } catch (error) {
-                                console.error("Error deleting request:", error);
-                            }
+        const content = `The request '${item.name}' will be deleted, are you sure?`;
+        const buttons: ModalButton[] = [
+            {
+                title: "Yes",
+                type: "button",
+                callback: {
+                    func: async () => {
+                        try {
+                            await fetchDeleteHistoric(item);
+                            await fetchHistoric();
+                        } catch (error) {
+                            console.error("Error deleting request:", error);
                         }
                     }
-                },
-                {
-                    title: "No",
-                    callback: VoidCallback
                 }
-            ]
-        });
+            },
+            {
+                title: "No",
+                callback: VoidCallback
+            }
+        ];
+        ask({ content, buttons });
     };
 
     const cloneHistoric = async (item: LiteRequest) => {
@@ -112,6 +116,11 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
         await fetchCollection();
     }
 
+    const showCurl = async (item: LiteRequest) => {
+        const curl = await formatCurl(item._id)
+        loadThemeWindow(550, 250, <CodeArea code={curl} />);
+    }
+
     return (
         <>
             <div className="column-option options border-bottom">
@@ -144,32 +153,10 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                                     <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{millisecondsToDate(cursor.timestamp)}</span>
                                 </div>
                             </a>
-                            <Combo options={[
-                                {
-                                    icon: "💾",
-                                    label: "Save",
-                                    title: "Save request",
-                                    action: () => insertHistoric(cursor)
-                                },
-                                {
-                                    icon: "🗑️",
-                                    label: "Delete",
-                                    title: "Delete request",
-                                    action: () => deleteHistoric(cursor)
-                                },
-                                {
-                                    icon: "🐑",
-                                    label: "Clone",
-                                    title: "Clone request",
-                                    action: () => cloneHistoric(cursor)
-                                },
-                                {
-                                    icon: "📚",
-                                    label: "Collect",
-                                    title: "Copy to collection",
-                                    action: () => openModal(cursor)
-                                }
-                            ]} />
+                            <Combo options={historicOptions(cursor, {
+                                insertHistoric, deleteHistoric, cloneHistoric,
+                                openModal, showCurl
+                            })} />
                         </div>
                     ))
                 ) : (

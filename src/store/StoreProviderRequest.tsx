@@ -204,7 +204,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     response = !response ? newItemResponse(userData.username) : response;
 
-    evalueCancelRequest(request);
+    evalueCancelRequest(request); 
 
     if (oldRequest && oldRequest._id != request._id) {
       remove(CACHE_KEY, oldRequest._id);

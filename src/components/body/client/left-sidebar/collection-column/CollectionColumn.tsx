@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ItemCollection, LiteItemCollection, LiteItemNodeRequest, newCollection, newItemCollection, toCollection } from '../../../../../interfaces/collection/Collection';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
-import { cloneCollection, deleteCollection, deleteFromCollection, findAction, findCollection, imporOpenApi, importCollections, importToCollection, insertCollection, requestCollect, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
+import { cloneCollection, deleteCollection, deleteFromCollection, findAction, findCollection, formatCurl, imporOpenApi, importCollections, importToCollection, insertCollection, requestCollect, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
@@ -21,6 +21,10 @@ import { RequestNode, RequestRequestCollect } from '../../../../../services/api/
 import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
 import { Optional } from '../../../../../types/Optional';
 import { VoidCallback } from '../../../../../interfaces/Callback';
+import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
+import { CodeArea } from '../../../../utils/code-area/CodeArea';
+import { collectionOptions, collectionGroupOptions, requestOptions, searchOptions } from './Constants';
+import { ModalButton } from '../../../../../interfaces/ModalButton';
 
 import './CollectionColumn.css';
 
@@ -55,6 +59,8 @@ interface PayloadModal {
 export function CollectionColumn() {
     const { userData } = useStoreSession();
     const { find, findOrDefault, store } = useStoreStatus();
+
+    const { loadThemeWindow } = useStoreTheme();
 
     const context = useStoreContext();
     const { parent, request, cleanRequest, discardRequest, defineFreeRequest, fetchGroupRequest, isParentCached, isCached } = useStoreRequest();
@@ -101,30 +107,29 @@ export function CollectionColumn() {
     }
 
     const remove = async (item: LiteItemCollection) => {
-        ask({
-            content: `The collection '${item.name}' will be deleted, are you sure?`,
-            buttons: [
-                {
-                    title: "Yes",
-                    type: "submit",
-                    callback: {
-                        func: async () => {
-                            await deleteCollection(item);
-                            if (parent == item._id) {
-                                cleanRequest();
-                            }
-                            await fetchCollection();
-                            discardCollection(item);
+        const content = `The collection '${item.name}' will be deleted, are you sure?`;
+        const buttons: ModalButton[] = [
+            {
+                title: "Yes",
+                type: "submit",
+                callback: {
+                    func: async () => {
+                        await deleteCollection(item);
+                        if (parent == item._id) {
+                            cleanRequest();
                         }
+                        await fetchCollection();
+                        discardCollection(item);
                     }
-                },
-                {
-                    title: "No",
-                    callback: VoidCallback
                 }
-            ]
-        });
-    }
+            },
+            {
+                title: "No",
+                callback: VoidCallback
+            }
+        ];
+        ask({ content, buttons });
+    };
 
     const discardCollection = async (item: LiteItemCollection) => {
         item.nodes.forEach(n => discardRequest(n.request));
@@ -186,29 +191,29 @@ export function CollectionColumn() {
     }
 
     const removeFrom = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
-        ask({
-            content: `The request '${itemRequest.name}' from collection '${itemCollection.name}' will be deleted, are you sure?`,
-            buttons: [
-                {
-                    title: "Yes",
-                    type: "submit",
-                    callback: {
-                        func: async () => {
-                            await deleteFromCollection(itemCollection, itemRequest);
-                            await fetchCollection();
-                            if (itemRequest._id == request._id) {
-                                return cleanRequest();
-                            }
-                            discardRequest(itemRequest);
+        const content = `The request '${itemRequest.name}' from collection '${itemCollection.name}' will be deleted, are you sure?`;
+        const buttons: ModalButton[] = [
+            {
+                title: "Yes",
+                type: "submit",
+                callback: {
+                    func: async () => {
+                        await deleteFromCollection(itemCollection, itemRequest);
+                        await fetchCollection();
+                        if (itemRequest._id == request._id) {
+                            return cleanRequest();
                         }
+                        discardRequest(itemRequest);
                     }
-                },
-                {
-                    title: "No",
-                    callback: VoidCallback
                 }
-            ]
-        });
+            },
+            {
+                title: "No",
+                callback: VoidCallback
+            }
+        ];
+
+        ask({ content, buttons });
     }
 
     const takeFrom = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
@@ -234,17 +239,19 @@ export function CollectionColumn() {
         defineFreeRequest(request);
     };
 
-    const openCloneModal = (itemRequest: LiteRequest, itemCollection: LiteItemCollection) => {
+    const showDuplicateModal = (itemRequest: LiteRequest, itemCollection: LiteItemCollection) => {
+        const newRequest = { ...itemRequest };
+        newRequest.name = `${newRequest.name}-copy`
         setModalData((prevData) => ({
             ...prevData,
             move: false,
             collection: itemCollection,
-            request: itemRequest,
+            request: newRequest,
             openCollect: true
         }));
     };
 
-    const openMoveModal = (itemRequest: LiteRequest, itemCollection: LiteItemCollection) => {
+    const showMoveModal = (itemRequest: LiteRequest, itemCollection: LiteItemCollection) => {
         setModalData((prevData) => ({
             ...prevData,
             move: true,
@@ -541,6 +548,11 @@ export function CollectionColumn() {
         await fetchCollection();
     };
 
+    const showCurl = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
+        const curl = await formatCurl(itemRequest._id, itemCollection.context._id)
+        loadThemeWindow(550, 250, <CodeArea code={curl} />);
+    }
+
     return (
         <>
             <div className="column-option options border-bottom">
@@ -549,32 +561,10 @@ export function CollectionColumn() {
                 </div>
                 <button type="button" className="button-anchor" onClick={insert}>New</button>
                 <div id="right-options show">
-                    <Combo options={[
-                        {
-                            icon: "📃",
-                            label: "OpenApi",
-                            title: "Load an OpenApi definition",
-                            action: openOpenaApiModal
-                        },
-                        {
-                            icon: "💾",
-                            label: "Export",
-                            title: "Export all",
-                            action: exportAll
-                        },
-                        {
-                            icon: "💽",
-                            label: "Import",
-                            title: "Import collections",
-                            action: () => openImportModal()
-                        },
-                        {
-                            icon: "🔄",
-                            label: "Refresh",
-                            title: "Refresh",
-                            action: () => fetchCollection()
-                        }
-                    ]} />
+                    <Combo options={collectionGroupOptions({
+                        openOpenaApiModal, exportAll, openImportModal,
+                        fetchCollection,
+                    })} />
                 </div>
             </div>
             <VerticalDragDrop
@@ -598,64 +588,13 @@ export function CollectionColumn() {
                             </>
                         }
                         options={(
-                            <Combo options={[
-                                {
-                                    icon: "🗑️",
-                                    label: "Delete",
-                                    title: "Delete collection",
-                                    action: () => remove(cursorCollection)
-                                },
-                                {
-                                    icon: "✏️",
-                                    label: "Rename",
-                                    title: "Rename request",
-                                    action: () => renameCollection(cursorCollection)
-                                },
-                                {
-                                    icon: "🐏",
-                                    label: "Duplicate",
-                                    title: "Duplicate collection",
-                                    action: () => clone(cursorCollection)
-                                },
-                                {
-                                    icon: "💡",
-                                    label: "Request",
-                                    title: "New request",
-                                    action: () => newCollectionRequest(cursorCollection)
-                                },
-                                {
-                                    icon: "💾",
-                                    label: "Export",
-                                    title: "Export collection",
-                                    action: () => exportCollection(cursorCollection)
-                                },
-                                {
-                                    icon: "📀",
-                                    label: "Export",
-                                    title: "Export requests",
-                                    action: () => exportRequests(cursorCollection)
-                                },
-                                {
-                                    icon: "💽",
-                                    label: "Import",
-                                    title: "Import requests",
-                                    action: () => openImportRequestModal(cursorCollection)
-                                },
-                                {
-                                    icon: "🧹",
-                                    label: "Request",
-                                    title: "Discard requests changes",
-                                    disable: !isParentCached(cursorCollection._id),
-                                    action: () => discardCollection(cursorCollection)
-                                },
-                                {
-                                    icon: "🧹",
-                                    label: "Context",
-                                    title: "Discard context changes",
-                                    disable: !context.isParentCached(cursorCollection._id),
-                                    action: () => context.discardContext(cursorCollection.context)
-                                },
-                            ]} />)}
+                            <Combo options={collectionOptions(cursorCollection, {
+                                remove, renameCollection, clone,
+                                newCollectionRequest, exportCollection, exportRequests,
+                                openImportRequestModal, discardCollection, isParentCached,
+                                discardContext: context.discardContext,
+                                isContextCached: context.isParentCached,
+                            })} />)}
                         subsummary={(
                             <div className="request-sign-date">
                                 <span className="request-sign-timestamp" title={millisecondsToDate(cursorCollection.timestamp)}>{millisecondsToDate(cursorCollection.timestamp)}</span>
@@ -687,51 +626,11 @@ export function CollectionColumn() {
                                                 <span className="request-sign-timestamp" title={millisecondsToDate(node.request.timestamp)}>{millisecondsToDate(node.request.timestamp)}</span>
                                             </div>
                                         </a>
-                                        <Combo options={[
-                                            {
-                                                icon: "🗑️",
-                                                label: "Delete",
-                                                title: "Delete from collection",
-                                                action: () => removeFrom(cursorCollection, node.request)
-                                            },
-                                            {
-                                                icon: "✏️",
-                                                label: "Rename",
-                                                title: "Rename request",
-                                                action: () => renameFromCollection(node.request)
-                                            },
-                                            {
-                                                icon: "🐑",
-                                                label: "Clone",
-                                                title: "Clone request",
-                                                action: () => cloneFromCollection(node.request)
-                                            },
-                                            {
-                                                icon: "🐏",
-                                                label: "Duplicate",
-                                                title: "Duplicate to collection",
-                                                action: () => openCloneModal(node.request, cursorCollection)
-                                            },
-                                            {
-                                                icon: "📦",
-                                                label: "Move",
-                                                title: "Move to collection",
-                                                action: () => openMoveModal(node.request, cursorCollection)
-                                            },
-                                            {
-                                                icon: "🧷",
-                                                label: "Take",
-                                                title: "Take from collection",
-                                                action: () => takeFrom(cursorCollection, node.request)
-                                            },
-                                            {
-                                                icon: "🧹",
-                                                label: "Discard",
-                                                title: "Discard changes",
-                                                disable: !isCached(node.request),
-                                                action: () => discardRequest(node.request)
-                                            },
-                                        ]} />
+                                        <Combo options={requestOptions(cursorCollection, node, {
+                                            removeFrom, renameFromCollection, cloneFromCollection,
+                                            showDuplicateModal, showMoveModal, takeFrom,
+                                            isCached, discardRequest, showCurl,
+                                        })} />
                                     </div>
                                 )}
                                 emptyTemplate={(
@@ -755,44 +654,7 @@ export function CollectionColumn() {
                         )}
                         asSelect={true}
                         selected={filterData.target}
-                        options={[
-                            {
-                                label: "Name",
-                                name: "name",
-                                title: "Filter by name",
-                                action: () => onFilterTargetChange("name")
-                            },
-                            {
-                                label: "Date",
-                                name: "timestamp",
-                                title: "Filter by date",
-                                action: () => onFilterTargetChange("timestamp")
-                            },
-                            {
-                                label: "Request Name",
-                                name: "req-name",
-                                title: "Filter by request name",
-                                action: () => onFilterTargetChange("req-name")
-                            },
-                            {
-                                label: "Request Date",
-                                name: "req-timestamp",
-                                title: "Filter by request date",
-                                action: () => onFilterTargetChange("req-timestamp")
-                            },
-                            {
-                                label: "Method",
-                                name: "method",
-                                title: "Filter by method",
-                                action: () => onFilterTargetChange("method")
-                            },
-                            {
-                                label: "Uri",
-                                name: "uri",
-                                title: "Filter by Uri",
-                                action: () => onFilterTargetChange("uri")
-                            },
-                        ]} />
+                        options={searchOptions({ onFilterTargetChange })} />
                 </div>
             </div>
             <CollectionModal

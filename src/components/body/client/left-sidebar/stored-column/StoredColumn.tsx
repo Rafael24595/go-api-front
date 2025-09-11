@@ -1,4 +1,4 @@
-import { deleteAction, findAction, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
+import { deleteAction, findAction, formatCurl, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
@@ -16,6 +16,10 @@ import { VerticalDragDrop, PositionWrapper, FilterResult } from '../../../../uti
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
 import { Optional } from '../../../../../types/Optional';
 import { VoidCallback } from '../../../../../interfaces/Callback';
+import { searchOptions, storedGroupOptions, storedOptions } from './Constants';
+import { CodeArea } from '../../../../utils/code-area/CodeArea';
+import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
+import { ModalButton } from '../../../../../interfaces/ModalButton';
 
 import './StoredColumn.css';
 
@@ -45,6 +49,8 @@ interface PayloadFilter {
 export function StoredColumn() {
     const { userData } = useStoreSession();
     const { find, findOrDefault, store } = useStoreStatus();
+
+    const { loadThemeWindow } = useStoreTheme();
 
     const { request, cleanRequest, discardRequest, defineFreeRequest, fetchFreeRequest, insertRequest, isCached } = useStoreRequest();
     const { stored, fetchStored, fetchCollection, updateStoredOrder } = useStoreRequests();
@@ -88,6 +94,7 @@ export function StoredColumn() {
         const request = action.request;
 
         request._id = "";
+        request.name = `${request.name}-copy`;
         request.status = 'draft';
 
         await insertRequest(request);
@@ -109,33 +116,33 @@ export function StoredColumn() {
     };
 
     const deleteStored = async (item: LiteRequest) => {
-        ask({
-            content: `The request '${item.name}' will be deleted, are you sure?`,
-            buttons: [
-                {
-                    title: "Yes",
-                    type: "submit",
-                    callback: {
-                        func: async () => {
-                            try {
-                                await deleteAction(item);
-                                discardRequest(item);
-                                await fetchStored();
-                                if (request._id == item._id) {
-                                    cleanRequest();
-                                }
-                            } catch (error) {
-                                console.error("Error deleting request:", error);
+        const content = `The request '${item.name}' will be deleted, are you sure?`;
+        const buttons: ModalButton[] = [
+            {
+                title: "Yes",
+                type: "submit",
+                callback: {
+                    func: async () => {
+                        try {
+                            await deleteAction(item);
+                            discardRequest(item);
+                            await fetchStored();
+                            if (request._id == item._id) {
+                                cleanRequest();
                             }
+                        } catch (error) {
+                            console.error("Error deleting request:", error);
                         }
                     }
-                },
-                {
-                    title: "No",
-                    callback: VoidCallback
                 }
-            ]
-        });
+            },
+            {
+                title: "No",
+                callback: VoidCallback
+            }
+        ];
+        
+        ask({content, buttons});
     };
 
     const cloneStored = async (item: LiteRequest) => {
@@ -149,9 +156,11 @@ export function StoredColumn() {
     };
 
     const openCollectModal = (item: LiteRequest) => {
+        const newItem = {...item};
+        newItem.name = `${item.name}-copy`;
         setModalData((prevData) => ({
             ...prevData,
-            request: item,
+            request: newItem,
             move: false,
             openMove: true
         }));
@@ -318,6 +327,11 @@ export function StoredColumn() {
         await fetchStored();
     };
 
+    const showCurl = async (item: LiteRequest) => {
+        const curl = await formatCurl(item._id)
+        loadThemeWindow(550, 250, <CodeArea code={curl} />);
+    }
+
     return (
         <>
             <div className="column-option options border-bottom">
@@ -326,26 +340,9 @@ export function StoredColumn() {
                 </div>
                 <button type="button" className="button-anchor" onClick={() => insertNewRequest()}>New</button>
                 <div id="right-options show">
-                    <Combo options={[
-                        {
-                            icon: "💾",
-                            label: "Export",
-                            title: "Export all",
-                            action: exportAll
-                        },
-                        {
-                            icon: "💽",
-                            label: "Import",
-                            title: "Import collections",
-                            action: () => openImportModal()
-                        },
-                        {
-                            icon: "🔄",
-                            label: "Refresh",
-                            title: "Refresh",
-                            action: () => fetchStored()
-                        }
-                    ]} />
+                    <Combo options={storedGroupOptions({
+                        exportAll, openImportModal, fetchStored
+                    })} />
                 </div>
             </div>
             <VerticalDragDrop
@@ -371,57 +368,12 @@ export function StoredColumn() {
                                 <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{millisecondsToDate(cursor.timestamp)}</span>
                             </div>
                         </a>
-                        <Combo options={[
-                            {
-                                icon: "🗑️",
-                                label: "Delete",
-                                title: "Delete request",
-                                action: () => deleteStored(cursor)
-                            },
-                            {
-                                icon: "✏️",
-                                label: "Rename",
-                                title: "Rename request",
-                                action: () => renameStored(cursor)
-                            },
-                            {
-                                icon: "🐑",
-                                label: "Clone",
-                                title: "Clone request",
-                                action: () => cloneStored(cursor)
-                            },
-                            {
-                                icon: "🐏",
-                                label: "Duplicate",
-                                title: "Duplicate request",
-                                action: () => duplicateStored(cursor)
-                            },
-                            {
-                                icon: "📚",
-                                label: "Collect",
-                                title: "Copy to collection",
-                                action: () => openCollectModal(cursor)
-                            },
-                            {
-                                icon: "📦",
-                                label: "Move",
-                                title: "Move to collection",
-                                action: () => openMoveModal(cursor)
-                            },
-                            {
-                                icon: "💾",
-                                label: "Export",
-                                title: "Export request",
-                                action: () => exportRequest(cursor)
-                            },
-                            {
-                                icon: "🧹",
-                                label: "Discard",
-                                title: "Discard changes",
-                                disable: !isCached(cursor),
-                                action: () => discardRequest(cursor)
-                            },
-                        ]} />
+                        <Combo options={storedOptions(cursor, {
+                            deleteStored, renameStored, cloneStored,
+                            duplicateStored, openCollectModal, openMoveModal,
+                            exportRequest, isCached, discardRequest,
+                            showCurl,
+                        })} />
                     </div>
                 )}
                 emptyTemplate={(
@@ -438,32 +390,7 @@ export function StoredColumn() {
                         )}
                         asSelect={true}
                         selected={filterData.target}
-                        options={[
-                            {
-                                label: "Name",
-                                name: "name",
-                                title: "Filter by name",
-                                action: () => onFilterTargetChange("name")
-                            },
-                            {
-                                label: "Date",
-                                name: "timestamp",
-                                title: "Filter by date",
-                                action: () => onFilterTargetChange("timestamp")
-                            },
-                            {
-                                label: "Method",
-                                name: "method",
-                                title: "Filter by method",
-                                action: () => onFilterTargetChange("method")
-                            },
-                            {
-                                label: "Uri",
-                                name: "uri",
-                                title: "Filter by Uri",
-                                action: () => onFilterTargetChange("uri")
-                            },
-                        ]} />
+                        options={searchOptions({onFilterTargetChange})} />
                 </div>
             </div>
             <ImportRequestModal

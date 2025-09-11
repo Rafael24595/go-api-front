@@ -125,7 +125,7 @@ export interface Auths {
 
 export interface Auth {
   status: boolean
-  code: string
+  type: string
   parameters: Dict<string>
 }
 
