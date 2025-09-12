@@ -12,4 +12,6 @@
 .terminal pre {
     border: 1px solid;
     padding: 12px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
