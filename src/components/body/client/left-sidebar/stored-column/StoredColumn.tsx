@@ -6,7 +6,7 @@ import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useState } from 'react';
 import { CollectionModal } from '../../../../collection/CollectionModal';
-import { downloadFile } from '../../../../../services/Utils';
+import { calculateWindowSize, downloadFile } from '../../../../../services/Utils';
 import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { useAlert } from '../../../../utils/alert/Alert';
@@ -141,8 +141,8 @@ export function StoredColumn() {
                 callback: VoidCallback
             }
         ];
-        
-        ask({content, buttons});
+
+        ask({ content, buttons });
     };
 
     const cloneStored = async (item: LiteRequest) => {
@@ -156,7 +156,7 @@ export function StoredColumn() {
     };
 
     const openCollectModal = (item: LiteRequest) => {
-        const newItem = {...item};
+        const newItem = { ...item };
         newItem.name = `${item.name}-copy`;
         setModalData((prevData) => ({
             ...prevData,
@@ -328,8 +328,12 @@ export function StoredColumn() {
     };
 
     const showCurl = async (item: LiteRequest) => {
-        const curl = await formatCurl(item._id)
-        loadThemeWindow(550, 250, <CodeArea code={curl} />);
+        const curl = await formatCurl(item._id);
+        const { width, height } = calculateWindowSize(curl, {
+            minWidth: 550,
+            minHeight: 200
+        });
+        loadThemeWindow(width, height, <CodeArea code={curl} />);
     }
 
     return (
@@ -390,7 +394,7 @@ export function StoredColumn() {
                         )}
                         asSelect={true}
                         selected={filterData.target}
-                        options={searchOptions({onFilterTargetChange})} />
+                        options={searchOptions({ onFilterTargetChange })} />
                 </div>
             </div>
             <ImportRequestModal

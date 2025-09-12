@@ -14,9 +14,10 @@ import { VoidCallback } from '../../../../../interfaces/Callback';
 import { historicOptions } from './Constants';
 import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
 import { CodeArea } from '../../../../utils/code-area/CodeArea';
+import { ModalButton } from '../../../../../interfaces/ModalButton';
+import { calculateWindowSize } from '../../../../../services/Utils';
 
 import './HistoricColumn.css';
-import { ModalButton } from '../../../../../interfaces/ModalButton';
 
 interface HistoricColumnProps {
     setCursor: (cursor: string) => void;
@@ -118,7 +119,11 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
 
     const showCurl = async (item: LiteRequest) => {
         const curl = await formatCurl(item._id)
-        loadThemeWindow(550, 250, <CodeArea code={curl} />);
+        const { width, height } = calculateWindowSize(curl, {
+            minWidth: 550,
+            minHeight: 200
+        });
+        loadThemeWindow(width, height, <CodeArea code={curl} />);
     }
 
     return (

@@ -8,14 +8,17 @@ import SHA256 from "crypto-js/sha256";
     if (!window.isSecureContext || !window.crypto?.subtle) {
         console.warn("Falling back to crypto-js (insecure hash, use HTTPS if possible)");
     }
-     if (!navigator.clipboard) {
+    if (!navigator.clipboard) {
         console.warn("Falling back to execCommand (insecure copy to clipboard, use HTTPS if possible)");
     }
 })()
 
+const CHAR_WIDTH = 8;
+const LINE_HEIGHT = 20;
+
 export const detachStatusKeyValue = (dict: Dict<StatusValue[]>): StatusKeyValue[] => {
     const vector: StatusKeyValue[] = [];
-    if(dict == undefined) {
+    if (dict == undefined) {
         return vector;
     }
 
@@ -34,7 +37,7 @@ export const detachStatusKeyValue = (dict: Dict<StatusValue[]>): StatusKeyValue[
 
 export const collectStatusKeyValue = (dict: Dict<StatusValue>): StatusKeyValue[] => {
     const vector: StatusKeyValue[] = [];
-    if(dict == undefined) {
+    if (dict == undefined) {
         return vector;
     }
 
@@ -58,9 +61,9 @@ export const mergeStatusKeyValue = (newValues: StatusKeyValue[]): Dict<StatusVal
             status: value.status,
             value: value.value,
         };
-        
+
         const vector = merge[value.key];
-        if(!vector) {
+        if (!vector) {
             merge[value.key] = [fixValue]
             continue;
         }
@@ -83,7 +86,7 @@ export const joinStatusKeyValue = (newValues: StatusKeyValue[]): Dict<StatusValu
 
 export const detachStatusCategoryKeyValue = (dict: Dict<Dict<PrivateStatusValue>>): StatusCategoryKeyValue[] => {
     const vector: StatusCategoryKeyValue[] = [];
-    if(dict == undefined) {
+    if (dict == undefined) {
         return vector;
     }
 
@@ -105,7 +108,7 @@ export const detachStatusCategoryKeyValue = (dict: Dict<Dict<PrivateStatusValue>
 export const mergeStatusCategoryKeyValue = (newValues: StatusCategoryKeyValue[]): Dict<Dict<PrivateStatusValue>> => {
     const merge: Dict<Dict<PrivateStatusValue>> = {};
     for (const value of newValues) {
-        if(!merge[value.category]) {
+        if (!merge[value.category]) {
             merge[value.category] = {};
         }
         merge[value.category][value.key] = {
@@ -121,7 +124,7 @@ export const mergeStatusCategoryKeyValue = (newValues: StatusCategoryKeyValue[])
 export const mergeStatusCategoryKeyValueAsItem = (newValues: ItemStatusCategoryKeyValue[]): Dict<Dict<ItemStatusValue>> => {
     const merge: Dict<Dict<ItemStatusValue>> = {};
     for (const value of newValues) {
-        if(!merge[value.category]) {
+        if (!merge[value.category]) {
             merge[value.category] = {};
         }
         merge[value.category][value.key] = {
@@ -142,31 +145,31 @@ export const generateHash = async (obj: any) => {
     if (!window.isSecureContext || !window.crypto?.subtle) {
         return SHA256(str).toString();
     }
-    
+
     const encoder = new TextEncoder();
     const data = encoder.encode(str);
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    
+
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 const deepSort = (obj: any): any => {
-    if(obj === null) {
+    if (obj === null) {
         return obj;
     } else if (Array.isArray(obj)) {
         return obj.map(deepSort).sort();
-    } else if(typeof obj !== 'object') {
+    } else if (typeof obj !== 'object') {
         return obj;
     }
-    
+
     const sortedObj: any = {};
     Object.keys(obj)
         .sort()
         .forEach((key) => {
             sortedObj[key] = deepSort(obj[key]);
         });
-    
+
     return sortedObj;
 }
 
@@ -191,38 +194,61 @@ export const downloadFile = (name: string, data: any) => {
 };
 
 export const copyTextToClipboard = (text: string, onSuccess?: () => void, onError?: (err: any) => void) => {
-  if (!navigator.clipboard) {
-    return fallbackCopyTextToClipboard(text, onSuccess, onError);
-  }
-  
-  navigator.clipboard.writeText(text).then(
-    onSuccess,
-    onError
-  );
+    if (!navigator.clipboard) {
+        return fallbackCopyTextToClipboard(text, onSuccess, onError);
+    }
+
+    navigator.clipboard.writeText(text).then(
+        onSuccess,
+        onError
+    );
 }
 
 const fallbackCopyTextToClipboard = (text: string, onSuccess?: () => void, onError?: (err: any) => void) => {
-  const textArea = document.createElement("textarea");
-  textArea.value = text;
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
 
-  try {
-    const successful = document.execCommand("copy");
-    const msg = successful ? "successful" : "unsuccessful";
-    if(!onSuccess) {
-        console.log("Fallback: Copying text command was " + msg);
-    } else {
-        onSuccess();
+    try {
+        const successful = document.execCommand("copy");
+        const msg = successful ? "successful" : "unsuccessful";
+        if (!onSuccess) {
+            console.log("Fallback: Copying text command was " + msg);
+        } else {
+            onSuccess();
+        }
+    } catch (err) {
+        if (!onError) {
+            console.error("Fallback: Oops, unable to copy", err);
+        } else {
+            onError(err);
+        }
     }
-  } catch (err) {
-    if(!onError) {
-        console.error("Fallback: Oops, unable to copy", err);
-    } else {
-        onError(err);
-    }
-  }
 
-  document.body.removeChild(textArea);
+    document.body.removeChild(textArea);
+}
+
+interface WindowSizeOptions {
+    minWidth: number;
+    maxWidth?: number;
+    minHeight: number;
+    maxHeight?: number
+}
+
+export const calculateWindowSize = (text: string, options: WindowSizeOptions): { width: number; height: number } => {
+    const lines = text.split("\n");
+    const maxLen = Math.max(...lines.map(l => l.length));
+
+    const maxWidth = options.maxWidth ? options.maxWidth : window.screen.availWidth;
+    const maxHeight = options.maxHeight ? options.maxHeight : window.screen.availHeight;
+
+    let width = Math.max(maxLen * CHAR_WIDTH, options.minWidth);
+    width = Math.min(width, maxWidth);
+
+    let height = Math.max(lines.length * LINE_HEIGHT, options.minHeight)
+    height = Math.min(height, maxHeight);
+
+    return { width, height };
 }

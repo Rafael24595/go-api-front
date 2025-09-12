@@ -11,7 +11,7 @@ import { Details } from '../../../../utils/details/Details';
 import { ImportOpenApiModal } from '../../../../collection/ImportOpenApiModal';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
-import { downloadFile } from '../../../../../services/Utils';
+import { calculateWindowSize, downloadFile } from '../../../../../services/Utils';
 import { ImportCollectionModal } from '../../../../collection/ImportCollectionModal';
 import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
@@ -550,7 +550,11 @@ export function CollectionColumn() {
 
     const showCurl = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
         const curl = await formatCurl(itemRequest._id, itemCollection.context._id)
-        loadThemeWindow(550, 250, <CodeArea code={curl} />);
+        const { width, height } = calculateWindowSize(curl, {
+            minWidth: 550,
+            minHeight: 200
+        });
+        loadThemeWindow(width, height, <CodeArea code={curl} />);
     }
 
     return (
