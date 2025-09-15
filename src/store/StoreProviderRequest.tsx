@@ -430,6 +430,10 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     await findActionById(request)
       .then(apiResponse => {
+        if(apiResponse.request == undefined) {
+          return;
+        }
+
         if (apiResponse.request.owner != userData.username) {
           fetchUser();
         }
@@ -456,7 +460,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     updateRequest(request);
 
-    let fetchResponse = executeFormAction(request, context);
+    const fetchResponse = executeFormAction(request, context);
 
     defineFetchData(fetchResponse);
 
@@ -583,7 +587,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     return length(CACHE_KEY);
   }
 
-  const defineFetchData = (fetch: ResponseFetch<any>) => {
+  const defineFetchData = (fetch: ResponseFetch<ResponseExecuteAction>) => {
     setDataFetch(() => ({
       waiting: true,
       cancel: fetch.cancel
