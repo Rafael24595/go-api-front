@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ItemCollection, LiteItemCollection, LiteItemNodeRequest, newCollection, newItemCollection, toCollection } from '../../../../../interfaces/collection/Collection';
+import { ItemCollection, LiteItemCollection, LiteItemNodeRequest, newCollection, toCollection } from '../../../../../interfaces/collection/Collection';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
 import { cloneCollection, deleteCollection, deleteFromCollection, findAction, findCollection, formatCurl, imporOpenApi, importCollections, importToCollection, insertCollection, requestCollect, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
@@ -33,8 +33,6 @@ const FILTER_VALUE_KEY = "CollectionColumnDetailsFilterValue";
 const CURSOR_KEY = "CollectionColumnDetailsCursor";
 
 const DEFAULT_CURSOR = "name";
-const VALID_CURSORS = Object.keys(newItemCollection("anonymous"))
-    .map(k => k as keyof ItemCollection)
 
 interface PayloadFilter {
     target: string;
@@ -58,7 +56,7 @@ interface PayloadModal {
 
 export function CollectionColumn() {
     const { userData } = useStoreSession();
-    const { find, findOrDefault, store } = useStoreStatus();
+    const { find, store } = useStoreStatus();
 
     const { loadThemeWindow } = useStoreTheme();
 
@@ -69,9 +67,8 @@ export function CollectionColumn() {
     const { push, ask } = useAlert();
 
     const [filterData, setFilterData] = useState<PayloadFilter>({
-        target: findOrDefault(FILTER_TARGET_KEY, {
-            def: DEFAULT_CURSOR,
-            range: VALID_CURSORS
+        target: find(FILTER_TARGET_KEY, {
+            def: DEFAULT_CURSOR
         }),
         value: find(FILTER_VALUE_KEY, {
             def: ""
