@@ -1,15 +1,27 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { AUTH_CODE_BASIC, BasicData } from './basic-data/BasicData';
 import { AUTH_CODE_BEARER, BearerData } from './bearer-data/BearerData';
 import { Auth, Auths } from '../../../../../../interfaces/request/Request';
 import { Dict } from '../../../../../../types/Dict';
 import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
 import { useStoreStatus } from '../../../../../../store/StoreProviderStatus';
+import { KeyValue } from '../../../../../../interfaces/KeyValue';
 
 import './AuthArguments.css';
 
 const VIEW_BASIC = "basic";
 const VIEW_BEARER = "bearer";
+
+const cursors: KeyValue[] = [
+    {
+        key: VIEW_BASIC,
+        value: "Basic",
+    },
+    {
+        key: VIEW_BEARER,
+        value: "Bearer",
+    }
+];
 
 const VALID_CURSORS = [VIEW_BASIC, VIEW_BEARER];
 
@@ -48,19 +60,23 @@ export function AuthArguments() {
         }));
     }, [request.auth]);
 
-    const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        store(CURSOR_KEY, e.target.value);
-        setData({...data, cursor: e.target.value});
+    const cursorChangeEvvent = (e: React.ChangeEvent<HTMLInputElement>) => {
+        cursorChange(e.target.value);
+    };
+
+    const cursorChange = (cursor: string) => {
+        store(CURSOR_KEY, cursor);
+        setData({...data, cursor});
     };
 
     const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let newData = {...data, status: e.target.checked};
+        const newData = {...data, status: e.target.checked};
         setData(newData);
         updateAuth(makeAuth(newData));
     };
 
     const authChange = (type: string, auth: Auth | undefined) => {
-        let newData = {...data};
+        const newData = {...data};
         if(auth != undefined) {
             auth.type = type;
         }
@@ -77,7 +93,7 @@ export function AuthArguments() {
     }
 
     const makeAuth = (payload: Payload): Auths => {
-        let auths: Dict<Auth> = {};
+        const auths: Dict<Auth> = {};
         if(payload.basic) {
             auths[AUTH_CODE_BASIC] = payload.basic;
         }
@@ -100,16 +116,20 @@ export function AuthArguments() {
                         type="checkbox" 
                         checked={data.status}
                         onChange={statusChange}/>
-                    <input type="radio" id="tag-auth-basic" className="client-tag" name="cursor-auth" 
-                        checked={data.cursor === VIEW_BASIC} 
-                        value={VIEW_BASIC} 
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-auth-basic">Basic</label>
-                    <input type="radio" id="tag-auth-bearer" className="client-tag" name="cursor-auth" 
-                        checked={data.cursor === VIEW_BEARER} 
-                        value={VIEW_BEARER} 
-                        onChange={cursorChange}/>
-                    <label htmlFor="tag-auth-bearer">Bearer</label>
+                    {cursors.map(c => (
+                        <Fragment key={c.key}>
+                            <input type="radio" id={`tag-auth-${c.key.toLowerCase()}`} className="client-tag" name="cursor-auth"
+                                checked={data.cursor === c.key} 
+                                value={c.key} 
+                                onChange={cursorChangeEvvent}/>
+                            <button
+                                type="button"
+                                className="button-tag"
+                                onClick={() => cursorChange(c.key)}>
+                                {c.value}
+                            </button>
+                        </Fragment>
+                    ))}
                 </div>
                 <div id="client-argument-content" className="no-scroll">
                     {data.cursor === VIEW_BASIC && <BasicData value={data.basic} onValueChange={authChange}/>}

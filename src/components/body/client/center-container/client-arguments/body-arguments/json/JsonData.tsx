@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { DOCUMENT_PARAM, PAYLOAD_PARAM } from "../BodyArguments";
 import { Optional } from "../../../../../../../types/Optional";
 import { Dict } from "../../../../../../../types/Dict";
+import { handleTab } from "../../../../../../../utils/CodeMirrorHelper";
 
 import './JsonData.css';
 
@@ -50,6 +51,7 @@ export function JsonData({ onValueChange }: Payload) {
             extensions={[json(), linter(jsonParseLinter()), lintGutter()]}
             onChange={onChange}
             theme="light"
+            onKeyDownCapture={handleTab}
         />
       </div>
     )

@@ -148,7 +148,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                 {historic.length > 0 ? (
                     historic.map((cursor) => (
                         <div key={makeKey(cursor)} className={`request-preview ${cursor._id == request._id && "request-selected"}`}>
-                            <a className="request-link" title={cursor.uri}
+                            <button className="request-link" title={cursor.uri}
                                 onClick={() => defineHistoricRequest(cursor)}>
                                 <div className="request-sign">
                                     <span className={`request-sign-method ${cursor.method}`}>{cursor.method}</span>
@@ -157,7 +157,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                                 <div className="request-sign-date">
                                     <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{millisecondsToDate(cursor.timestamp)}</span>
                                 </div>
-                            </a>
+                            </button>
                             <Combo options={historicOptions(cursor, {
                                 insertHistoric, deleteHistoric, cloneHistoric,
                                 openModal, showCurl
