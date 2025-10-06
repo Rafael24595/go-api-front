@@ -42,9 +42,11 @@ export function LeftSidebar() {
             range: VALID_CURSORS
         }));
 
-    const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const cursor = e.target.value;
+    const cursorChangeEvent = (e: React.ChangeEvent<HTMLInputElement>) => {
+        cursorChange(e.target.value);
+    };
 
+    const cursorChange = (cursor: string) => {
         store(CURSOR_KEY, cursor);
 
         switch (cursor) {
@@ -73,8 +75,13 @@ export function LeftSidebar() {
                         <input type="radio" id={`tag-left-sidebar-${c.key.toLowerCase()}`} className="client-tag" name="cursor-left-sidebar"
                             checked={cursor === c.key} 
                             value={c.key} 
-                            onChange={cursorChange}/>
-                        <label htmlFor={`tag-left-sidebar-${c.key.toLowerCase()}`}>{c.value}</label>
+                            onChange={cursorChangeEvent}/>
+                        <button
+                            type="button"
+                            className="button-tag"
+                            onClick={() => cursorChange(c.key)}>
+                            {c.value}
+                        </button>
                     </Fragment>
                 ))}
             </div>

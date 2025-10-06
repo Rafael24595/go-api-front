@@ -16,6 +16,12 @@
 
 .request-link {
     overflow: hidden;
+    font-family: var(--default-font);
+    font-weight: normal;
+    font-size: medium;
+    padding: 0px;
+    border: none;
+    background-color: transparent;
 }
 
 .request-sign {

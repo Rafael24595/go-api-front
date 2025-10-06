@@ -170,7 +170,8 @@ button:hover {
   justify-content: space-around;
 }
 
-.radio-button-group.cover label {
+.radio-button-group.cover label, 
+.radio-button-group.cover .button-tag {
   flex: 1 1 auto;
   text-align: center;
 }
@@ -188,7 +189,8 @@ button:hover {
   color: var(--body-text-color);
 }
 
-.radio-button-group label, .button-tag {
+.radio-button-group label, 
+.radio-button-group .button-tag {
   padding: 5px 15px;
   cursor: pointer;
   overflow: hidden;
@@ -197,15 +199,18 @@ button:hover {
   user-select: none;
 }
 
-.radio-button-group label:hover, .button-tag:hover {
+.radio-button-group label:hover,
+.radio-button-group .button-tag:hover {
   background-color: var(--border-color);
 }
 
-.radio-button-group input[type="radio"]:not(:checked) + label, .button-tag {
+.radio-button-group input[type="radio"]:not(:checked) + label,
+.radio-button-group input[type="radio"]:not(:checked) + .button-tag, .button-tag {
   border-bottom: 1px solid transparent;
 }
 
-.radio-button-group input[type="radio"]:checked + label {
+.radio-button-group input[type="radio"]:checked + label,
+.radio-button-group input[type="radio"]:checked + .button-tag {
   border-bottom: 1px solid var(--border-color);
 }
 

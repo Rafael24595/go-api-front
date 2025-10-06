@@ -614,7 +614,7 @@ export function CollectionColumn() {
                                 onItemsChange={onRequestOrderChange}
                                 renderItem={(node) => (
                                     <div key={makeKey(cursorCollection, node.request)} className={`request-preview ${isRequestSelected(node) && "request-selected"} ${isRequestDrag(node) && "request-float"}`}>
-                                        <a className="request-link" title={node.request.uri}
+                                        <button className="request-link" title={node.request.uri}
                                             onClick={() => defineCollectionRequest(cursorCollection, node.request)}>
                                             <div className="request-sign">
                                                 {isCached(node.request) && (
@@ -626,7 +626,7 @@ export function CollectionColumn() {
                                             <div className="request-sign-date">
                                                 <span className="request-sign-timestamp" title={millisecondsToDate(node.request.timestamp)}>{millisecondsToDate(node.request.timestamp)}</span>
                                             </div>
-                                        </a>
+                                        </button>
                                         <Combo options={requestOptions(cursorCollection, node, {
                                             removeFrom, renameFromCollection, cloneFromCollection,
                                             showDuplicateModal, showMoveModal, takeFrom,

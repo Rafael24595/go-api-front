@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Optional } from "../../../../../../../types/Optional";
 import { DOCUMENT_PARAM, PAYLOAD_PARAM } from "../BodyArguments";
 import { Dict } from "../../../../../../../types/Dict";
+import { handleTab } from "../../../../../../../utils/CodeMirrorHelper";
 
 import './TextData.css';
 
@@ -48,6 +49,7 @@ export function TextData({ onValueChange }: Payload) {
             width="100%"
             extensions={[lintGutter()]}
             onChange={onChange}
+            onKeyDownCapture={handleTab}
         />
       </div>
     )

@@ -67,13 +67,17 @@ export function BodyArguments() {
         setCursor(request.body.content_type || DEFAULT_CURSOR);
     }, [request.body]);
     
-    const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cursorChangeEvent = (e: React.ChangeEvent<HTMLInputElement>) => {
+        cursorChange(e.target.value);
+    };
+
+    const cursorChange = (cursor: string) => {
         const newData = {
             ...data, 
-            content: e.target.value,
+            content: cursor,
         };
         
-        setCursor(e.target.value);
+        setCursor(cursor);
         setData(newData);
 
         if(Object.entries(request.body.parameters).length > 0) {
@@ -134,12 +138,12 @@ export function BodyArguments() {
     }
 
     const formatPayload = async () => {
-        let category = data.parameters[DOCUMENT_PARAM];
+        const category = data.parameters[DOCUMENT_PARAM];
         if(!category) {
             return;
         }
 
-        let document = category.find(p => p.key == PAYLOAD_PARAM);
+        const document = category.find(p => p.key == PAYLOAD_PARAM);
         if(!document) {
             return;
         }
@@ -180,8 +184,13 @@ export function BodyArguments() {
                             <input type="radio" id={`tag-body-${c.key.toLowerCase()}`} className="client-tag" name="cursor-body"
                                 checked={cursor === c.key} 
                                 value={c.key} 
-                                onChange={cursorChange}/>
-                            <label htmlFor={`tag-body-${c.key.toLowerCase()}`}>{c.value}</label>
+                                onChange={cursorChangeEvent}/>
+                            <button
+                                type="button"
+                                className="button-tag"
+                                onClick={() => cursorChange(c.key)}>
+                                {c.value}
+                            </button>
                         </Fragment>
                     ))}
                     </div>

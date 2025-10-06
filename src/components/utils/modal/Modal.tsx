@@ -67,6 +67,7 @@ export function Modal({ titleCustom, isOpen, onClose, children, buttons, ...rest
             buttons.map(b => (
               <button
                 key={b.title}
+                title={b.description || ''}
                 type={b.type || 'button'}
                 onClick={() => b.callback.func(b.callback.args)}>
                 {b.title}

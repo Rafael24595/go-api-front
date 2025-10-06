@@ -200,7 +200,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     }
 
     const matches = (pattern: string, value: string): boolean => {
-        let regexPattern = pattern.replace(/[-\/\\^$+?.()|[\]{}]/g, '\\$&');
+        let regexPattern = pattern.replace(/[-/\\^$+?.()|[\]{}]/g, '\\$&');
         regexPattern = regexPattern.replace(/\*/g, '.*');
         const regex = new RegExp(`^${regexPattern}$`);
         return regex.test(value);
@@ -377,12 +377,25 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                 {
                     title: "Save",
                     type: "submit",
+                    description: "Save",
                     callback: {
                         func: releaseContext
                     }
                 },
                 {
+                    title: "Confirm",
+                    type: "submit",
+                    description: "Save and exit",
+                    callback: {
+                        func: () => {
+                            releaseContext();
+                            onClose();
+                        }
+                    }
+                },
+                {
                     title: "Close",
+                    description: "Close",
                     callback: {
                         func: onClose
                     }

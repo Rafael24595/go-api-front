@@ -8,6 +8,7 @@ import { DOCUMENT_PARAM, PAYLOAD_PARAM } from "../BodyArguments";
 import { Optional } from "../../../../../../../types/Optional";
 import { Dict } from "../../../../../../../types/Dict";
 import { xmlLinter } from "../../../../../../../utils/Formatter";
+import { handleTab } from "../../../../../../../utils/CodeMirrorHelper";
 
 import './XmlData.css';
 
@@ -51,6 +52,7 @@ export function XmlData({ onValueChange }: Payload) {
             extensions={[xml(), linter(xmlLinter()), lintGutter()]}
             onChange={onChange}
             theme="light"
+            onKeyDownCapture={handleTab}
         />
       </div>
     )

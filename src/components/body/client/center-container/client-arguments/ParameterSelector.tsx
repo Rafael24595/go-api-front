@@ -58,9 +58,13 @@ export function ParameterSelector() {
 
     const { initialHash, actualHash } = useStoreContext();
 
-    const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        store(CURSOR_KEY, e.target.value);
-        setCursor(e.target.value);
+    const cursorChangeEvent = (e: React.ChangeEvent<HTMLInputElement>) => {
+        cursorChange(e.target.value);
+    };
+
+    const cursorChange = (cursor: string) => {
+        store(CURSOR_KEY, cursor);
+        setCursor(cursor);
     };
 
     return (
@@ -73,8 +77,13 @@ export function ParameterSelector() {
                                 <input type="radio" id={`tag-client-${c.key.toLowerCase()}`} className="client-tag" name="cursor-client"
                                     checked={cursor === c.key} 
                                     value={c.key} 
-                                    onChange={cursorChange}/>
-                                <label htmlFor={`tag-client-${c.key.toLowerCase()}`}>{c.value}</label>
+                                    onChange={cursorChangeEvent}/>
+                                <button
+                                    type="button"
+                                    className="button-tag"
+                                    onClick={() => cursorChange(c.key)}>
+                                    {c.value}
+                                </button>
                             </Fragment>
                         ))}
                         <div id="context-buttons">

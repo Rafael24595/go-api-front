@@ -51,9 +51,13 @@ export function RightSidebar() {
         })
     );
 
-    const cursorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        store(CURSOR_KEY, e.target.value);
-        setCursor(e.target.value);
+    const cursorChangeEvent = (e: React.ChangeEvent<HTMLInputElement>) => {
+        cursorChange(e.target.value);
+    };
+
+    const cursorChange = (cursor: string) => {
+        store(CURSOR_KEY, cursor);
+        setCursor(cursor);
     };
 
     const statusToCss = (status: string) => {
@@ -82,8 +86,13 @@ export function RightSidebar() {
                         <input type="radio" id={`tag-right-sidebar-${c.key.toLowerCase()}`} className="client-tag" name="cursor-right-sidebar"
                             checked={cursor === c.key} 
                             value={c.key} 
-                            onChange={cursorChange}/>
-                        <label htmlFor={`tag-right-sidebar-${c.key.toLowerCase()}`}>{c.value}</label>
+                            onChange={cursorChangeEvent}/>
+                        <button
+                            type="button"
+                            className="button-tag"
+                            onClick={() => cursorChange(c.key)}>
+                            {c.value}
+                        </button>
                     </Fragment>
                 ))}
             </div>

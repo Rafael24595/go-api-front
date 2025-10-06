@@ -359,7 +359,7 @@ export function StoredColumn() {
                 onItemsChange={updateOrder}
                 renderItem={(cursor) => (
                     <div key={makeKey(cursor)} className={`request-preview ${isRequestSelected(cursor) && "request-selected"} ${isRequestDrag(cursor) && "request-float"}`}>
-                        <a className="request-link" title={cursor.uri}
+                        <button className="request-link" title={cursor.uri}
                             onClick={() => defineHistoricRequest(cursor)}>
                             <div className="request-sign">
                                 {isCached(cursor) && (
@@ -371,7 +371,7 @@ export function StoredColumn() {
                             <div className="request-sign-date">
                                 <span className="request-sign-timestamp" title={millisecondsToDate(cursor.timestamp)}>{millisecondsToDate(cursor.timestamp)}</span>
                             </div>
-                        </a>
+                        </button>
                         <Combo options={storedOptions(cursor, {
                             deleteStored, renameStored, cloneStored,
                             duplicateStored, openCollectModal, openMoveModal,
