@@ -53,9 +53,10 @@
     text-align: left;
     padding: 7px;
     border: none;
-    background: none;
     cursor: pointer;
     font-weight: 600;
+    background: transparent;
+    color: var(--body-text-color);
 }
 
 .options-menu button:hover {

@@ -142,7 +142,7 @@ export function ImportContext({ onSubmit }: ImportContextProps) {
             <div>
                 <p className="selector-title paragraph">Selector:</p>
                 <div id="selector-container">
-                    <div id="selector-type">
+                    <div id="selector-type" className="line">
                         <label htmlFor="file-type">File: </label>
                         <select name="file-type" value={data.fileType} onChange={changeFileType}>
                             <option value={CURSOR_LOCAL}>Local</option>

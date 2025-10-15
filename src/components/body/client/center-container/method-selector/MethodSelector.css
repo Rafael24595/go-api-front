@@ -1,5 +1,6 @@
 #method {
     height: 100%;
     font-weight: bold;
+    font-size: 0.85em;
     background-color: var(--modal-button-color);
 }
