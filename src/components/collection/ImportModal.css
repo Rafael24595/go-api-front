@@ -29,6 +29,10 @@
     align-items: flex-end;
 }
 
+#selector-type.line {
+    flex-direction: row;
+}
+
 #selector-input {
     display: flex;
     align-items: center;

@@ -508,7 +508,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
                 <input className="request-name-input" name="collection-request-name" type="text" onChange={customNameChange} placeholder="Theme name" value={modalData.customName} />
               </div>
               <div id="selector-container" className="extend">
-                <div id="selector-type">
+                <div id="selector-type" className="line">
                   <label htmlFor="file-type">File: </label>
                   <select name="file-type" value={modalData.fileType} onChange={changeFileType}>
                     <option value={CURSOR_LOCAL}>Local</option>

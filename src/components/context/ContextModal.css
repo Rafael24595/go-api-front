@@ -1,5 +1,6 @@
 #modal-container select {
     background-color: var(--modal-button-color);
+    color: var(--button-text-color);
 }
 
 #context-title-container {
@@ -125,5 +126,4 @@
 #import-container {
     padding: 10px;
     margin: 5px;
-    background: lightgrey;
 }

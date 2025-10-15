@@ -27,6 +27,7 @@
     padding-right: 5px;
     width: 100%;
     cursor: text;
+     color: var(--body-text-color);
 }
 
 #client-button-send {
@@ -43,6 +44,7 @@
     box-sizing: border-box;
     border: 1px solid var(--button-border-color);
     cursor: pointer;
+    color: var(--button-text-color);
 }
 
 #client-content {
