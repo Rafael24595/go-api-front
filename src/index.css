@@ -11,6 +11,7 @@
   --option-disabled-color: #9e9d9d;
   --option-selected-color: #e2e2e2;
   --button-color: #f9f9f9;
+  --button-text-color: #000000;
   --button-hover-color: #f9f9f9;
   --button-border-color: #d1d1d1;
   --button-delete-color: #e4c1c1;
@@ -45,6 +46,7 @@
   --option-disabled-color: #d1d1d1;
   --option-selected-color: #919191;
   --button-color: #3d3d3d;
+  --button-text-color: #f1f1f1;
   --button-border-color: #5a5a5a;
   --button-hover-color: #d1d1d1;
   --button-delete-color: #e23e5f;
@@ -132,7 +134,7 @@ button {
   padding-bottom: 3px;
   box-sizing: border-box;
   border: 1px solid var(--button-border-color);
-  color: var(--body-text-color);
+  color: var(--button-text-color);
   background-color: var(--button-color);
   font-weight: 600;
   cursor: pointer;
@@ -150,8 +152,8 @@ button:hover {
   font-family: var(--default-font);
   font-size: 1em;
   height: auto !important;
-  background-color: transparent;
   border: none;
+  background-color: transparent;
   color: var(--body-text-color);
 }
 
@@ -184,8 +186,8 @@ button:hover {
   font-family: var(--default-font);
   font-size: 1em;
   font-weight: 500;
-  background-color: transparent;
   border: none;
+  background-color: transparent;
   color: var(--body-text-color);
 }
 
@@ -357,10 +359,11 @@ button:hover {
 }
 
 .button-anchor {
-  background-color: transparent;
   border: 0px;
   font-size: 0.95em;
   cursor: pointer;
+  background-color: transparent;
+  color: var(--body-text-color);
 }
 
 .button-anchor.margin {
@@ -383,6 +386,7 @@ button:hover {
   padding: 0px;
   cursor: pointer;
   background-color: transparent;
+  color: var(--body-text-color);
   user-select: auto;
 }
 
@@ -448,7 +452,7 @@ button:hover {
 
 .cm-gutters {
   background-color: var(--button-color) !important;
-  color: var(--body-text-color) !important;
+  color: var(--button-text-color) !important;
   border-right: 1px solid var(--border-color) !important;
 }
 

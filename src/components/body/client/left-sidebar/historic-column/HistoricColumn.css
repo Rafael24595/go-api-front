@@ -22,6 +22,11 @@
     padding: 0px;
     border: none;
     background-color: transparent;
+    color: var(--body-text-color);
+}
+
+.request-link:hover {
+    background-color: transparent;
 }
 
 .request-sign {
