@@ -5,6 +5,7 @@ import { StatusKeyValue } from "../StatusKeyValue";
 
 export interface Response {
     _id: string;
+    timestamp: number;
     request: string;
     date: number;
     time: number;
@@ -18,6 +19,7 @@ export interface Response {
 
 export interface ItemResponse {
     _id: string;
+    timestamp: number;
     request: string;
     date: number;
     time: number;
@@ -54,6 +56,7 @@ export interface Body {
 export function newItemResponse(owner: string): ItemResponse {
   return {
     _id: "",
+    timestamp: NaN,
     request: "",
     date: NaN,
     time: NaN,
@@ -77,6 +80,7 @@ export interface ItemBody {
 export const fromResponse = (response: Response): ItemResponse => {
   return {
     _id: response._id,
+    timestamp: response.timestamp,
     request: response.request,
     date: response.date,
     time: response.time,
@@ -92,6 +96,7 @@ export const fromResponse = (response: Response): ItemResponse => {
 export const toResponse = (response: ItemResponse): Response => {
   return {
     _id: response._id,
+    timestamp: response.timestamp,
     request: response.request,
     date: response.date,
     time: response.time,

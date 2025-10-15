@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react';
-import { formatBytes, millisecondsToTime } from '../../../../services/Tools';
+import { formatBytes, millisecondsToDate, millisecondsToTime } from '../../../../services/Tools';
 import { PayloadColumn } from './payload-column/PayloadColumn';
 import { HeaderColumn } from './header-column/HeaderColumn';
 import { CookieColumn } from './cookie-column/CookieColumn';
@@ -77,7 +77,7 @@ export function RightSidebar() {
                         className={`response-code ${statusToCss(response.status)}`} 
                         title={httpStatusDescriptions.get(Number(response.status))}>{ response.status }</span>
                 </span>
-                <span className="section-header-element response-data"><span className="response-title select-none">Time:</span> { millisecondsToTime(response.time) }</span>
+                <span className="section-header-element response-data"><span className="response-title select-none" title={ response.timestamp ? millisecondsToDate(response.timestamp) : "" }>Time:</span> { millisecondsToTime(response.time) }</span>
                 <span className="section-header-element response-data"><span className="response-title select-none">Size:</span> { formatBytes(response.size) }</span>
             </div>
             <div className="radio-button-group border-bottom">
