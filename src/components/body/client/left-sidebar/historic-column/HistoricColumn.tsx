@@ -117,8 +117,8 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
         await fetchCollection();
     }
 
-    const showCurl = async (item: LiteRequest) => {
-        const curl = await formatCurl(item._id)
+    const showCurl = async (item: LiteRequest, raw?: boolean) => {
+        const curl = await formatCurl(item._id, undefined, raw);
         const { width, height } = calculateWindowSize(curl, {
             minWidth: 550,
             minHeight: 200

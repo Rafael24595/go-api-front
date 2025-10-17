@@ -38,7 +38,7 @@ export const storedOptions = (request: LiteRequest, actions: {
     exportRequest: (request: LiteRequest) => void;
     isCached: (request: LiteRequest) => boolean;
     discardRequest: (request: LiteRequest) => void;
-    showCurl: (request: LiteRequest) => void;
+    showCurl: (request: LiteRequest, raw?: boolean) => void;
 }) => {
     return [
         {
@@ -95,6 +95,12 @@ export const storedOptions = (request: LiteRequest, actions: {
             label: "Curl",
             title: "Show curl",
             action: () => actions.showCurl(request)
+        },
+        {
+            icon: "⌨️",
+            label: "Raw",
+            title: "Show raw curl",
+            action: () => actions.showCurl(request, true)
         },
     ];
 }

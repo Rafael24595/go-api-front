@@ -117,7 +117,7 @@ export const requestOptions = (collection: LiteItemCollection, node: LiteItemNod
     takeFrom: (collection: LiteItemCollection, request: LiteRequest) => void;
     isCached: (request: LiteRequest) => boolean;
     discardRequest: (request: LiteRequest) => void;
-    showCurl: (collection: LiteItemCollection, request: LiteRequest) => void;
+    showCurl: (collection: LiteItemCollection, request: LiteRequest, asRaw?: boolean) => void;
 }) => {
     return [
         {
@@ -168,6 +168,12 @@ export const requestOptions = (collection: LiteItemCollection, node: LiteItemNod
             label: "Curl",
             title: "Show curl",
             action: () => actions.showCurl(collection, node.request)
+        },
+        {
+            icon: "⌨️",
+            label: "Raw",
+            title: "Show raw curl",
+            action: () => actions.showCurl(collection, node.request, true)
         },
     ]
 }
