@@ -35,6 +35,14 @@ jobs:
             echo "✅ Expected format: 1.2.3 or 1.2.3-beta.1"
             exit 1
           fi
+
+          if [[ "$VERSION" =~ -dev.0$ ]]; then
+            TIMESTAMP=$(date +%Y%m%d%H%M%S)
+            VERSION="${VERSION%-dev.0}-dev.$TIMESTAMP"
+            echo "⚠️ Unstamped development version detected. Updated version to: $VERSION"
+            exit 1
+          fi
+
           TAG="v$VERSION"
           echo "✅ Valid version: $TAG"
           echo "version=$TAG" >> $GITHUB_OUTPUT
