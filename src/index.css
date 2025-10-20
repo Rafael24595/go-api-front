@@ -283,7 +283,7 @@ button:hover {
 
 /* Move to custom css file */
 
-.request-selected {
+.request-selected button {
   font-weight: 500;
 }
 
