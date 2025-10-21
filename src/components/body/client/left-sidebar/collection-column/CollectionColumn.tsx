@@ -545,8 +545,8 @@ export function CollectionColumn() {
         await fetchCollection();
     };
 
-    const showCurl = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
-        const curl = await formatCurl(itemRequest._id, itemCollection.context._id)
+    const showCurl = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest, raw?: boolean) => {
+        const curl = await formatCurl(itemRequest._id, itemCollection.context._id, raw);
         const { width, height } = calculateWindowSize(curl, {
             minWidth: 550,
             minHeight: 200

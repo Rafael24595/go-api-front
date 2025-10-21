@@ -5,7 +5,7 @@ export const historicOptions = (request: LiteRequest, actions: {
     deleteHistoric: (request: LiteRequest) => void;
     cloneHistoric: (request: LiteRequest) => void;
     openModal: (request: LiteRequest) => void;
-    showCurl: (request: LiteRequest) => void;
+    showCurl: (request: LiteRequest, applyContext?: boolean) => void;
 }) => {
     return [
         {
@@ -37,6 +37,12 @@ export const historicOptions = (request: LiteRequest, actions: {
             label: "Curl",
             title: "Show curl",
             action: () => actions.showCurl(request)
+        },
+        {
+            icon: "⌨️",
+            label: "Raw",
+            title: "Show raw curl",
+            action: () => actions.showCurl(request, true)
         },
     ]
 }

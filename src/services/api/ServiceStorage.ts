@@ -11,6 +11,7 @@ export const findUserContext = async (): Promise<Context> => {
     const apiResponse = await authApiManager.get(`/context`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -20,6 +21,7 @@ export const findContext = async (id: string): Promise<Context> => {
     const apiResponse = await authApiManager.get(`/context/${id}`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -29,6 +31,7 @@ export const insertContext = async (context: Context): Promise<string> => {
     const apiResponse = await authApiManager.put(`/context`, context);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -42,6 +45,7 @@ export const findActionById = async (request: string): Promise<ResponseExecuteAc
     const apiResponse = await authApiManager.get(`/request/${request}`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -51,6 +55,7 @@ export const findAllAction = async (): Promise<ItemNodeRequest[]> => {
     const apiResponse = await authApiManager.get(`/request`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -61,6 +66,7 @@ export const insertAction = async (request: Request, response?: Response): Promi
     const apiResponse = await authApiManager.post(`/request`, payload);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -70,6 +76,7 @@ export const updateAction = async (request: Request): Promise<ResponseExecuteAct
     const apiResponse = await authApiManager.put(`/request`, request);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -80,6 +87,7 @@ export const sortRequests = async (nodes: RequestNode[]): Promise<ItemCollection
     const apiResponse = await authApiManager.put(`/sort/request`, payload);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -89,6 +97,7 @@ export const deleteAction = async (request: LiteRequest): Promise<ResponseExecut
     const apiResponse = await authApiManager.delete(`/request/${request._id}`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -98,6 +107,7 @@ export const findAllHistoric = async (): Promise<ItemNodeRequest[]> => {
     const apiResponse = await authApiManager.get(`/historic`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -108,6 +118,7 @@ export const pushHistoric = async (request: Request, response?: Response): Promi
     const apiResponse = await authApiManager.post(`/historic`, payload);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -117,6 +128,7 @@ export const deleteHistoric = async (request: LiteRequest): Promise<ResponseExec
     const apiResponse = await authApiManager.delete(`/historic/${request._id}`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -126,6 +138,7 @@ export const findCollection = async (collection: LiteItemCollection): Promise<It
     const apiResponse = await authApiManager.get(`/collection/${collection._id}`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -135,6 +148,7 @@ export const findCollectionLite = async (collection: LiteItemCollection): Promis
     const apiResponse = await authApiManager.get(`/collection/${collection._id}/lite`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -144,6 +158,7 @@ export const findAllCollection = async (): Promise<ItemNodeCollection[]> => {
     const apiResponse = await authApiManager.get(`/collection`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -154,6 +169,7 @@ export const sortCollections = async (nodes: RequestNode[]): Promise<ItemCollect
     const apiResponse = await authApiManager.put(`/sort/collection`, payload);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -164,6 +180,7 @@ export const sortCollectionRequests = async (id: string, nodes: RequestNode[]): 
     const apiResponse = await authApiManager.put(`/sort/collection/${id}/request`, payload);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -173,6 +190,7 @@ export const insertCollection = async (collection: Collection): Promise<ItemColl
     const apiResponse = await authApiManager.post(`/collection`, collection);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -182,6 +200,7 @@ export const requestCollect = async (payload: RequestRequestCollect): Promise<It
     const apiResponse = await authApiManager.put(`/collection`, payload);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -191,6 +210,7 @@ export const deleteCollection = async (request: LiteItemCollection): Promise<Ite
     const apiResponse = await authApiManager.delete(`/collection/${request._id}`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -203,6 +223,7 @@ export const cloneCollection = async (collection: ItemCollection, name: string):
     const apiResponse = await authApiManager.post(`/collection/${collection._id}/clone`, payload);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -212,6 +233,7 @@ export const takeFromCollection = async (collection: LiteItemCollection, request
     const apiResponse = await authApiManager.put(`/collection/${collection._id}/request/${request._id}`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -221,6 +243,7 @@ export const deleteFromCollection = async (collection: LiteItemCollection, reque
     const apiResponse = await authApiManager.delete(`/collection/${collection._id}/request/${request._id}`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -230,6 +253,7 @@ export const importRequests = async (request: ItemRequest[]): Promise<ItemReques
     const apiResponse = await authApiManager.post(`/import/request`, request);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -239,6 +263,7 @@ export const importCollections = async (collections: ItemCollection[]): Promise<
     const apiResponse = await authApiManager.post(`/import/collection`, collections);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -248,6 +273,7 @@ export const importToCollection = async (collection: string, request: ItemReques
     const apiResponse = await authApiManager.post(`/import/collection/${collection}`, request);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -261,6 +287,7 @@ export const imporOpenApi = async (form: FormData): Promise<ItemCollection> => {
     });
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
@@ -274,19 +301,22 @@ export const importContext = async (target: Context, source: Context): Promise<I
     const apiResponse = await authApiManager.post(`/import/context`, request);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
 
-export const formatCurl = async (request: string, context?: string, inline?: boolean): Promise<string> => {
+export const formatCurl = async (request: string, context?: string, raw?: boolean, inline?: boolean): Promise<string> => {
   try {
     const query = queryHelper(
       ["id_context", context],
+      ["raw", raw],
       ["inline", inline]);
 
     const apiResponse = await authApiManager.get(`format/${request}/curl${query}`);
     return apiResponse.data;
   } catch (error) {
+    //TODO: Handle error.
     throw error;
   }
 };
