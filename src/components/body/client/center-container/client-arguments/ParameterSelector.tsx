@@ -8,6 +8,8 @@ import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { CookieArguments } from './cookie-arguments/CookieArguments';
 import { KeyValue } from '../../../../../interfaces/KeyValue';
+import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
+import { allowPayload } from '../../../../../constants/HttpMethod';
 
 import './ParameterSelector.css';
 
@@ -46,6 +48,8 @@ const DEFAULT_CURSOR = VIEW_QUERY;
 const CURSOR_KEY = "ParameterSelectorCursor";
 
 export function ParameterSelector() {
+    const { request } = useStoreRequest();
+
     const { find, store } = useStoreStatus();
 
     const [cursor, setCursor] = useState<string>(
@@ -67,28 +71,49 @@ export function ParameterSelector() {
         setCursor(cursor);
     };
 
+    const evalueCursor = (c: KeyValue) => {
+        if (c.key == VIEW_BODY) {
+            const status = request.body.status;
+            const len = Object.keys(request.body.parameters).length;
+            const allow = allowPayload(request.method);
+            if (status && len != 0 && !allow) {
+                return {
+                    title: "Warning: Body parameters are not allowed for this HTTP method",
+                    text: `⚠ ${c.value}`
+                };
+            }
+        }
+
+        return {
+            title: "",
+            text: c.value
+        };
+    }
+
     return (
         <>
             <div id="client-argument-headers">
-                <div id="parameter-selector-components" className="border-bottom">    
+                <div id="parameter-selector-components" className="border-bottom">
                     <div className="radio-button-group">
-                        {cursors.map(c => (
-                            <Fragment key={c.key}>
+                        {cursors.map(c => {
+                            const { title, text } = evalueCursor(c);
+                            return (<Fragment key={c.key}>
                                 <input type="radio" id={`tag-client-${c.key.toLowerCase()}`} className="client-tag" name="cursor-client"
-                                    checked={cursor === c.key} 
-                                    value={c.key} 
-                                    onChange={cursorChangeEvent}/>
+                                    checked={cursor === c.key}
+                                    value={c.key}
+                                    onChange={cursorChangeEvent} />
                                 <button
                                     type="button"
                                     className="button-tag"
+                                    title={title}
                                     onClick={() => cursorChange(c.key)}>
-                                    {c.value}
+                                    {text}
                                 </button>
-                            </Fragment>
-                        ))}
+                            </Fragment>)
+                        })}
                         <div id="context-buttons">
                             <button type="button" className="button-tag" onClick={() => setModalStatus(true)}>
-                                <span className={`button-modified-status small display ${ initialHash != actualHash && "visible" }`}></span>
+                                <span className={`button-modified-status small display ${initialHash != actualHash && "visible"}`}></span>
                                 Context
                             </button>
                         </div>
@@ -96,23 +121,23 @@ export function ParameterSelector() {
                 </div>
             </div>
             <div className={`client-argument-content-items ${cursor === VIEW_QUERY ? "show" : ""}`}>
-                <QueryArguments/>
+                <QueryArguments />
             </div>
             <div className={`client-argument-content-items ${cursor === VIEW_HEADER ? "show" : ""}`}>
-               <HeaderArguments/>
+                <HeaderArguments />
             </div>
             <div className={`client-argument-content-items ${cursor === VIEW_COOKIE ? "show" : ""}`}>
-                <CookieArguments/>
+                <CookieArguments />
             </div>
             <div className={`client-argument-content-items ${cursor === VIEW_AUTH ? "show" : ""}`}>
-                <AuthArguments/>
+                <AuthArguments />
             </div>
             <div className={`client-argument-content-items ${cursor === VIEW_BODY ? "show" : ""}`}>
-                <BodyArguments/>
+                <BodyArguments />
             </div>
             <ContextModal
                 isOpen={modalStatus}
-                onClose={() => setModalStatus(false)}/>
+                onClose={() => setModalStatus(false)} />
         </>
     )
 }
