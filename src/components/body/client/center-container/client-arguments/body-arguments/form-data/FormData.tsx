@@ -41,6 +41,7 @@ export function FormData({ onValueChange }: FormDataProps) {
 
     const rowTrim = (order: number) => {
         if(order < 0 || data.items.length < order ) {
+            onValueChange(CONTENT_TYPE, []);
             return;
         }
 

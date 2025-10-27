@@ -437,7 +437,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
             onClose={onClose}>
                 <div id="preview-title" className="border-bottom">
                     <p className="title">Preview:</p>
-                    <div id="preview-buttons">
+                    <div id="preview-buttons" className="radio-button-group aux-group">
                         <button type="button" className="button-tag" onClick={switchPreview}>{ data.showPreview ? "Hide" : "Show" }</button>
                         <button type="button" className="button-tag" onClick={previewReset}>Reset</button>
                         <button type="button" className="button-tag" onClick={previewClean}>Clean</button>
@@ -468,7 +468,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                         <input type="checkbox" onChange={onStatusChange} checked={data.status}/>
                         <p className="title">Dictionary:</p>
                     </div>
-                    <div>
+                    <div className="radio-button-group aux-group">
                         <button type="button" className="button-tag" onClick={switchImport}><span>{ data.showImport ? "Variables" : "Import" }</span></button>
                         <button type="button" className="button-tag" onClick={exportContext}>Export</button>
                     </div>

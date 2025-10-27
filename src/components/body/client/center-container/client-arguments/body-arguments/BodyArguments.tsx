@@ -117,7 +117,11 @@ export function BodyArguments() {
     const formDataChange = (content: string, parameters: ItemBodyParameter[]) => {
         const newParameters = { ...data.parameters };
 
-        newParameters[FORM_DATA_PARAM] = orderItemBodyParameter(parameters);
+        delete newParameters[FORM_DATA_PARAM];
+
+        if (parameters.length > 0) {
+            newParameters[FORM_DATA_PARAM] = orderItemBodyParameter(parameters);
+        }
 
         const newData = {
             ...data,
@@ -195,7 +199,7 @@ export function BodyArguments() {
                     ))}
                     </div>
                     {(cursor === VIEW_JSON || cursor === VIEW_XML) && (
-                        <div>
+                        <div className="radio-button-group aux-group">
                             <button type="button" className="button-tag" onClick={formatPayload}>Format</button>
                         </div>
                     )}

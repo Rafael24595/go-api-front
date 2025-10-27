@@ -168,6 +168,10 @@ button:hover {
   width: 100%;
 }
 
+.radio-button-group.aux-group {
+  justify-content: flex-end;
+}
+
 .radio-button-group.cover {
   justify-content: space-around;
 }

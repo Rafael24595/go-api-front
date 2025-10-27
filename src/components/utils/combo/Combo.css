@@ -30,6 +30,7 @@
     background: none;
     border: none;
     cursor: pointer;
+    color: var(--body-text-color);
 }
 
 .options-button:hover {
