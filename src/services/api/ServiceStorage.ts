@@ -313,7 +313,7 @@ export const formatCurl = async (request: string, context?: string, raw?: boolea
       ["raw", raw],
       ["inline", inline]);
 
-    const apiResponse = await authApiManager.get(`format/${request}/curl${query}`);
+    const apiResponse = await authApiManager.get(`curl/request/${request}${query}`);
     return apiResponse.data;
   } catch (error) {
     //TODO: Handle error.
