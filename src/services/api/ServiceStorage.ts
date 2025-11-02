@@ -321,6 +321,20 @@ export const formatCurl = async (request: string, context?: string, raw?: boolea
   }
 };
 
+export const importCurl = async (curls: string[], collection?: string): Promise<string> => {
+  try {
+    const query = queryHelper(
+      ["collection", collection]);
+
+    const apiResponse = await authApiManager.post(`curl/request${query}`, curls);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+
 export const queryHelper = (...query: [string, any][]): string => {
   const result = query.filter(([_k, v]) => v != undefined)
     .map(([k, v]) => `${k}=${v}`)
