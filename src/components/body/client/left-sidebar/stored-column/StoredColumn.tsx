@@ -1,4 +1,4 @@
-import { deleteAction, findAction, formatCurl, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
+import { deleteAction, findAction, formatCurl, importCurl, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
@@ -20,6 +20,7 @@ import { searchOptions, storedGroupOptions, storedOptions } from './Constants';
 import { CodeArea } from '../../../../utils/code-area/CodeArea';
 import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
+import { ImportCurlModal } from '../../../../collection/ImportCurlModal';
 
 import './StoredColumn.css';
 
@@ -35,6 +36,7 @@ interface PayloadModal {
     move: boolean;
     openImport: boolean;
     openMove: boolean;
+    openCurl: boolean;
 }
 
 interface PayloadDrag {
@@ -62,6 +64,7 @@ export function StoredColumn() {
         move: false,
         openImport: false,
         openMove: false,
+        openCurl: false,
     });
 
     const [dragData, setDragData] = useState<PayloadDrag>({
@@ -122,18 +125,7 @@ export function StoredColumn() {
                 title: "Yes",
                 type: "submit",
                 callback: {
-                    func: async () => {
-                        try {
-                            await deleteAction(item);
-                            discardRequest(item);
-                            await fetchStored();
-                            if (request._id == item._id) {
-                                cleanRequest();
-                            }
-                        } catch (error) {
-                            console.error("Error deleting request:", error);
-                        }
-                    }
+                    func: async () => { deleteRequest(item); }
                 }
             },
             {
@@ -144,6 +136,19 @@ export function StoredColumn() {
 
         ask({ content, buttons });
     };
+
+    const deleteRequest = async (item: LiteRequest) => {
+        try {
+            await deleteAction(item);
+            discardRequest(item);
+            await fetchStored();
+            if (request._id == item._id) {
+                cleanRequest();
+            }
+        } catch (error) {
+            console.error("Error deleting request:", error);
+        }
+    }
 
     const cloneStored = async (item: LiteRequest) => {
         const action = await findAction(item);
@@ -165,44 +170,6 @@ export function StoredColumn() {
             openMove: true
         }));
     };
-
-    const openMoveModal = (item: LiteRequest) => {
-        setModalData((prevData) => ({
-            ...prevData,
-            request: item,
-            move: true,
-            openMove: true
-        }));
-    };
-
-    const closeMoveModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openMove: false
-        }));
-    };
-
-    const submitModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        const payload: RequestRequestCollect = {
-            source_id: "",
-            target_id: collectionId,
-            target_name: collectionName,
-            request: request,
-            request_name: requestName,
-            move: modalData.move ? "move" : "clone",
-        };
-
-        await requestCollect(payload);
-        await fetchStored();
-        await fetchCollection();
-
-        if (modalData.move) {
-            discardRequest(request);
-        }
-    }
 
     const onFilterTargetChange = (value: string) => {
         const target = VALID_CURSORS.find(c => c == value)
@@ -245,35 +212,6 @@ export function StoredColumn() {
             matches: field.toLowerCase().includes(filterData.value.toLowerCase())
         }
     }
-
-    const openImportModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openImport: true
-        }));
-    };
-
-    const submitImportModal = async (requests: ItemRequest[]) => {
-        const collection = await importRequests(requests).catch(e =>
-            push({
-                title: `[${e.statusCode}] ${e.statusText}`,
-                category: EAlertCategory.ERRO,
-                content: e.message,
-            }));
-        if (!collection) {
-            return;
-        }
-
-        closeImportModal();
-        await fetchStored();
-    }
-
-    const closeImportModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openImport: false
-        }));
-    };
 
     const exportAll = () => {
         const name = `requests_${Date.now()}.json`;
@@ -336,6 +274,103 @@ export function StoredColumn() {
         loadThemeWindow(width, height, <CodeArea code={curl} />);
     }
 
+    const openImportModal = () => {
+        setModalData((prevData) => ({
+            ...prevData,
+            openImport: true
+        }));
+    };
+
+    const submitImportModal = async (requests: ItemRequest[]) => {
+        const collection = await importRequests(requests).catch(e =>
+            push({
+                title: `[${e.statusCode}] ${e.statusText}`,
+                category: EAlertCategory.ERRO,
+                content: e.message,
+            }));
+        if (!collection) {
+            return;
+        }
+
+        closeImportModal();
+        await fetchStored();
+    }
+
+    const closeImportModal = () => {
+        setModalData((prevData) => ({
+            ...prevData,
+            openImport: false
+        }));
+    };
+
+    const openMoveModal = (item: LiteRequest) => {
+        setModalData((prevData) => ({
+            ...prevData,
+            request: item,
+            move: true,
+            openMove: true
+        }));
+    };
+
+    const submitMoveModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        const payload: RequestRequestCollect = {
+            source_id: "",
+            target_id: collectionId,
+            target_name: collectionName,
+            request: request,
+            request_name: requestName,
+            move: modalData.move ? "move" : "clone",
+        };
+
+        await requestCollect(payload);
+        await fetchStored();
+        await fetchCollection();
+
+        if (modalData.move) {
+            discardRequest(request);
+        }
+    }
+
+    const closeMoveModal = () => {
+        setModalData((prevData) => ({
+            ...prevData,
+            openMove: false
+        }));
+    };
+
+    const openCurlModal = () => {
+        setModalData((prevData) => ({
+            ...prevData,
+            openCurl: true
+        }));
+    };
+
+    const submitCurlModal = async (curls: string[]) => {
+        const collection = await importCurl(curls)
+            .catch(e =>
+                push({
+                    title: `[${e.statusCode}] ${e.statusText}`,
+                    category: EAlertCategory.ERRO,
+                    content: e.message,
+                }));
+        if (!collection) {
+            return;
+        }
+
+        closeCurlModal();
+        await fetchStored();
+    }
+
+    const closeCurlModal = () => {
+        setModalData((prevData) => ({
+            ...prevData,
+            openCurl: false
+        }));
+    };
+
     return (
         <>
             <div className="column-option options border-bottom">
@@ -345,7 +380,8 @@ export function StoredColumn() {
                 <button type="button" className="button-anchor" onClick={() => insertNewRequest()}>New</button>
                 <div id="right-options show">
                     <Combo options={storedGroupOptions({
-                        exportAll, openImportModal, fetchStored
+                        exportAll, openImportModal, openCurlModal,
+                        fetchStored
                     })} />
                 </div>
             </div>
@@ -404,8 +440,13 @@ export function StoredColumn() {
             <CollectionModal
                 isOpen={modalData.openMove}
                 request={modalData.request}
-                onSubmit={submitModal}
+                onSubmit={submitMoveModal}
                 onClose={closeMoveModal} />
+            <ImportCurlModal
+                isOpen={modalData.openCurl}
+                onSubmit={submitCurlModal}
+                onClose={closeCurlModal}
+            />
         </>
     );
 }

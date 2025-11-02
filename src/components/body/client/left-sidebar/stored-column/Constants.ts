@@ -3,6 +3,7 @@ import { LiteRequest } from "../../../../../interfaces/request/Request";
 export const storedGroupOptions = (action: {
     exportAll: () => void;
     openImportModal: () => void;
+    openCurlModal: () => void;
     fetchStored: () => void;
 
 }) => {
@@ -18,6 +19,12 @@ export const storedGroupOptions = (action: {
             label: "Import",
             title: "Import collections",
             action: action.openImportModal
+        },
+        {
+            icon: "⌨️",
+            label: "Import",
+            title: "Import cURL",
+            action: action.openCurlModal
         },
         {
             icon: "🔄",
