@@ -1,17 +1,21 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from "react";
-import { fetchAuthenticate, fetchLogin, fetchLogout, fetchRefresh, fetchRemove, fetchSignin, fetchUserData } from "../services/api/ServiceManager";
+import { fetchAuthenticate, fetchLogin, fetchLogout, fetchRefresh, fetchRemove, fetchSignin, fetchUserData, fetchUserTokens, insertUserToken } from "../services/api/ServiceManager";
 import { newUserData, UserData } from "../interfaces/UserData";
 import { Dict } from "../types/Dict";
 import { generateHash } from "../services/Utils";
 import { putRefreshHandler } from "../services/api/ApiManager";
+import { Token } from "../interfaces/Token";
 
 interface StoreProviderSessionType {
   userData: UserData;
+  tokens: Token[];
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
   signin: (username: string, password1: string, password2: string, isAdmin: boolean) => Promise<void>
   remove: () => Promise<void>
   fetchUser: () => Promise<void>
+  insertToken: (token: Token) => Promise<string>
+  fetchTokens: () => Promise<void>
   authenticate: (oldPassword: string, newPassword1: string, newPassword2: string) => Promise<void>
   pushTrigger: (key: string, trigger: Trigger) => Promise<void>
 }
@@ -25,6 +29,11 @@ interface Payload {
   loaded: boolean;
 }
 
+interface PayloadTokens {
+  tokens: Token[];
+  hash: string;
+}
+
 const StoreSession = createContext<StoreProviderSessionType | undefined>(undefined);
 
 export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -33,6 +42,11 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     hash: "",
     triggers: {},
     loaded: false
+  });
+
+  const [dataTokens, setTokensData] = useState<PayloadTokens>({
+    hash: "",
+    tokens: [],
   });
 
   const userDataRef = useRef(data.userData);
@@ -53,6 +67,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
 
   useEffect(() => {
     userDataRef.current = data.userData;
+    fetchTokens();
   }, [data.userData]);
 
   useEffect(() => {
@@ -111,14 +126,34 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     return defineUserData(userData, true);
   };
 
+  const fetchTokens = async () => {
+    await fetchUserTokens()
+      .then(async (tokens) => {
+        defineTokens(tokens);
+      }).catch((err) => {
+        //TODO: Manage error.
+        throw err;
+      });
+  };
+
+  const insertToken = async (token: Token) => {
+    const raw = await insertUserToken(token)
+      .catch((err) => {
+        //TODO: Manage error.
+        throw err;
+      });
+    fetchTokens();
+    return raw
+  };
+
   const defineUserData = async (newUser: UserData, forceTriggers?: boolean) => {
     const newHash = await generateHash(newUser);
     const oldUser = userDataRef.current;
 
     setData(prevData => {
       if (prevData.hash === newHash) {
-        return { 
-          ...prevData, 
+        return {
+          ...prevData,
           loaded: true
         };
       }
@@ -131,9 +166,27 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       };
     });
 
-    if(forceTriggers || newUser.username != oldUser.username) {
+    if (forceTriggers || newUser.username != oldUser.username) {
       executeTriggers(newUser, oldUser);
     }
+  };
+
+  const defineTokens = async (tokens: Token[]) => {
+    const newHash = await generateHash(tokens);
+
+    setTokensData(prevData => {
+      if (prevData.hash === newHash) {
+        return {
+          ...prevData,
+          loaded: true
+        };
+      }
+
+      return {
+        tokens: tokens,
+        hash: newHash,
+      };
+    });
   };
 
   const executeTriggers = (newUser: UserData, oldUser: UserData) => {
@@ -148,7 +201,13 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
   };
 
   return (
-    <StoreSession.Provider value={{ ...data, login, logout, signin, remove, fetchUser, authenticate, pushTrigger }}>
+    <StoreSession.Provider value={{
+      ...data,
+      tokens: dataTokens.tokens,
+      login, logout, signin,
+      remove, fetchUser, fetchTokens,
+      insertToken, authenticate, pushTrigger
+    }}>
       {data.loaded ? children :
         <>
           <span className="loader"></span>

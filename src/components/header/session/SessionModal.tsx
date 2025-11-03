@@ -7,6 +7,8 @@ import { EAlertCategory } from '../../../interfaces/AlertData';
 import { useAlert } from '../../utils/alert/Alert';
 import { useStoreTheme } from '../../../store/theme/StoreProviderTheme';
 import { VoidCallback } from '../../../interfaces/Callback';
+import { TokenModal } from '../token/TokenModal';
+import { hasAnyRole, hasRole, Role } from '../../../interfaces/UserData';
 
 import './SessionModal.css';
 
@@ -24,11 +26,28 @@ interface Payload {
     isAdmin: boolean;
 }
 
+interface PayloadToken {
+    status: boolean
+}
+
 export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     const { userData, login, logout, authenticate, signin, remove } = useStoreSession();
     const { isDark, openModal, toggleDefaultThemes } = useStoreTheme();
 
     const { push, ask } = useAlert();
+
+    const [data, setData] = useState<Payload>({
+        view: "",
+        username: "",
+        oldPassword: "",
+        newPassword1: "",
+        newPassword2: "",
+        isAdmin: false,
+    });
+
+    const [dataToken, setTokenData] = useState<PayloadToken>({
+        status: false
+    });
 
     const onLogin = async () => {
         await login(data.username, data.newPassword1)
@@ -104,18 +123,22 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     };
 
     const openThemesModal = () => {
-        openModal()
+        openModal();
         onClose();
     };
 
-    const [data, setData] = useState<Payload>({
-        view: "",
-        username: "",
-        oldPassword: "",
-        newPassword1: "",
-        newPassword2: "",
-        isAdmin: false,
-    });
+    const showTokenModal = () => {
+        setTokenData({
+            status: true,
+        });
+        onClose();
+    };
+
+    const closeTokenModal = () => {
+        setTokenData({
+            status: false,
+        });
+    };
 
     const viewLogin = () => {
         setData((prevData) => ({
@@ -286,7 +309,7 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
             </div>
             <div id="session-links">
                 <button type="button" className="button-anchor small" onClick={onLogout}>Logout</button>
-                {!userData.is_protected && (
+                {!hasRole(userData, Role.ROLE_PROTECTED) && (
                     <button type="button" className="button-anchor small" onClick={onRemove}>Delete</button>
                 )}
             </div>
@@ -305,11 +328,17 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
                 <button className="button-anchor small" onClick={viewLogin}>Login</button>
                 <button className="button-anchor small" onClick={onLogout}>Logout</button>
                 <button className="button-anchor small margin" onClick={openThemesModal}>🎨 Themes 🎨</button>
-                {!userData.is_protected && (
+                {!hasRole(userData, Role.ROLE_PROTECTED) && (
                     <button type="button" className="button-anchor small" onClick={onRemove}>Delete</button>
                 )}
-                {userData.is_admin && (
-                    <button type="button" id="signin-button" className="button-anchor small" onClick={viewSignin}>Sign in</button>
+                {hasAnyRole(userData, Role.ROLE_ANONYMOUS, Role.ROLE_ADMIN) && (
+                    <div className="session-button-separator"></div>
+                )}
+                {!hasRole(userData, Role.ROLE_ANONYMOUS) && (
+                    <button className="button-anchor small margin" onClick={showTokenModal}>Tokens</button>
+                )}
+                {hasRole(userData, Role.ROLE_ADMIN) && (
+                    <button type="button" className="button-anchor small" onClick={viewSignin}>Sign in</button>
                 )}
             </div>
         </div>
@@ -364,23 +393,28 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     }
 
     return (
-        <Modal
-            buttons={loadButtons()}
-            titleCustom={
-                <div id="session-title-container">
-                    <span className="select-none">{loadTitle()}</span>
-                    <button className={`toggle-theme-button ${isDark() ? "off" : ""}`} onClick={toggleDefaultThemes} type="button"></button>
-                </div>
-            }
-            style={{
-                height: "400px",
-                width: "250px",
-                minHeight: "350px",
-                minWidth: "250px"
-            }}
-            isOpen={isOpen}
-            onClose={onLocalClose}>
-            {loadView()}
-        </Modal>
+        <>
+            <Modal
+                buttons={loadButtons()}
+                titleCustom={
+                    <div id="session-title-container">
+                        <span className="select-none">{loadTitle()}</span>
+                        <button className={`toggle-theme-button ${isDark() ? "off" : ""}`} onClick={toggleDefaultThemes} type="button"></button>
+                    </div>
+                }
+                style={{
+                    height: "400px",
+                    width: "250px",
+                    minHeight: "350px",
+                    minWidth: "250px"
+                }}
+                isOpen={isOpen}
+                onClose={onLocalClose}>
+                {loadView()}
+            </Modal>
+            <TokenModal
+                isOpen={dataToken.status}
+                onClose={closeTokenModal} />
+        </>
     )
 }

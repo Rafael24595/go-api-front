@@ -1,6 +1,7 @@
 import { Context } from "../../interfaces/context/Context";
 import { Record, SystemMetadata } from "../../interfaces/Metadata";
 import { Request } from "../../interfaces/request/Request";
+import { Token } from "../../interfaces/Token";
 import { UserData } from "../../interfaces/UserData";
 import { apiManager, sessionApiManager, authApiManager } from "./ApiManager";
 import { RequestAuthentication, RequestLogin, RequestSignin } from "./Requests";
@@ -39,6 +40,15 @@ export const fetchLogin = async (username: string, password: string): Promise<Us
 export const fetchLogout = async (): Promise<UserData> => {
   try {
     const apiResponse = await sessionApiManager.delete(`/login`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchRefresh = async (): Promise<UserData> => {
+  try {
+    const apiResponse = await sessionApiManager.get(`/refresh`);
     return apiResponse.data;
   } catch (error) {
     throw error;
@@ -94,15 +104,6 @@ export const fetchAuthenticate = async (oldPassword: string, newPassword1: strin
   }
 };
 
-export const fetchRefresh = async (): Promise<UserData> => {
-  try {
-    const apiResponse = await sessionApiManager.get(`/token/refresh`);
-    return apiResponse.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const fetchSystemMetadata = async (): Promise<SystemMetadata> => {
   try {
     const apiResponse = await apiManager.get(`/system/metadata`);
@@ -115,6 +116,24 @@ export const fetchSystemMetadata = async (): Promise<SystemMetadata> => {
 export const fetchSystemRecords = async (): Promise<Record[]> => {
   try {
     const apiResponse = await authApiManager.get(`/system/log`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchUserTokens = async (): Promise<Token[]> => {
+  try {
+    const apiResponse = await authApiManager.get(`/token`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const insertUserToken = async (token: Token): Promise<string> => {
+  try {
+    const apiResponse = await authApiManager.post(`/token`, token);
     return apiResponse.data;
   } catch (error) {
     throw error;

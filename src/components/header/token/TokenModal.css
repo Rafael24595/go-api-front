@@ -1,0 +1,46 @@
+.token-form-fragment {
+    display: flex;
+    flex-direction: column;
+}
+
+.raw-fragment {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.raw-fragment input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid;
+}
+
+.token-form-fragment:not(:first-child) {
+    margin-top: 10px;
+}
+
+.token-form-fragment>label,
+.token-form-fragment-label {
+    font-weight: 600;
+}
+
+#token-description {
+    resize: none;
+}
+
+#token-scopes-container {
+    padding: 7px;
+}
+
+.copy-raw-button::before {
+    content: '📋';
+}
+
+.copy-raw-button:hover {
+    background-color: transparent;
+}
+
+.copy-raw-button {
+    background-color: transparent;
+}
