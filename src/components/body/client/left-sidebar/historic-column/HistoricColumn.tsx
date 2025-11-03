@@ -4,7 +4,7 @@ import { deleteHistoric as fetchDeleteHistoric, findAction, formatCurl, requestC
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
-import { CollectionModal } from '../../../../collection/CollectionModal';
+import { CollectModal } from '../../../../collection/CollectModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';
 import { useStoreSession } from '../../../../../store/StoreProviderSession';
@@ -24,8 +24,8 @@ interface HistoricColumnProps {
 }
 
 interface PayloadModal {
+    status: boolean;
     request: LiteRequest;
-    modal: boolean;
 }
 
 export function HistoricColumn({ setCursor }: HistoricColumnProps) {
@@ -39,7 +39,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
 
     const [modalData, setModalData] = useState<PayloadModal>({
         request: newRequest(userData.username),
-        modal: false,
+        status: false,
     });
 
     const defineHistoricRequest = async (item: LiteRequest) => {
@@ -62,14 +62,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                 title: "Yes",
                 type: "button",
                 callback: {
-                    func: async () => {
-                        try {
-                            await fetchDeleteHistoric(item);
-                            await fetchHistoric();
-                        } catch (error) {
-                            console.error("Error deleting request:", error);
-                        }
-                    }
+                    func: async () => { deleteRequest(item); }
                 }
             },
             {
@@ -79,6 +72,15 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
         ];
         ask({ content, buttons });
     };
+
+    const deleteRequest = async (item: LiteRequest) => {
+        try {
+            await fetchDeleteHistoric(item);
+            await fetchHistoric();
+        } catch (error) {
+            console.error("Error deleting request:", error);
+        }
+    }
 
     const cloneHistoric = async (item: LiteRequest) => {
         const action = await findAction(item);
@@ -93,11 +95,17 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     }
 
     const openModal = (item: LiteRequest) => {
-        setModalData({ request: item, modal: true });
+        setModalData({
+            status: true,
+            request: item,
+        });
     };
 
     const closeModal = () => {
-        setModalData({ ...modalData, modal: false });
+        setModalData((prevData) => ({
+            ...prevData,
+            status: false
+        }));
     };
 
     const submitModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
@@ -168,8 +176,8 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                     <p className="no-data"> - No history found - </p>
                 )}
             </div>
-            <CollectionModal
-                isOpen={modalData.modal}
+            <CollectModal
+                isOpen={modalData.status}
                 request={modalData.request}
                 onSubmit={submitModal}
                 onClose={closeModal} />

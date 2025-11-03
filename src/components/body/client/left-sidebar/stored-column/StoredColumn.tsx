@@ -5,7 +5,7 @@ import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useState } from 'react';
-import { CollectionModal } from '../../../../collection/CollectionModal';
+import { CollectModal } from '../../../../collection/CollectModal';
 import { calculateWindowSize, downloadFile } from '../../../../../services/Utils';
 import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
@@ -31,14 +31,6 @@ const DEFAULT_CURSOR = "name";
 const VALID_CURSORS = Object.keys(newRequest("anonymous"))
     .map(k => k as keyof LiteRequest)
 
-interface PayloadModal {
-    request: LiteRequest;
-    move: boolean;
-    openImport: boolean;
-    openMove: boolean;
-    openCurl: boolean;
-}
-
 interface PayloadDrag {
     request: Optional<LiteRequest>;
 }
@@ -46,6 +38,20 @@ interface PayloadDrag {
 interface PayloadFilter {
     target: keyof LiteRequest;
     value: string;
+}
+
+interface PayloadModalRequest {
+    status: boolean;
+}
+
+interface PayloadModalCollect {
+    status: boolean;
+    request: LiteRequest;
+    move: boolean;
+}
+
+interface PayloadModalCurl {
+    status: boolean;
 }
 
 export function StoredColumn() {
@@ -59,14 +65,6 @@ export function StoredColumn() {
 
     const { push, ask } = useAlert();
 
-    const [modalData, setModalData] = useState<PayloadModal>({
-        request: newRequest(userData.username),
-        move: false,
-        openImport: false,
-        openMove: false,
-        openCurl: false,
-    });
-
     const [dragData, setDragData] = useState<PayloadDrag>({
         request: undefined,
     });
@@ -79,6 +77,20 @@ export function StoredColumn() {
         value: find(FILTER_VALUE_KEY, {
             def: ""
         })
+    });
+
+    const [modalRequestData, setModalRequestData] = useState<PayloadModalRequest>({
+        status: false,
+    });
+
+    const [modalCollectData, setModalCollectData] = useState<PayloadModalCollect>({
+        request: newRequest(userData.username),
+        move: false,
+        status: false,
+    });
+
+    const [modalCurlData, setModalCurlData] = useState<PayloadModalCurl>({
+        status: false,
     });
 
     const defineHistoricRequest = async (item: LiteRequest) => {
@@ -163,12 +175,11 @@ export function StoredColumn() {
     const openCollectModal = (item: LiteRequest) => {
         const newItem = { ...item };
         newItem.name = `${item.name}-copy`;
-        setModalData((prevData) => ({
-            ...prevData,
+        setModalCollectData({
+            status: true,
             request: newItem,
             move: false,
-            openMove: true
-        }));
+        });
     };
 
     const onFilterTargetChange = (value: string) => {
@@ -239,7 +250,7 @@ export function StoredColumn() {
         if (!dragData.request) {
             return false
         }
-        return item._id == modalData.request._id;
+        return item._id == dragData.request._id;
     }
 
     const onRequestDrag = async (item: PositionWrapper<LiteRequest>) => {
@@ -275,10 +286,9 @@ export function StoredColumn() {
     }
 
     const openImportModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openImport: true
-        }));
+        setModalRequestData({
+            status: true
+        });
     };
 
     const submitImportModal = async (requests: ItemRequest[]) => {
@@ -297,19 +307,17 @@ export function StoredColumn() {
     }
 
     const closeImportModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openImport: false
-        }));
+        setModalRequestData({
+            status: false
+        });
     };
 
     const openMoveModal = (item: LiteRequest) => {
-        setModalData((prevData) => ({
-            ...prevData,
+        setModalCollectData({
+            status: true,
             request: item,
             move: true,
-            openMove: true
-        }));
+        });
     };
 
     const submitMoveModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
@@ -322,30 +330,29 @@ export function StoredColumn() {
             target_name: collectionName,
             request: request,
             request_name: requestName,
-            move: modalData.move ? "move" : "clone",
+            move: modalCollectData.move ? "move" : "clone",
         };
 
         await requestCollect(payload);
         await fetchStored();
         await fetchCollection();
 
-        if (modalData.move) {
+        if (modalCollectData.move) {
             discardRequest(request);
         }
     }
 
     const closeMoveModal = () => {
-        setModalData((prevData) => ({
+        setModalCollectData((prevData) => ({
             ...prevData,
-            openMove: false
+            status: false
         }));
     };
 
     const openCurlModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openCurl: true
-        }));
+        setModalCurlData({
+            status: true
+        });
     };
 
     const submitCurlModal = async (curls: string[]) => {
@@ -365,10 +372,9 @@ export function StoredColumn() {
     }
 
     const closeCurlModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openCurl: false
-        }));
+        setModalCurlData({
+            status: false
+        });
     };
 
     return (
@@ -434,16 +440,16 @@ export function StoredColumn() {
                 </div>
             </div>
             <ImportRequestModal
-                isOpen={modalData.openImport}
+                isOpen={modalRequestData.status}
                 onSubmit={submitImportModal}
                 onClose={closeImportModal} />
-            <CollectionModal
-                isOpen={modalData.openMove}
-                request={modalData.request}
+            <CollectModal
+                isOpen={modalCollectData.status}
+                request={modalCollectData.request}
                 onSubmit={submitMoveModal}
                 onClose={closeMoveModal} />
             <ImportCurlModal
-                isOpen={modalData.openCurl}
+                isOpen={modalCurlData.status}
                 onSubmit={submitCurlModal}
                 onClose={closeCurlModal}
             />

@@ -1,4 +1,5 @@
 import { LiteItemCollection, LiteItemNodeRequest } from "../../../../../interfaces/collection/Collection"
+import { Context } from "../../../../../interfaces/context/Context";
 import { LiteRequest } from "../../../../../interfaces/request/Request";
 
 export const collectionGroupOptions = (actions: {
@@ -37,16 +38,17 @@ export const collectionGroupOptions = (actions: {
 
 export const collectionOptions = (collection: LiteItemCollection, actions: {
     remove: (collection: LiteItemCollection) => void;
-    renameCollection: (collection: LiteItemCollection) => void;
+    rename: (collection: LiteItemCollection) => void;
     clone: (collection: LiteItemCollection) => void;
     newCollectionRequest: (collection: LiteItemCollection) => void;
     exportCollection: (collection: LiteItemCollection) => void;
     exportRequests: (collection: LiteItemCollection) => void;
     openImportRequestModal: (collection: LiteItemCollection) => void;
-    discardCollection: (collection: LiteItemCollection) => void;
+    discard: (collection: LiteItemCollection) => void;
     isParentCached: (id: string) => boolean;
     isContextCached: (id: string) => boolean;
-    discardContext: (context: any) => void;
+    discardContext: (context?: Context | undefined) => void;
+    showCurlModal: (collection: LiteItemCollection) => void;
 }) => {
     return [
         {
@@ -59,7 +61,7 @@ export const collectionOptions = (collection: LiteItemCollection, actions: {
             icon: "✏️",
             label: "Rename",
             title: "Rename request",
-            action: () => actions.renameCollection(collection)
+            action: () => actions.rename(collection)
         },
         {
             icon: "🐏",
@@ -92,11 +94,17 @@ export const collectionOptions = (collection: LiteItemCollection, actions: {
             action: () => actions.openImportRequestModal(collection)
         },
         {
+            icon: "⌨️",
+            label: "Import",
+            title: "Import cURL",
+            action: () => actions.showCurlModal(collection)
+        },
+        {
             icon: "🧹",
             label: "Request",
             title: "Discard requests changes",
             disable: !actions.isParentCached(collection._id),
-            action: () => actions.discardCollection(collection)
+            action: () => actions.discard(collection)
         },
         {
             icon: "🧹",
@@ -109,22 +117,22 @@ export const collectionOptions = (collection: LiteItemCollection, actions: {
 }
 
 export const requestOptions = (collection: LiteItemCollection, node: LiteItemNodeRequest, actions: {
-    removeFrom: (collection: LiteItemCollection, request: LiteRequest) => void;
+    removeFrom: (request: LiteRequest) => void;
     renameFromCollection: (request: LiteRequest) => void;
     cloneFromCollection: (request: LiteRequest) => void;
-    showDuplicateModal: (request: LiteRequest, collection: LiteItemCollection) => void;
-    showMoveModal: (request: LiteRequest, collection: LiteItemCollection) => void;
-    takeFrom: (collection: LiteItemCollection, request: LiteRequest) => void;
+    showDuplicateModal: (collection: LiteItemCollection, request: LiteRequest) => void;
+    showMoveModal: (collection: LiteItemCollection, request: LiteRequest) => void;
+    takeFrom: (request: LiteRequest) => void;
     isCached: (request: LiteRequest) => boolean;
     discardRequest: (request: LiteRequest) => void;
-    showCurl: (collection: LiteItemCollection, request: LiteRequest, asRaw?: boolean) => void;
+    showCurl: (request: LiteRequest, asRaw?: boolean) => void;
 }) => {
     return [
         {
             icon: "🗑️",
             label: "Delete",
             title: "Delete from collection",
-            action: () => actions.removeFrom(collection, node.request)
+            action: () => actions.removeFrom(node.request)
         },
         {
             icon: "✏️",
@@ -142,19 +150,19 @@ export const requestOptions = (collection: LiteItemCollection, node: LiteItemNod
             icon: "🐏",
             label: "Duplicate",
             title: "Duplicate to collection",
-            action: () => actions.showDuplicateModal(node.request, collection)
+            action: () => actions.showDuplicateModal(collection, node.request)
         },
         {
             icon: "📦",
             label: "Move",
             title: "Move to collection",
-            action: () => actions.showMoveModal(node.request, collection)
+            action: () => actions.showMoveModal(collection, node.request)
         },
         {
             icon: "🧷",
             label: "Take",
             title: "Take from collection",
-            action: () => actions.takeFrom(collection, node.request)
+            action: () => actions.takeFrom(node.request)
         },
         {
             icon: "🧹",
@@ -167,14 +175,14 @@ export const requestOptions = (collection: LiteItemCollection, node: LiteItemNod
             icon: "⌨️",
             label: "Curl",
             title: "Show curl",
-            action: () => actions.showCurl(collection, node.request)
+            action: () => actions.showCurl(node.request)
         },
         {
             icon: "⌨️",
             label: "Raw",
             title: "Show raw curl",
-            action: () => actions.showCurl(collection, node.request, true)
-        },
+            action: () => actions.showCurl(node.request, true)
+        }
     ]
 }
 

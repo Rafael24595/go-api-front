@@ -3,11 +3,11 @@ import { Modal } from '../utils/modal/Modal';
 import { LiteRequest } from '../../interfaces/request/Request';
 import { useStoreRequests } from '../../store/StoreProviderRequests';
 
-import './CollectionModal.css';
+import './CollectModal.css';
 
 const NEW_COLLECTION = "";
 
-interface CollectionModalProps {
+interface CollectModalProps {
     isOpen: boolean,
     request: LiteRequest,
     parent?: string,
@@ -21,7 +21,7 @@ interface Payload {
     requestName: string;
 }
 
-export function CollectionModal({ isOpen, request, parent, onSubmit, onClose }: CollectionModalProps) {
+export function CollectModal({ isOpen, request, parent, onSubmit, onClose }: CollectModalProps) {
     const { collection } = useStoreRequests();
 
     const [data, setData] = useState<Payload>({

@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { ItemCollection, LiteItemCollection, LiteItemNodeRequest, newCollection, toCollection } from '../../../../../interfaces/collection/Collection';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
-import { cloneCollection, deleteCollection, deleteFromCollection, findAction, findCollection, formatCurl, imporOpenApi, importCollections, importToCollection, insertCollection, requestCollect, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
+import { cloneCollection, deleteCollection, findAction, findCollection, imporOpenApi, importCollections, importCurl, importToCollection, insertCollection, requestCollect } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
-import { CollectionModal } from '../../../../collection/CollectionModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { Details } from '../../../../utils/details/Details';
 import { ImportOpenApiModal } from '../../../../collection/ImportOpenApiModal';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
-import { calculateWindowSize, downloadFile } from '../../../../../services/Utils';
+import { downloadFile } from '../../../../../services/Utils';
 import { ImportCollectionModal } from '../../../../collection/ImportCollectionModal';
 import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
@@ -21,10 +20,11 @@ import { RequestNode, RequestRequestCollect } from '../../../../../services/api/
 import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
 import { Optional } from '../../../../../types/Optional';
 import { VoidCallback } from '../../../../../interfaces/Callback';
-import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
-import { CodeArea } from '../../../../utils/code-area/CodeArea';
-import { collectionOptions, collectionGroupOptions, requestOptions, searchOptions } from './Constants';
+import { collectionOptions, collectionGroupOptions, searchOptions } from './Constants';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
+import { CollectionRequests } from './CollectionRequests';
+import { CollectModal } from '../../../../collection/CollectModal';
+import { ImportCurlModal } from '../../../../collection/ImportCurlModal';
 
 import './CollectionColumn.css';
 
@@ -44,27 +44,40 @@ interface PayloadDrag {
     collection: Optional<LiteItemCollection>;
 }
 
-interface PayloadModal {
+interface PayloadModalCollection {
+    status: boolean;
+}
+
+interface PayloadModalOAPI {
+    status: boolean;
+}
+
+interface PayloadModalRequest {
+    status: boolean;
+    collection?: LiteItemCollection;
+}
+
+interface PayloadModalCollect {
     move: boolean;
     request: LiteRequest;
     collection?: LiteItemCollection;
-    openImportCollection: boolean;
-    openImportOpenApi: boolean;
-    openImportRequest: boolean;
-    openCollect: boolean;
+    status: boolean;
+}
+
+interface PayloadModalCurl {
+    status: boolean;
+    collection?: LiteItemCollection;
 }
 
 export function CollectionColumn() {
-    const { userData } = useStoreSession();
+    const { push, ask } = useAlert();
     const { find, store } = useStoreStatus();
 
-    const { loadThemeWindow } = useStoreTheme();
+    const { userData } = useStoreSession();
 
     const context = useStoreContext();
-    const { parent, request, cleanRequest, discardRequest, defineFreeRequest, fetchGroupRequest, isParentCached, isCached } = useStoreRequest();
-    const { collection, fetchStored, fetchCollection, fetchCollectionItem, updateCollectionsOrder, updateCollectionRequestsOrder } = useStoreRequests();
-
-    const { push, ask } = useAlert();
+    const { parent, cleanRequest, discardRequest, isParentCached } = useStoreRequest();
+    const { collection, fetchCollection, fetchCollectionItem, updateCollectionsOrder } = useStoreRequests();
 
     const [filterData, setFilterData] = useState<PayloadFilter>({
         target: find(FILTER_TARGET_KEY, {
@@ -80,14 +93,29 @@ export function CollectionColumn() {
         collection: undefined,
     });
 
-    const [modalData, setModalData] = useState<PayloadModal>({
+    const [modalCollectionData, setModalCollectionData] = useState<PayloadModalCollection>({
+        status: false
+    });
+
+    const [modalOapiData, setModalOapiData] = useState<PayloadModalOAPI>({
+        status: false
+    });
+
+    const [modalCollectData, setModalCollectData] = useState<PayloadModalCollect>({
+        status: false,
         move: false,
         request: newRequest(userData.username),
         collection: undefined,
-        openImportCollection: false,
-        openImportOpenApi: false,
-        openImportRequest: false,
-        openCollect: false,
+    });
+
+    const [modalRequestData, setModalRequestData] = useState<PayloadModalRequest>({
+        status: false,
+        collection: undefined,
+    });
+
+    const [modalCurlData, setModalCurlData] = useState<PayloadModalCurl>({
+        status: false,
+        collection: undefined,
     });
 
     const insert = async () => {
@@ -116,7 +144,7 @@ export function CollectionColumn() {
                             cleanRequest();
                         }
                         await fetchCollection();
-                        discardCollection(item);
+                        discard(item);
                     }
                 }
             },
@@ -128,11 +156,11 @@ export function CollectionColumn() {
         ask({ content, buttons });
     };
 
-    const discardCollection = async (item: LiteItemCollection) => {
+    const discard = async (item: LiteItemCollection) => {
         item.nodes.forEach(n => discardRequest(n.request));
     }
 
-    const renameCollection = async (item: LiteItemCollection) => {
+    const rename = async (item: LiteItemCollection) => {
         const name = prompt("Insert a name: ", item.name);
         if (name == null && name != item.name) {
             return;
@@ -141,19 +169,6 @@ export function CollectionColumn() {
         item.name = name;
 
         await insertCollection(toCollection(item));
-        await fetchCollection();
-    };
-
-    const renameFromCollection = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        const name = prompt("Insert a name: ", request.name);
-        if (name == null && name != request.name) {
-            return;
-        }
-        request.name = name;
-        await updateAction(request);
         await fetchCollection();
     };
 
@@ -180,204 +195,12 @@ export function CollectionColumn() {
             target_name: item.name,
             request: newRequest(userData.username, name),
             request_name: name,
-            move: modalData.move ? "move" : "clone",
+            move: modalCollectData.move ? "move" : "clone",
         };
 
         await requestCollect(payload);
         await fetchCollection();
     }
-
-    const removeFrom = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
-        const content = `The request '${itemRequest.name}' from collection '${itemCollection.name}' will be deleted, are you sure?`;
-        const buttons: ModalButton[] = [
-            {
-                title: "Yes",
-                type: "submit",
-                callback: {
-                    func: async () => {
-                        await deleteFromCollection(itemCollection, itemRequest);
-                        await fetchCollection();
-                        if (itemRequest._id == request._id) {
-                            return cleanRequest();
-                        }
-                        discardRequest(itemRequest);
-                    }
-                }
-            },
-            {
-                title: "No",
-                callback: VoidCallback
-            }
-        ];
-
-        ask({ content, buttons });
-    }
-
-    const takeFrom = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
-        await takeFromCollection(itemCollection, itemRequest);
-        await fetchCollection();
-        await fetchStored();
-        if (itemRequest._id == request._id) {
-            return cleanRequest();
-        }
-        discardRequest(itemRequest);
-    }
-
-    const defineCollectionRequest = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
-        fetchGroupRequest(itemCollection._id, itemCollection.context._id, itemRequest);
-    }
-
-    const cloneFromCollection = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        request._id = "";
-        request.status = 'draft';
-        defineFreeRequest(request);
-    };
-
-    const showDuplicateModal = (itemRequest: LiteRequest, itemCollection: LiteItemCollection) => {
-        const newRequest = { ...itemRequest };
-        newRequest.name = `${newRequest.name}-copy`
-        setModalData((prevData) => ({
-            ...prevData,
-            move: false,
-            collection: itemCollection,
-            request: newRequest,
-            openCollect: true
-        }));
-    };
-
-    const showMoveModal = (itemRequest: LiteRequest, itemCollection: LiteItemCollection) => {
-        setModalData((prevData) => ({
-            ...prevData,
-            move: true,
-            collection: itemCollection,
-            request: itemRequest,
-            openCollect: true
-        }));
-    };
-
-    const closeCollectionModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openCollect: false
-        }));
-    };
-
-    const submitCollectionModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        const payload: RequestRequestCollect = {
-            source_id: modalData.collection ? modalData.collection?._id : "",
-            target_id: collectionId,
-            target_name: collectionName,
-            request: request,
-            request_name: requestName,
-            move: modalData.move ? "move" : "clone",
-        };
-
-        await requestCollect(payload);
-        await fetchCollection();
-    }
-
-    const openImportModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openImportCollection: true
-        }));
-    };
-
-    const submitImportCollectionModal = async (collections: ItemCollection[]) => {
-        const collection = await importCollections(collections).catch(e =>
-            push({
-                title: `[${e.statusCode}] ${e.statusText}`,
-                category: EAlertCategory.ERRO,
-                content: e.message,
-            }));
-        if (!collection) {
-            return;
-        }
-
-        closeImportCollectionModal();
-        await fetchCollection();
-    }
-
-    const closeImportCollectionModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openImportCollection: false
-        }));
-    };
-
-    const openOpenaApiModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openImportOpenApi: true
-        }));
-    };
-
-    const submitImportOpenaApiModal = async (file: File) => {
-        const form = new FormData();
-        form.append('file', file);
-
-        const collection = await imporOpenApi(form).catch(e =>
-            push({
-                title: `[${e.statusCode}] ${e.statusText}`,
-                category: EAlertCategory.ERRO,
-                content: e.message,
-            }));
-        if (!collection) {
-            return;
-        }
-
-        closeImportOpenaApiModal();
-        await fetchCollection();
-    }
-
-    const closeImportOpenaApiModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openImportOpenApi: false
-        }));
-    };
-
-    const openImportRequestModal = (items: LiteItemCollection) => {
-        setModalData((prevData) => ({
-            ...prevData,
-            collection: items,
-            openImportRequest: true
-        }));
-    };
-
-    const submitImportRequestModal = async (items: ItemRequest[]) => {
-        if (!modalData.collection) {
-            closeImportCollectionModal();
-            return;
-        }
-
-        const collection = await importToCollection(modalData.collection._id, items).catch(e =>
-            push({
-                title: `[${e.statusCode}] ${e.statusText}`,
-                category: EAlertCategory.ERRO,
-                content: e.message,
-            }));
-        if (!collection) {
-            return;
-        }
-
-        closeImportRequestModal();
-        await fetchCollection();
-    }
-
-    const closeImportRequestModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            collection: undefined,
-            openImportRequest: false
-        }));
-    };
 
     const onFilterTargetChange = (value: string) => {
         store(FILTER_TARGET_KEY, value);
@@ -454,10 +277,6 @@ export function CollectionColumn() {
         return field.toLowerCase().includes(filterData.value.toLowerCase());
     }
 
-    const makeKey = (itemCollection: LiteItemCollection, itemRequest: LiteRequest): string => {
-        return `${itemCollection.name}-${itemRequest.timestamp}-${itemRequest._id}-${itemRequest.method}-${itemRequest.uri}`;
-    }
-
     const exportAll = () => {
         const name = `collections_${Date.now()}.json`;
         downloadFile(name, collection);
@@ -508,51 +327,170 @@ export function CollectionColumn() {
         await fetchCollection();
     };
 
-    const isRequestSelected = (item: LiteItemNodeRequest) => {
-        return item.request._id == request._id;
-    }
-
-    const isRequestDrag = (item: LiteItemNodeRequest) => {
-        if (!dragData.request) {
-            return false
-        }
-        return item.request._id == dragData.request.request._id;
-    }
-
-    const onRequestDrag = async (item: PositionWrapper<LiteItemNodeRequest>) => {
-        setDragData((prevData) => ({
-            ...prevData,
-            request: item.item,
-        }));
+    const openImportModal = () => {
+        setModalCollectionData({
+            status: true
+        });
     };
 
-    const onRequestDrop = async () => {
-        setDragData((prevData) => ({
-            ...prevData,
-            request: undefined,
-        }));
-    };
-
-    const onRequestOrderChange = async (items: PositionWrapper<LiteItemNodeRequest>[], collection?: LiteItemCollection) => {
+    const submitImportCollectionModal = async (collections: ItemCollection[]) => {
+        const collection = await importCollections(collections).catch(e =>
+            push({
+                title: `[${e.statusCode}] ${e.statusText}`,
+                category: EAlertCategory.ERRO,
+                content: e.message,
+            }));
         if (!collection) {
             return;
         }
-        const ordered: RequestNode[] = items.map(e => ({
-            order: e.index,
-            item: e.item.request._id
-        }));
-        await updateCollectionRequestsOrder(collection, ordered);
+
+        closeImportCollectionModal();
         await fetchCollection();
+    }
+
+    const closeImportCollectionModal = () => {
+        setModalCollectionData({
+            status: false
+        });
     };
 
-    const showCurl = async (itemCollection: LiteItemCollection, itemRequest: LiteRequest, raw?: boolean) => {
-        const curl = await formatCurl(itemRequest._id, itemCollection.context._id, raw);
-        const { width, height } = calculateWindowSize(curl, {
-            minWidth: 550,
-            minHeight: 200
+    const openOpenaApiModal = () => {
+        setModalOapiData({
+            status: true
         });
-        loadThemeWindow(width, height, <CodeArea code={curl} />);
+    };
+
+    const submitImportOpenaApiModal = async (file: File) => {
+        const form = new FormData();
+        form.append('file', file);
+
+        const collection = await imporOpenApi(form).catch(e =>
+            push({
+                title: `[${e.statusCode}] ${e.statusText}`,
+                category: EAlertCategory.ERRO,
+                content: e.message,
+            }));
+        if (!collection) {
+            return;
+        }
+
+        closeImportOpenaApiModal();
+        await fetchCollection();
     }
+
+    const closeImportOpenaApiModal = () => {
+        setModalOapiData({
+            status: false
+        });
+    };
+
+    const openImportRequestModal = (items: LiteItemCollection) => {
+        setModalRequestData({
+            status: true,
+            collection: items,
+        });
+    };
+
+    const submitImportRequestModal = async (items: ItemRequest[]) => {
+        if (!modalRequestData.collection) {
+            closeImportCollectionModal();
+            return;
+        }
+
+        const collection = await importToCollection(modalRequestData.collection._id, items).catch(e =>
+            push({
+                title: `[${e.statusCode}] ${e.statusText}`,
+                category: EAlertCategory.ERRO,
+                content: e.message,
+            }));
+        if (!collection) {
+            return;
+        }
+
+        closeImportRequestModal();
+        await fetchCollection();
+    }
+
+    const closeImportRequestModal = () => {
+        setModalRequestData({
+            status: false,
+            collection: undefined,
+        });
+    };
+
+    const showDuplicateModal = (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
+        const newRequest = { ...itemRequest };
+        newRequest.name = `${newRequest.name}-copy`
+        setModalCollectData({
+            status: true,
+            move: false,
+            collection: itemCollection,
+            request: newRequest,
+        });
+    };
+
+    const showMoveModal = (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
+        setModalCollectData({
+            status: true,
+            move: true,
+            collection: itemCollection,
+            request: itemRequest,
+        });
+    };
+
+    const submitCollectionModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        const payload: RequestRequestCollect = {
+            source_id: modalCollectData.collection ? modalCollectData.collection?._id : "",
+            target_id: collectionId,
+            target_name: collectionName,
+            request: request,
+            request_name: requestName,
+            move: modalCollectData.move ? "move" : "clone",
+        };
+
+        await requestCollect(payload);
+        await fetchCollection();
+    }
+
+    const closeCollectionModal = () => {
+        setModalCollectData((prevData) => ({
+            ...prevData,
+            status: false
+        }));
+    };
+
+    const showCurlModal = (itemCollection: LiteItemCollection) => {
+        setModalCurlData({
+            status: true,
+            collection: itemCollection
+        });
+    };
+
+    const submitCurlModal = async (curls: string[]) => {
+        const collection = await importCurl(curls, modalCurlData.collection?._id)
+            .catch(e =>
+                push({
+                    title: `[${e.statusCode}] ${e.statusText}`,
+                    category: EAlertCategory.ERRO,
+                    content: e.message,
+                }));
+        if (!collection) {
+            return;
+        }
+
+        closeCurlModal();
+        await fetchCollection();
+    }
+
+    const closeCurlModal = () => {
+        setModalCurlData({
+            status: false,
+            collection: undefined
+        });
+    };
 
     return (
         <>
@@ -590,11 +528,12 @@ export function CollectionColumn() {
                         }
                         options={(
                             <Combo options={collectionOptions(cursorCollection, {
-                                remove, renameCollection, clone,
+                                remove, rename, clone,
                                 newCollectionRequest, exportCollection, exportRequests,
-                                openImportRequestModal, discardCollection, isParentCached,
+                                openImportRequestModal, discard, isParentCached,
                                 discardContext: context.discardContext,
                                 isContextCached: context.isParentCached,
+                                showCurlModal
                             })} />)}
                         subsummary={(
                             <div className="request-sign-date">
@@ -605,39 +544,10 @@ export function CollectionColumn() {
                         onToggle={() => fetchCollectionItem(cursorCollection)}
                     >
                         {!isCollectionDrag(cursorCollection) && (
-                            <VerticalDragDrop
-                                items={cursorCollection.nodes}
-                                parameters={cursorCollection}
-                                itemId={(node) => makeKey(cursorCollection, node.request)}
-                                onItemDrag={onRequestDrag}
-                                onItemDrop={onRequestDrop}
-                                onItemsChange={onRequestOrderChange}
-                                renderItem={(node) => (
-                                    <div key={makeKey(cursorCollection, node.request)} className={`request-preview ${isRequestSelected(node) && "request-selected"} ${isRequestDrag(node) && "request-float"}`}>
-                                        <button className="request-link" title={node.request.uri}
-                                            onClick={() => defineCollectionRequest(cursorCollection, node.request)}>
-                                            <div className="request-sign">
-                                                {isCached(node.request) && (
-                                                    <span className="button-modified-status small visible"></span>
-                                                )}
-                                                <span className={`request-sign-method ${node.request.method}`}>{node.request.method}</span>
-                                                <span className="request-sign-url">{node.request.name}</span>
-                                            </div>
-                                            <div className="request-sign-date">
-                                                <span className="request-sign-timestamp" title={millisecondsToDate(node.request.timestamp)}>{millisecondsToDate(node.request.timestamp)}</span>
-                                            </div>
-                                        </button>
-                                        <Combo options={requestOptions(cursorCollection, node, {
-                                            removeFrom, renameFromCollection, cloneFromCollection,
-                                            showDuplicateModal, showMoveModal, takeFrom,
-                                            isCached, discardRequest, showCurl,
-                                        })} />
-                                    </div>
-                                )}
-                                emptyTemplate={(
-                                    <p className="no-data"> - No requests found - </p>
-                                )}
-                            />
+                            <CollectionRequests
+                                collection={cursorCollection}
+                                showDuplicateModal={showDuplicateModal}
+                                showMoveModal={showMoveModal} />
                         )}
                     </Details>
                 )}
@@ -658,27 +568,28 @@ export function CollectionColumn() {
                         options={searchOptions({ onFilterTargetChange })} />
                 </div>
             </div>
-            <CollectionModal
-                isOpen={modalData.openCollect}
-                request={modalData.request}
-                parent={modalData.collection?._id}
+            <ImportCollectionModal
+                isOpen={modalCollectionData.status}
+                onSubmit={submitImportCollectionModal}
+                onClose={closeImportCollectionModal} />
+            <ImportOpenApiModal
+                isOpen={modalOapiData.status}
+                onSubmit={submitImportOpenaApiModal}
+                onClose={closeImportOpenaApiModal} />
+            <ImportRequestModal
+                isOpen={modalRequestData.status}
+                onSubmit={submitImportRequestModal}
+                onClose={closeImportRequestModal} />
+            <CollectModal
+                isOpen={modalCollectData.status}
+                request={modalCollectData.request}
+                parent={modalCollectData.collection?._id}
                 onSubmit={submitCollectionModal}
                 onClose={closeCollectionModal} />
-            <ImportCollectionModal
-                isOpen={modalData.openImportCollection}
-                onSubmit={submitImportCollectionModal}
-                onClose={closeImportCollectionModal}
-            />
-            <ImportOpenApiModal
-                isOpen={modalData.openImportOpenApi}
-                onSubmit={submitImportOpenaApiModal}
-                onClose={closeImportOpenaApiModal}
-            />
-            <ImportRequestModal
-                isOpen={modalData.openImportRequest}
-                onSubmit={submitImportRequestModal}
-                onClose={closeImportRequestModal}
-            />
+            <ImportCurlModal
+                isOpen={modalCurlData.status}
+                onSubmit={submitCurlModal}
+                onClose={closeCurlModal} />
         </>
     )
 }

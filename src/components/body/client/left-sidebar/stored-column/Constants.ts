@@ -1,6 +1,6 @@
 import { LiteRequest } from "../../../../../interfaces/request/Request";
 
-export const storedGroupOptions = (action: {
+export const storedGroupOptions = (actions: {
     exportAll: () => void;
     openImportModal: () => void;
     openCurlModal: () => void;
@@ -12,25 +12,25 @@ export const storedGroupOptions = (action: {
             icon: "💾",
             label: "Export",
             title: "Export all",
-            action: action.exportAll
+            action: actions.exportAll
         },
         {
             icon: "💽",
             label: "Import",
             title: "Import collections",
-            action: action.openImportModal
+            action: actions.openImportModal
         },
         {
             icon: "⌨️",
             label: "Import",
             title: "Import cURL",
-            action: action.openCurlModal
+            action: actions.openCurlModal
         },
         {
             icon: "🔄",
             label: "Refresh",
             title: "Refresh",
-            action: () => action.fetchStored
+            action: () => actions.fetchStored
         }
     ]
 }
