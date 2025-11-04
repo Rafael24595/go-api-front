@@ -75,7 +75,7 @@ const cancelRequest = (error: any) => {
 
   return Promise.reject({
     statusCode: error.status,
-    statusText: error.response.statusText,
+    statusText: error.response?.statusText,
     message: error.response.data || error.message
   });
 }
