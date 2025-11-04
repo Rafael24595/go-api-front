@@ -1,7 +1,7 @@
 import { Context } from "../../interfaces/context/Context";
 import { Record, SystemMetadata } from "../../interfaces/Metadata";
 import { Request } from "../../interfaces/request/Request";
-import { Token } from "../../interfaces/Token";
+import { Scopes, Token } from "../../interfaces/Token";
 import { UserData } from "../../interfaces/UserData";
 import { apiManager, sessionApiManager, authApiManager } from "./ApiManager";
 import { RequestAuthentication, RequestLogin, RequestSignin } from "./Requests";
@@ -139,3 +139,22 @@ export const insertUserToken = async (token: Token): Promise<string> => {
     throw error;
   }
 };
+
+export const deleteUserToken = async (token: Token): Promise<Token> => {
+  try {
+    const apiResponse = await authApiManager.delete(`/token/${token.id}`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchTokenScopes = async (): Promise<Scopes[]> => {
+  try {
+    const apiResponse = await authApiManager.get(`/scopes`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+

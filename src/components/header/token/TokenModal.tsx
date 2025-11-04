@@ -1,12 +1,15 @@
 import { Modal } from '../../utils/modal/Modal'
 import { useStoreSession } from '../../../store/StoreProviderSession';
 import { useState } from 'react';
-import { newToken } from '../../../interfaces/Token';
+import { newToken, Token } from '../../../interfaces/Token';
 import { copyTextToClipboard } from '../../../services/Utils';
 import { EAlertCategory } from '../../../interfaces/AlertData';
 import { useAlert } from '../../utils/alert/Alert';
 
 import './TokenModal.css';
+import { millisecondsToDate } from '../../../services/Tools';
+import { ModalButton } from '../../../interfaces/ModalButton';
+import { VoidCallback } from '../../../interfaces/Callback';
 
 interface TokenModalProps {
     isOpen: boolean,
@@ -20,7 +23,6 @@ interface Payload {
     description: string;
     expires: string;
     scopes: string[];
-    raw: string;
 }
 
 const emptyPayload = (): Payload => {
@@ -29,49 +31,71 @@ const emptyPayload = (): Payload => {
         description: "",
         expires: "",
         scopes: [],
-        raw: ""
     }
 }
 
-const scopes = [
-    {
-        name: "Mock API",
-        title: "Allows request to mock API",
-        value: "mockapi"
-    }
-];
-
 export function TokenModal({ isOpen, onClose }: TokenModalProps) {
-    const { userData, tokens, fetchTokens, insertToken } = useStoreSession();
+    const { userData, scopes, tokens, insertToken, deleteToken } = useStoreSession();
 
-    const { push } = useAlert();
+    const { ask, push } = useAlert();
 
     const [view, setView] = useState<View>("list");
 
+    const [raw, setRaw] = useState<string>("");
+
     const [data, setData] = useState<Payload>(emptyPayload());
 
+    const [openTokenData, setOpenTokenData] = useState<string[]>([]);
+
+    const onOpenTokenDataChange = (token: Token) => {
+        setOpenTokenData((prevData) =>
+            prevData.includes(token.id)
+                ? prevData.filter(s => s !== token.id)
+                : [...prevData, token.id]
+        );
+    };
+
+    const changeView = (v: View) => {
+        cleanRaw();
+        setView(v);
+    }
+
     const submit = async () => {
-        console.log(data)
-
-        setData({
-            ...emptyPayload(),
-            raw: "O9FHKIBTUE0CqPlgAGJl2DspWtoWiTmOFioaD4gGKW2ZoQCvh7c9KfwSzWRH7G6E"
-        });
-
         //TODO: Replace with Temporal.
-        /*const expires = new Date(data.expires).getTime();
+        const expires = new Date(data.expires).getTime();
 
         const token = newToken(expires, data.name, data.description, ...data.scopes);
         const raw = await insertToken(token);
-        setData({
-            ...emptyPayload(),
-            raw: raw
-        });*/
-        //close();
+        setRaw(raw);
+        cancel();
+    };
+
+    const askRemove = async (token: Token) => {
+        const content = `The token '${token.name}' will be deleted, are you sure?`;
+        const buttons: ModalButton[] = [
+            {
+                title: "Yes",
+                type: "submit",
+                callback: {
+                    func: () => remove(token)
+                }
+            },
+            {
+                title: "No",
+                callback: VoidCallback
+            }
+        ];
+        ask({ content, buttons });
+    };
+
+    const remove = async (token: Token) => {
+        cleanRaw();
+        await deleteToken(token);
     };
 
     const close = () => {
         cancel();
+        cleanRaw();
         onClose();
     };
 
@@ -84,6 +108,10 @@ export function TokenModal({ isOpen, onClose }: TokenModalProps) {
         setData(emptyPayload());
     };
 
+    const cleanRaw = () => {
+        setRaw("");
+    };
+
     const title = () => {
         if (view == "list") {
             return listTitle;
@@ -93,7 +121,10 @@ export function TokenModal({ isOpen, onClose }: TokenModalProps) {
     }
 
     const listTitle = (
-        <span>{userData.username} tokens</span>
+        <div id="user-tokens-title">
+            <span>{userData.username} tokens</span>
+            <button onClick={() => changeView("insert")}>Generate</button>
+        </div>
     );
 
     const insertTitle = (
@@ -146,25 +177,8 @@ export function TokenModal({ isOpen, onClose }: TokenModalProps) {
         return insertChildren;
     }
 
-    const changeView = (v: View) => {
-        setView(v)
-    }
-
-    const listChildren = (
-        <>
-            <button onClick={() => changeView("insert")}>Generate</button>
-            <div>
-                {tokens.map(token => (
-                    <>
-                        <p>{token.name}</p>
-                    </>
-                ))}
-            </div>
-        </>
-    );
-
     const copyRawToClipboard = () => {
-        copyTextToClipboard(data.raw,
+        copyTextToClipboard(raw,
             () => push({
                 category: EAlertCategory.INFO,
                 content: "The token has been copied to the clipboard"
@@ -175,6 +189,75 @@ export function TokenModal({ isOpen, onClose }: TokenModalProps) {
             }),
         );
     }
+
+    const tokenStatus = (token: Token) => {
+        const now = Date.now()
+        if (now > token.expire) {
+            return "Expired"
+        }
+        return "Active"
+    }
+
+    const findScope = (scope: string) => {
+        return scopes.filter(s => s.code == scope).shift()
+    }
+
+    const listChildren = (
+        <>
+            {raw != "" && (
+                <div id="generated-token-container">
+                    <p id="generated-token-title">Generated token:</p>
+                    <div id="generated-token-data">
+                        <div className="token-form-fragment raw-fragment">
+                            <input type="text" id="token-raw" name="token-raw" value={raw} readOnly />
+                            <button className="copy-raw-button" onClick={copyRawToClipboard}></button>
+                        </div>
+                        <p className="small-warning"><span className="important-block"></span>Make sure to save the token, as you won't be able to see it again.</p>
+                    </div>
+                </div>
+            )}
+            <div>
+                {tokens.map(token => (
+                    <div key={token.id} className="token-container">
+                        <div className="token-data-container">
+                            <button className="token-metadata" onClick={() => onOpenTokenDataChange(token)}>
+                                <span className="token-data">
+                                    <span className={`token-name token-status-${tokenStatus(token).toLowerCase()}`}>{tokenStatus(token)}</span>
+                                    <span className="preserve-space"> - </span>
+                                    <span className="token-name" title={millisecondsToDate(token.timestamp)}>{token.name}</span>
+                                    {token.description != "" && (
+                                        <>
+                                            <span className="preserve-space">: </span>
+                                            <span className="token-description" title={token.description}>{token.description}</span>
+                                        </>
+                                    )}
+                                </span>
+                                <span className="token-dates">
+                                    <span className="token-expires">Expires {millisecondsToDate(token.expire)}</span>
+                                </span>
+                            </button>
+                            <div className="token-buttons">
+                                <button onClick={() => askRemove(token)}>Delete</button>
+                            </div>
+                        </div>
+                        <div>
+                            {openTokenData.includes(token.id) && (
+                                <div className="token-scopes-enum">
+                                    <span className="token-name">Scope: </span>
+                                    {token.scopes.map((scope, i) => (
+                                        <>
+                                            <span className="scope-enum" title={findScope(scope)?.title}>{scope}</span>
+                                            {i < token.scopes.length - 1 && <span className="comma">, </span>}
+                                        </>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </>
+    );
 
     const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setData((prevData) => ({
@@ -215,38 +298,31 @@ export function TokenModal({ isOpen, onClose }: TokenModalProps) {
         <>
             <div id="insert-token-container">
                 <div id="token-data">
-                    {data.raw != "" && (
-                        <div className="token-form-fragment raw-fragment">
-                            <input type="text" id="token-name" name="token-name" value={data.raw} readOnly />
-                            <button className="copy-raw-button" onClick={copyRawToClipboard}></button>
-                        </div>
-                    )}
                     <div className="token-form-fragment">
                         <label htmlFor="token-name">Name:</label>
-                        <input type="text" id="token-name" name="token-name" value={data.name} onChange={onNameChange} autoComplete="on" />
+                        <input type="text" id="token-name" name="token-name" value={data.name} onChange={onNameChange} autoComplete="on" required />
                     </div>
                     <div className="token-form-fragment">
                         <label htmlFor="token-description">Description:</label>
-                        <textarea rows={4} id="token-description" name="token-description" value={data.description} onChange={onDescriptionChange}></textarea>
+                        <textarea rows={4} id="token-description" name="token-description" value={data.description} onChange={onDescriptionChange} autoComplete="on"></textarea>
                     </div>
                     <div className="token-form-fragment">
                         <label htmlFor="token-expires">Expires:</label>
-                        <input type="date" id="token-expires" name="token-expires" value={data.expires} onChange={onExpiresChange} autoComplete="on" />
+                        <input type="date" id="token-expires" name="token-expires" value={data.expires} onChange={onExpiresChange} autoComplete="on" required />
                     </div>
                     <div className="token-form-fragment">
                         <span className="token-form-fragment-label">Scopes:</span>
                         <div id="token-scopes-container">
                             {scopes.map(scope => (
-                                <label key={scope.value}>
+                                <label key={scope.value} title={scope.title}>
                                     <input
                                         type="checkbox"
                                         name="token-scopes"
                                         value={scope.value}
-                                        title={scope.title}
                                         checked={data.scopes.includes(scope.value)}
                                         onChange={onScopesChange}
                                     />
-                                    {scope.name}
+                                    {scope.code}
                                 </label>
                             ))}
                         </div>

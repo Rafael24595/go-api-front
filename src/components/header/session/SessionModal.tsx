@@ -31,7 +31,7 @@ interface PayloadToken {
 }
 
 export function SessionModal({ isOpen, onClose }: SessionModalProps) {
-    const { userData, login, logout, authenticate, signin, remove } = useStoreSession();
+    const { userData, login, logout, authenticate, signin, remove, fetchTokens } = useStoreSession();
     const { isDark, openModal, toggleDefaultThemes } = useStoreTheme();
 
     const { push, ask } = useAlert();
@@ -128,6 +128,7 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     };
 
     const showTokenModal = () => {
+        fetchTokens();
         setTokenData({
             status: true,
         });

@@ -1,3 +1,9 @@
+export interface Scopes {
+    code: string
+    title: string
+    value: string
+}
+
 export interface Token {
     id: string
     timestamp: number

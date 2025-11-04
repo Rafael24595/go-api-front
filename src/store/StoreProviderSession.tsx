@@ -1,21 +1,23 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from "react";
-import { fetchAuthenticate, fetchLogin, fetchLogout, fetchRefresh, fetchRemove, fetchSignin, fetchUserData, fetchUserTokens, insertUserToken } from "../services/api/ServiceManager";
+import { deleteUserToken, fetchAuthenticate, fetchLogin, fetchLogout, fetchRefresh, fetchRemove, fetchSignin, fetchTokenScopes, fetchUserData, fetchUserTokens, insertUserToken } from "../services/api/ServiceManager";
 import { newUserData, UserData } from "../interfaces/UserData";
 import { Dict } from "../types/Dict";
 import { generateHash } from "../services/Utils";
 import { putRefreshHandler } from "../services/api/ApiManager";
-import { Token } from "../interfaces/Token";
+import { Scopes, Token } from "../interfaces/Token";
 
 interface StoreProviderSessionType {
   userData: UserData;
+  scopes: Scopes[];
   tokens: Token[];
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
   signin: (username: string, password1: string, password2: string, isAdmin: boolean) => Promise<void>
   remove: () => Promise<void>
   fetchUser: () => Promise<void>
-  insertToken: (token: Token) => Promise<string>
   fetchTokens: () => Promise<void>
+  insertToken: (token: Token) => Promise<string>
+  deleteToken: (token: Token) => Promise<void>
   authenticate: (oldPassword: string, newPassword1: string, newPassword2: string) => Promise<void>
   pushTrigger: (key: string, trigger: Trigger) => Promise<void>
 }
@@ -29,9 +31,14 @@ interface Payload {
   loaded: boolean;
 }
 
-interface PayloadTokens {
-  tokens: Token[];
+interface PayloadScopes {
   hash: string;
+  scopes: Scopes[];
+}
+
+interface PayloadTokens {
+  hash: string;
+  tokens: Token[];
 }
 
 const StoreSession = createContext<StoreProviderSessionType | undefined>(undefined);
@@ -42,6 +49,11 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     hash: "",
     triggers: {},
     loaded: false
+  });
+
+  const [dataScopes, setScopesData] = useState<PayloadScopes>({
+    hash: "",
+    scopes: [],
   });
 
   const [dataTokens, setTokensData] = useState<PayloadTokens>({
@@ -67,6 +79,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
 
   useEffect(() => {
     userDataRef.current = data.userData;
+    fetchScopes();
     fetchTokens();
   }, [data.userData]);
 
@@ -126,6 +139,16 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     return defineUserData(userData, true);
   };
 
+  const fetchScopes = async () => {
+    await fetchTokenScopes()
+      .then(async (scopes) => {
+        defineScopes(scopes);
+      }).catch((err) => {
+        //TODO: Manage error.
+        throw err;
+      });
+  };
+
   const fetchTokens = async () => {
     await fetchUserTokens()
       .then(async (tokens) => {
@@ -144,6 +167,15 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       });
     fetchTokens();
     return raw
+  };
+
+  const deleteToken = async (token: Token) => {
+    await deleteUserToken(token)
+      .catch((err) => {
+        //TODO: Manage error.
+        throw err;
+      });
+    fetchTokens();
   };
 
   const defineUserData = async (newUser: UserData, forceTriggers?: boolean) => {
@@ -171,15 +203,31 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     }
   };
 
+    const defineScopes = async (scopes: Scopes[]) => {
+    scopes = scopes.sort((a, b) => b.code > a.code ? -1 : 1);
+
+    const newHash = await generateHash(scopes);
+
+    setScopesData(prevData => {
+      if (prevData.hash === newHash) {
+        return prevData;
+      }
+
+      return {
+        scopes: scopes,
+        hash: newHash,
+      };
+    });
+  };
+
   const defineTokens = async (tokens: Token[]) => {
+    tokens = tokens.sort((a, b) => b.timestamp - a.timestamp);
+
     const newHash = await generateHash(tokens);
 
     setTokensData(prevData => {
       if (prevData.hash === newHash) {
-        return {
-          ...prevData,
-          loaded: true
-        };
+        return prevData;
       }
 
       return {
@@ -203,10 +251,12 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
   return (
     <StoreSession.Provider value={{
       ...data,
+      scopes: dataScopes.scopes,
       tokens: dataTokens.tokens,
       login, logout, signin,
       remove, fetchUser, fetchTokens,
-      insertToken, authenticate, pushTrigger
+      insertToken, deleteToken, authenticate,
+      pushTrigger
     }}>
       {data.loaded ? children :
         <>
