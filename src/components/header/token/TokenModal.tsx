@@ -5,11 +5,11 @@ import { newToken, Token } from '../../../interfaces/Token';
 import { copyTextToClipboard } from '../../../services/Utils';
 import { EAlertCategory } from '../../../interfaces/AlertData';
 import { useAlert } from '../../utils/alert/Alert';
-
-import './TokenModal.css';
 import { millisecondsToDate } from '../../../services/Tools';
 import { ModalButton } from '../../../interfaces/ModalButton';
 import { VoidCallback } from '../../../interfaces/Callback';
+
+import './TokenModal.css';
 
 interface TokenModalProps {
     isOpen: boolean,
