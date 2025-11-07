@@ -70,7 +70,7 @@ export function PayloadColumn() {
 
     const format = async (text: string) => {
         if(cusorIs(VIEW_TEXT)) {
-            return await formatHtml(text);
+            return text;
         }
         
         try {
