@@ -9,6 +9,7 @@ import useInactivityRefresh from "../../hook/InactivityRefresh";
 import { generateHash } from "../../services/Utils";
 import { hostURL } from "../../services/api/ApiManager";
 import { useStoreStatus } from "../StoreProviderStatus";
+import { hasRole, Role } from "../../interfaces/UserData";
 
 import './StoreProviderSystem.css';
 
@@ -150,7 +151,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
           }
         ]}
         titleCustom={
-          <span title={ metadata.metadata.enable_secrets ? "Secrets enabled" : "" }>
+          <span title={metadata.metadata.enable_secrets ? "Secrets enabled" : ""}>
             System metadata
           </span>
         }
@@ -229,7 +230,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
             )}
             <div id="system-metadata-footer">
               <button className="button-anchor" onClick={clean} title="View system logs">Clear Storage</button>
-              {userData.is_admin && (
+              {hasRole(userData, Role.ROLE_ADMIN) && (
                 <>
                   <button className="button-anchor" onClick={showLogs} title="View system logs">Logs</button>
                 </>
