@@ -5,9 +5,9 @@ import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreCollections } from '../../../../../store/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useState } from 'react';
-import { CollectModal } from '../../../../collection/CollectModal';
+import { CollectModal } from '../../../../client/collection/CollectModal';
 import { calculateWindowSize, downloadFile } from '../../../../../services/Utils';
-import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
+import { ImportRequestModal } from '../../../../client/collection/ImportRequestModal';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
@@ -20,7 +20,7 @@ import { searchOptions, storedGroupOptions, storedOptions } from './Constants';
 import { CodeArea } from '../../../../utils/code-area/CodeArea';
 import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
-import { ImportCurlModal } from '../../../../collection/ImportCurlModal';
+import { ImportCurlModal } from '../../../../client/collection/ImportCurlModal';
 
 import './StoredColumn.css';
 

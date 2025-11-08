@@ -3,3 +3,7 @@
     flex: 1 1 auto;
     height: 0px;
 }
+
+.section-header-element {
+    height: 25px;
+}

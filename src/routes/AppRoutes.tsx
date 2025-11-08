@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import ClientPage from "../pages/Client";
+import ClientPage from "../pages/ClientPage";
 
 export default function AppRoutes() {
   return (

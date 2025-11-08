@@ -1,44 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { Modal } from '../utils/modal/Modal';
-import { useAlert } from '../utils/alert/Alert';
-import { EAlertCategory } from '../../interfaces/AlertData';
-import { formatBytes, millisecondsToDate } from '../../services/Tools';
-import { fetchFile } from '../../services/api/ServiceClient';
-import { useStoreStatus } from '../../store/StoreProviderStatus';
+import { Modal } from '../../utils/modal/Modal';
+import { useAlert } from '../../utils/alert/Alert';
+import { EAlertCategory } from '../../../interfaces/AlertData';
+import { formatBytes, millisecondsToDate } from '../../../services/Tools';
+import { useStoreStatus } from '../../../store/StoreProviderStatus';
 
 import './ImportModal.css';
 
-const FILE_TYPE_KEY = "OpenApiModalKey";
+const FILE_TYPE_KEY = "ImportModalKey";
 
-interface ImportOpenApiModalProps {
+interface ImportCurlModalProps {
     isOpen: boolean,
-    onSubmit(file: File): Promise<void>,
+    onSubmit(curls: string[]): Promise<void>,
     onClose: () => void,
 }
 
 const CURSOR_LOCAL = "local";
-const CURSOR_REMOTE = "remote";
 const CURSOR_TEXT = "text";
 
-const VALID_CURSORS = [CURSOR_LOCAL, CURSOR_REMOTE, CURSOR_TEXT];
+const VALID_CURSORS = [CURSOR_LOCAL, CURSOR_TEXT];
 
 const DEFAULT_CURSOR = CURSOR_LOCAL;
 
 interface Payload {
+    curls: string[]
     file: File | null
-    fileUri: string
     fileBlob: string
     fileType: string
 }
 
-export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiModalProps) {
+export function ImportCurlModal({ isOpen, onSubmit, onClose }: ImportCurlModalProps) {
     const { find, store } = useStoreStatus();
 
     const { push } = useAlert();
 
     const [data, setData] = useState<Payload>({
+        curls: [],
         file: null,
-        fileUri: "",
         fileBlob: "",
         fileType: find(FILE_TYPE_KEY, {
             def: DEFAULT_CURSOR,
@@ -53,15 +51,19 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
         }));
       }, [isOpen]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if(files == null) {
             return;
         }
 
+        const file = files[0];
+        const requests = parseBlob(await file.text());
+
         setData((prevData) => ({
             ...prevData,
-            file: files[0]
+            file,
+            requests
         }));
     };
 
@@ -74,7 +76,7 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
             return;
         }
 
-        await onSubmit(data.file).then(resetModal);
+        await onSubmit(data.curls).then(resetModal);
     }
 
     const changeFileType = (e: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -86,35 +88,11 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
         store(FILE_TYPE_KEY, value);
         
         setData({
+            curls: [],
             file: null,
-            fileUri: "",
             fileBlob: "",
             fileType: value
         });
-    }
-
-    const changeFileUri = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        setData((prevData) => ({
-            ...prevData,
-            fileUri: e.target.value
-        }));
-    }
-
-    const fetchUriFile = async () => {
-        const file = await fetchFile(data.fileUri).catch(e =>
-            push({
-                title: `[${e.statusCode}] ${e.statusText}`,
-                category: EAlertCategory.ERRO,
-                content: e.message,
-            }));
-        if(!file) {
-            return;
-        }
-
-        setData((prevData) => ({
-            ...prevData,
-            file
-        }))
     }
 
     const changeFileBlob = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
@@ -124,13 +102,21 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
         }));
     }
 
-    const loadFileBlob = async () => {
+    const loadFileBlob = () => {
+        const curls = parseBlob(data.fileBlob);
         const file = new File([data.fileBlob], "text", { type: "blob" });
 
         setData((prevData) => ({
             ...prevData,
-            file
+            file,
+            curls
         }))
+    }
+
+    const parseBlob = (blob: string) => {
+        return blob.split("\n\n")
+            .map(c => c.trim())
+            .filter(c => c.startsWith("curl"));
     }
 
     const localClose = () => {
@@ -165,7 +151,7 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
                 }
             ]}  
             titleCustom={
-                <span>Upload an OpenAPI File</span>
+                <span>Import cURL sentences</span>
             }
             style={{
                 width:"50%",
@@ -184,14 +170,10 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
                                     <label htmlFor="file-type">File: </label>
                                     <select name="file-type" value={data.fileType} onChange={changeFileType}>
                                         <option value={CURSOR_LOCAL}>Local</option>
-                                        <option value={CURSOR_REMOTE}>Remote</option>
                                         <option value={CURSOR_TEXT}>Text</option>
                                     </select>
                                 </div>
                                 <div id="selector-button">
-                                    {data.fileType == CURSOR_REMOTE && (
-                                        <button type="button" onClick={fetchUriFile}>Load</button>
-                                    )}
                                     {data.fileType == CURSOR_TEXT && (
                                         <button type="button" onClick={loadFileBlob}>Load</button>
                                     )}
@@ -200,9 +182,6 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
                             <div id="selector-file">
                                 {data.fileType == CURSOR_LOCAL && (
                                     <input type="file" onChange={handleFileChange}/>
-                                )}
-                                {data.fileType == CURSOR_REMOTE && (
-                                    <input type="text" placeholder="https://swagger.io/docs/specification/v3_0/basic-structure" value={data.fileUri} onChange={changeFileUri}/>
                                 )}
                                 {data.fileType == CURSOR_TEXT && (
                                     <textarea value={data.fileBlob} onChange={changeFileBlob}></textarea>
@@ -213,7 +192,7 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
                     </div>
                     { data.file && (
                         <div>
-                            <h3 className="selector-title">Metadata:</h3>
+                            <h3 className="selector-title">Metadata <span title="Number of collections">[{ data.curls.length }]</span>:</h3>
                             <div id="metadata-container">
                                 <div className="metadata-fragment">
                                     <p><span className="metadata-title">Name: </span> <span className="metadata-value">{ data.file.name }</span></p>

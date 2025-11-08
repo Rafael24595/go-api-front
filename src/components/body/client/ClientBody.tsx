@@ -2,14 +2,14 @@ import { ContentContainer } from './center-container/ContentContainer';
 import { LeftSidebar } from './left-sidebar/LeftSidebar'
 import { RightSidebar } from './right-sidebar/RightSidebar';
 
-import './Client.css'
+import './ClientBody.css'
 
-export function Client() {
+export function ClientBody() {
     return (
-        <>
-            <LeftSidebar/>
-            <ContentContainer/>
-            <RightSidebar/>
-        </>
+        <div id='body-content'>
+            <LeftSidebar />
+            <ContentContainer />
+            <RightSidebar />
+        </div>
     )
 }

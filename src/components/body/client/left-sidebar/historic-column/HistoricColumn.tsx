@@ -4,7 +4,7 @@ import { deleteHistoric as fetchDeleteHistoric, findAction, formatCurl, requestC
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreCollections } from '../../../../../store/StoreProviderCollections';
-import { CollectModal } from '../../../../collection/CollectModal';
+import { CollectModal } from '../../../../client/collection/CollectModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';
 import { useStoreSession } from '../../../../../store/StoreProviderSession';

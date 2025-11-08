@@ -3,7 +3,7 @@ import { QueryArguments } from './query-arguments/QueryArguments';
 import { HeaderArguments } from './header-arguments/HeaderArguments';
 import { AuthArguments } from './auth-arguments/AuthArguments';
 import { BodyArguments } from './body-arguments/BodyArguments';
-import { ContextModal } from '../../../../context/ContextModal';
+import { ContextModal } from '../../../../client/context/ContextModal';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { CookieArguments } from './cookie-arguments/CookieArguments';

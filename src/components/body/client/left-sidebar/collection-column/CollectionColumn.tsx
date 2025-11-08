@@ -7,12 +7,12 @@ import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
 import { useStoreCollections } from '../../../../../store/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { Details } from '../../../../utils/details/Details';
-import { ImportOpenApiModal } from '../../../../collection/ImportOpenApiModal';
+import { ImportOpenApiModal } from '../../../../client/collection/ImportOpenApiModal';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { downloadFile } from '../../../../../services/Utils';
-import { ImportCollectionModal } from '../../../../collection/ImportCollectionModal';
-import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
+import { ImportCollectionModal } from '../../../../client/collection/ImportCollectionModal';
+import { ImportRequestModal } from '../../../../client/collection/ImportRequestModal';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useStoreSession } from '../../../../../store/StoreProviderSession';
 import { useStoreContext } from '../../../../../store/StoreProviderContext';
@@ -23,8 +23,8 @@ import { VoidCallback } from '../../../../../interfaces/Callback';
 import { collectionOptions, collectionGroupOptions, searchOptions } from './Constants';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
 import { CollectionRequests } from './CollectionRequests';
-import { CollectModal } from '../../../../collection/CollectModal';
-import { ImportCurlModal } from '../../../../collection/ImportCurlModal';
+import { CollectModal } from '../../../../client/collection/CollectModal';
+import { ImportCurlModal } from '../../../../client/collection/ImportCurlModal';
 
 import './CollectionColumn.css';
 

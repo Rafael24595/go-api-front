@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Modal } from '../utils/modal/Modal';
+import { Modal } from '../../utils/modal/Modal';
 import { v4 as uuidv4 } from 'uuid';
-import { cleanCopy, fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../interfaces/StatusCategoryKeyValue';
-import { StatusCategoryKeyValue } from '../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
-import { Context, ItemContext, toContext } from '../../interfaces/context/Context';
-import { importContext } from '../../services/api/ServiceStorage';
-import { useStoreContext } from '../../store/StoreProviderContext';
-import { downloadFile } from '../../services/Utils';
+import { cleanCopy, fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../../interfaces/StatusCategoryKeyValue';
+import { StatusCategoryKeyValue } from '../../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
+import { Context, ItemContext, toContext } from '../../../interfaces/context/Context';
+import { importContext } from '../../../services/api/ServiceStorage';
+import { useStoreContext } from '../../../store/StoreProviderContext';
+import { downloadFile } from '../../../services/Utils';
 import { ImportContext } from './ImportContext';
-import { EAlertCategory } from '../../interfaces/AlertData';
-import { useAlert } from '../utils/alert/Alert';
-import { useStoreStatus } from '../../store/StoreProviderStatus';
-import { FilterResult, PositionWrapper, VerticalDragDrop } from '../utils/drag/VerticalDragDrop';
-import { Combo } from '../utils/combo/Combo';
+import { EAlertCategory } from '../../../interfaces/AlertData';
+import { useAlert } from '../../utils/alert/Alert';
+import { useStoreStatus } from '../../../store/StoreProviderStatus';
+import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../utils/drag/VerticalDragDrop';
+import { Combo } from '../../utils/combo/Combo';
 
 import './ContextModal.css';
 
