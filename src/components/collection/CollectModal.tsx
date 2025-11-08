@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal } from '../utils/modal/Modal';
 import { LiteRequest } from '../../interfaces/request/Request';
-import { useStoreRequests } from '../../store/StoreProviderRequests';
+import { useStoreCollections } from '../../store/StoreProviderCollections';
 
 import './CollectModal.css';
 
@@ -22,7 +22,7 @@ interface Payload {
 }
 
 export function CollectModal({ isOpen, request, parent, onSubmit, onClose }: CollectModalProps) {
-    const { collection } = useStoreRequests();
+    const { collection } = useStoreCollections();
 
     const [data, setData] = useState<Payload>({
         collectionId: parent || NEW_COLLECTION,

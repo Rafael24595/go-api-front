@@ -6,7 +6,7 @@ import { useStoreSession } from "./StoreProviderSession";
 import { RequestNode } from "../services/api/Requests";
 import { generateHash } from "../services/Utils";
 
-interface StoreProviderRequestsType {
+interface StoreProviderCollectionsType {
   historic: LiteRequest[];
   stored: LiteRequest[];
   collection: LiteItemCollection[];
@@ -32,9 +32,9 @@ interface PayloadCollection {
 
 const TRIGGER_KEY = "StoreRequestsTrigger";
 
-const StoreRequests = createContext<StoreProviderRequestsType | undefined>(undefined);
+const StoreRequests = createContext<StoreProviderCollectionsType | undefined>(undefined);
 
-export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { userData, fetchUser, pushTrigger } = useStoreSession();
 
   const [historic, setHistoric] = useState<PayloadRequest>({
@@ -296,7 +296,7 @@ export const StoreProviderRequests: React.FC<{ children: ReactNode }> = ({ child
   );
 };
 
-export const useStoreRequests = (): StoreProviderRequestsType => {
+export const useStoreCollections = (): StoreProviderCollectionsType => {
   const context = useContext(StoreRequests);
   if (!context) {
     throw new Error("useStore must be used within a StoreProviderRequests");

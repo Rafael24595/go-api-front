@@ -2,7 +2,7 @@ import { deleteAction, findAction, formatCurl, importCurl, importRequests, reque
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
-import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
+import { useStoreCollections } from '../../../../../store/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useState } from 'react';
 import { CollectModal } from '../../../../collection/CollectModal';
@@ -61,7 +61,7 @@ export function StoredColumn() {
     const { loadThemeWindow } = useStoreTheme();
 
     const { request, cleanRequest, discardRequest, defineFreeRequest, fetchFreeRequest, insertRequest, isCached } = useStoreRequest();
-    const { stored, fetchStored, fetchCollection, updateStoredOrder } = useStoreRequests();
+    const { stored, fetchStored, fetchCollection, updateStoredOrder } = useStoreCollections();
 
     const { push, ask } = useAlert();
 

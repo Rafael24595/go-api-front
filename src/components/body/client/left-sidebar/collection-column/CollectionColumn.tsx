@@ -4,7 +4,7 @@ import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/
 import { cloneCollection, deleteCollection, findAction, findCollection, imporOpenApi, importCollections, importCurl, importToCollection, insertCollection, requestCollect } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
-import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
+import { useStoreCollections } from '../../../../../store/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { Details } from '../../../../utils/details/Details';
 import { ImportOpenApiModal } from '../../../../collection/ImportOpenApiModal';
@@ -77,7 +77,7 @@ export function CollectionColumn() {
 
     const context = useStoreContext();
     const { parent, cleanRequest, discardRequest, isParentCached } = useStoreRequest();
-    const { collection, fetchCollection, fetchCollectionItem, updateCollectionsOrder } = useStoreRequests();
+    const { collection, fetchCollection, fetchCollectionItem, updateCollectionsOrder } = useStoreCollections();
 
     const [filterData, setFilterData] = useState<PayloadFilter>({
         target: find(FILTER_TARGET_KEY, {

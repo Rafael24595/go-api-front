@@ -4,7 +4,7 @@ import { LiteRequest } from '../../../../../interfaces/request/Request';
 import { deleteFromCollection, findAction, formatCurl, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
-import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
+import { useStoreCollections } from '../../../../../store/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { calculateWindowSize } from '../../../../../services/Utils';
@@ -37,7 +37,7 @@ export function CollectionRequests({ collection, showDuplicateModal, showMoveMod
 
 
     const { request, cleanRequest, discardRequest, defineFreeRequest, fetchGroupRequest, isCached } = useStoreRequest();
-    const { fetchStored, fetchCollection, updateCollectionRequestsOrder } = useStoreRequests();
+    const { fetchStored, fetchCollection, updateCollectionRequestsOrder } = useStoreCollections();
 
     const [dragData, setDragData] = useState<PayloadDrag>({
         request: undefined,

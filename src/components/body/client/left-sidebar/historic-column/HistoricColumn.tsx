@@ -3,7 +3,7 @@ import { LiteRequest, newRequest } from '../../../../../interfaces/request/Reque
 import { deleteHistoric as fetchDeleteHistoric, findAction, formatCurl, requestCollect } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
-import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
+import { useStoreCollections } from '../../../../../store/StoreProviderCollections';
 import { CollectModal } from '../../../../collection/CollectModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';
@@ -35,7 +35,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const { loadThemeWindow } = useStoreTheme();
 
     const { request, cleanRequest, defineFreeRequest, fetchFreeRequest, insertRequest } = useStoreRequest();
-    const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreRequests();
+    const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreCollections();
 
     const [modalData, setModalData] = useState<PayloadModal>({
         request: newRequest(userData.username),

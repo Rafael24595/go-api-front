@@ -3,7 +3,7 @@ import { HistoricColumn } from './historic-column/HistoricColumn';
 import { StoredColumn } from './stored-column/StoredColumn';
 import { CollectionColumn } from './collection-column/CollectionColumn';
 import { useStoreStatus } from '../../../../store/StoreProviderStatus';
-import { useStoreRequests } from '../../../../store/StoreProviderRequests';
+import { useStoreCollections } from '../../../../store/StoreProviderCollections';
 import { KeyValue } from '../../../../interfaces/KeyValue';
 
 import './LeftSidebar.css';
@@ -34,7 +34,7 @@ const CURSOR_KEY = "LeftSidebarCursor";
 
 export function LeftSidebar() {
     const { find, store } = useStoreStatus();
-    const { fetchHistoric, fetchStored, fetchCollection, fetchAll } = useStoreRequests();
+    const { fetchHistoric, fetchStored, fetchCollection, fetchAll } = useStoreCollections();
 
     const [cursor, setCursor] = useState<string>(
         find(CURSOR_KEY, {

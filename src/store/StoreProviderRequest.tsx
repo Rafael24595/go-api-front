@@ -11,7 +11,7 @@ import { Optional } from "../types/Optional";
 import { CacheActionData } from "../interfaces/CacheActionData";
 import { useStoreSession } from "./StoreProviderSession";
 import { useStoreContext } from "./StoreProviderContext";
-import { useStoreRequests } from "./StoreProviderRequests";
+import { useStoreCollections } from "./StoreProviderCollections";
 import { useAlert } from "../components/utils/alert/Alert";
 import { executeFormAction } from "../services/api/ServiceManager";
 import { EAlertCategory } from "../interfaces/AlertData";
@@ -82,7 +82,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const { userData, fetchUser, pushTrigger } = useStoreSession();
   const { fetchContext } = useStoreContext();
   const { getContext } = useStoreContext();
-  const { fetchAll } = useStoreRequests();
+  const { fetchAll } = useStoreCollections();
 
   const { push } = useAlert();
 
