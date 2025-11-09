@@ -158,3 +158,11 @@ export const fetchTokenScopes = async (): Promise<Scopes[]> => {
   }
 };
 
+export const fetchCmd = async (cmd: string): Promise<string> => {
+  try {
+    const apiResponse = await authApiManager.post(`/system/cmd`, cmd);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};

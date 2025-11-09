@@ -87,6 +87,10 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
     window.open(`/log`, '_blank', windowPreferences(850, 500));
   }
 
+  const showTerminal = () => {
+    window.open(`/cmd`, '_blank', windowPreferences(850, 500));
+  }
+
   const viewerUrl = (source: ViewerSource) => {
     return `${hostURL()}${source.route}`;
   }
@@ -186,6 +190,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
               {hasRole(userData, Role.ROLE_ADMIN) && (
                 <>
                   <button className="button-anchor" onClick={showLogs} title="View system logs">Logs</button>
+                  <button className="button-anchor" onClick={showTerminal} title="View system logs">Cmd</button>
                 </>
               )}
             </div>
