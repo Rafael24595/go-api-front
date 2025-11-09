@@ -1,5 +1,7 @@
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import { fetchCmd } from "../../services/api/ServiceManager";
+import { api } from "../../services/api/ApiManager";
+import { useStoreSession } from "../../store/StoreProviderSession";
 
 import './Terminal.css';
 
@@ -15,15 +17,20 @@ interface PayloadCmd {
 }
 
 export function Cmd() {
-
     const [linesData, setLinesData] = useState<PayloadCmd>({
         cursor: 0,
         records: [],
         history: []
     });
 
+    const {userData} = useStoreSession()
+
     const inputRef = useRef<HTMLDivElement | null>(null);
     const bottomRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        runCommand("cmd -h", true)
+    }, []);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -44,9 +51,17 @@ export function Cmd() {
     };
 
     const resolveEnter = async () => {
+        runCommand(inputRef.current?.innerText || "");
+
+        if (inputRef.current) {
+            inputRef.current.innerText = "";
+        }
+    };
+
+    const runCommand = async (input: string, ignore?: boolean) => {
         const cmd: CmdRecord = {
             request: true,
-            content: inputRef.current?.innerText.trim() || ""
+            content: input.trim() || ""
         };
 
         if (cmd.content == "cls" || cmd.content == "clear") {
@@ -64,6 +79,19 @@ export function Cmd() {
             })
         }
 
+        if (ignore) {
+            setLinesData((prevData) => ({
+                ...prevData,
+                cursor: prevData.history.length,
+                records: [
+                    ...prevData.records,
+                    ...output,
+                ]
+            }));
+            
+            return;
+        }
+
         setLinesData((prevData) => ({
             cursor: prevData.history.length + 1,
             records: [
@@ -76,10 +104,6 @@ export function Cmd() {
                 cmd,
             ]
         }));
-
-        if (inputRef.current) {
-            inputRef.current.innerText = "";
-        }
     };
 
     const consoleClean = async (cmd: CmdRecord) => {
@@ -130,7 +154,7 @@ export function Cmd() {
                 </span>
             ))}
             <div id="terminal-text-area">
-                <span id="prompt">go-api/api/v1/cmd&gt;</span>
+                <span id="prompt">{userData.username}@go-api{api}/cmd&gt;</span>
                 <span
                     ref={inputRef}
                     onKeyDown={handleKeyDown}

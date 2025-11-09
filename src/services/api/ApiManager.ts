@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 
 const url = "";
-const api = "/api/v1";
+export const api = "/api/v1";
 
 let isRefreshing = false;
 let failedQueue: any[] = [];
