@@ -11,6 +11,7 @@ import { Optional } from "../../types/Optional";
 import { useStoreSession } from "../StoreProviderSession";
 import { UserData } from "../../interfaces/UserData";
 import { createRoot } from "react-dom/client";
+import { windowPreferences } from "../../utils/Window";
 
 const STORAGE_THEME_KEY = "StoreProviderThemeCache";
 const TRIGGER_KEY = "StoreProviderThemeTrigger";
@@ -205,15 +206,6 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
 
     document.querySelectorAll('link[rel="stylesheet"], style')
       .forEach(node => newWindow.document.head.appendChild(node.cloneNode(true)));
-  }
-
-  const windowPreferences = (width: number, height: number) => {
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
-    const left = (screenWidth / 2) - (width / 2);
-    const top = (screenHeight / 2) - (height / 2);
-
-    return `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`;
   }
 
   const openModal = async () => {

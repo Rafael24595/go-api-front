@@ -1,0 +1,13 @@
+#terminal {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--terminal-text-color);
+    background-color: var(--terminal-color);
+}
+
+.terminal-output {
+    margin: 2px;
+}

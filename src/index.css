@@ -32,6 +32,8 @@
   --scrollbar-color: #888888;
   --scrollbar-hover-color: #555555;
   --landing-area-color: #000000;
+  --terminal-color:  #000000;
+  --terminal-text-color: #ffffff;
 }
 
 [data-theme='dark'] {
@@ -67,6 +69,8 @@
   --scrollbar-color: #aaaaaa;
   --scrollbar-hover-color: #d4d4d4;
   --landing-area-color: #ffffff;
+  --terminal-color:  #000000;
+  --terminal-text-color: #ffffff;
 }
 
 ::-webkit-scrollbar {
