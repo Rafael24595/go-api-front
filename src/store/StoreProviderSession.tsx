@@ -19,6 +19,7 @@ interface StoreProviderSessionType {
   insertToken: (token: Token) => Promise<string>
   deleteToken: (token: Token) => Promise<void>
   authenticate: (oldPassword: string, newPassword1: string, newPassword2: string) => Promise<void>
+  checkSession: () => Promise<void>
   pushTrigger: (key: string, trigger: Trigger) => Promise<void>
 }
 
@@ -132,6 +133,10 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
           fetchUserRetry(1);
         }
       });
+  };
+
+  const checkSession = async () => {
+    await fetchUser();
   };
 
   const refresh = async () => {
@@ -256,7 +261,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       login, logout, signin,
       remove, fetchUser, fetchTokens,
       insertToken, deleteToken, authenticate,
-      pushTrigger
+      checkSession, pushTrigger
     }}>
       {data.loaded ? children :
         <>
