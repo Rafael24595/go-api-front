@@ -553,7 +553,7 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#00ff99",
             "landing-area-color": "#001a00",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#00ff00"
         }
     },
     nevada: {
@@ -596,7 +596,7 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ffcc99",
             "landing-area-color": "#331a00",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ff9900"
         }
     },
     solarized: {
