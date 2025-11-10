@@ -23,7 +23,7 @@ export function Cmd() {
         history: []
     });
 
-    const {userData} = useStoreSession()
+    const { userData, checkSession } = useStoreSession()
 
     const inputRef = useRef<HTMLDivElement | null>(null);
     const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -35,6 +35,16 @@ export function Cmd() {
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [linesData.records]);
+
+    const focusCmd = () => {
+        const selection = window.getSelection();
+
+        if (selection && selection.toString().length > 0) {
+            return;
+        }
+
+        inputRef.current?.focus();
+    }
 
     const handleKeyDown = async (e: KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Enter") {
@@ -64,10 +74,39 @@ export function Cmd() {
             content: input.trim() || ""
         };
 
-        if (cmd.content == "cls" || cmd.content == "clear") {
-            return consoleClean(cmd);
+        switch (cmd.content) {
+            case "cls":
+            case "clear":
+                return clean(cmd);
+            case "exit":
+                return exit();
+            default:
+                return exec(cmd, ignore);
         }
+    };
 
+    const clean = (cmd: CmdRecord) => {
+        setLinesData((prevData) => ({
+            ...prevData,
+            cursor: 0,
+            records: [],
+            history: [
+                ...prevData.history,
+                cmd
+            ]
+        }));
+
+        if (inputRef.current) {
+            inputRef.current.innerHTML = "";
+        }
+    };
+
+    const exit = async () => {
+        await checkSession();
+        window.close();
+    };
+
+    const exec = async (cmd: CmdRecord, ignore?: boolean) => {
         const result = await fetchCmd(cmd.content)
             .catch(e => `${e.message || "something goes wrong"}`);
 
@@ -88,7 +127,7 @@ export function Cmd() {
                     ...output,
                 ]
             }));
-            
+
             return;
         }
 
@@ -104,22 +143,6 @@ export function Cmd() {
                 cmd,
             ]
         }));
-    };
-
-    const consoleClean = async (cmd: CmdRecord) => {
-        setLinesData((prevData) => ({
-            ...prevData,
-            cursor: 0,
-            records: [],
-            history: [
-                ...prevData.history,
-                cmd
-            ]
-        }));
-
-        if (inputRef.current) {
-            inputRef.current.innerHTML = "";
-        }
     };
 
     const resolveMoveCursor = async (step: number) => {
@@ -147,7 +170,7 @@ export function Cmd() {
     };
 
     return (
-        <div id="terminal" onClick={() => inputRef.current?.focus()}>
+        <div id="terminal" onClick={focusCmd}>
             {linesData.records.map((line, i) => (
                 <span key={i} className={`terminal-output ${line.request ? "request" : ""}`}>
                     {line.content}

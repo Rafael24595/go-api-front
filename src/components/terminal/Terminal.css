@@ -22,6 +22,7 @@
 
 #prompt {
     float: left;
+    user-select: none;
 }
 
 #terminal-text-area {
