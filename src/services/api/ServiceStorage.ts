@@ -1,7 +1,7 @@
 import { Collection, ItemCollection, ItemNodeCollection, ItemNodeRequest, LiteItemCollection } from "../../interfaces/collection/Collection";
 import { Context } from "../../interfaces/context/Context";
 import { ItemRequest, LiteRequest, Request } from "../../interfaces/request/Request";
-import { Response } from "../../interfaces/response/Response";
+import { Response, SignedPayload } from "../../interfaces/response/Response";
 import { authApiManager } from "./ApiManager";
 import { RequestCloneCollection, RequestImportContext, RequestNode, RequestRequestCollect, RequestSortNodes } from "./Requests";
 import { ResponseExecuteAction } from "./Responses";
@@ -50,7 +50,7 @@ export const findActionById = async (request: string): Promise<ResponseExecuteAc
   }
 };
 
-export const findAllAction = async (): Promise<ItemNodeRequest[]> => {
+export const findAllAction = async (): Promise<SignedPayload<ItemNodeRequest[]>> => {
   try {
     const apiResponse = await authApiManager.get(`/request`);
     return apiResponse.data;
@@ -102,7 +102,7 @@ export const deleteAction = async (request: LiteRequest): Promise<ResponseExecut
   }
 };
 
-export const findAllHistoric = async (): Promise<ItemNodeRequest[]> => {
+export const findAllHistoric = async (): Promise<SignedPayload<ItemNodeRequest[]>> => {
   try {
     const apiResponse = await authApiManager.get(`/historic`);
     return apiResponse.data;
@@ -153,7 +153,7 @@ export const findCollectionLite = async (collection: LiteItemCollection): Promis
   }
 };
 
-export const findAllCollection = async (): Promise<ItemNodeCollection[]> => {
+export const findAllCollection = async (): Promise<SignedPayload<ItemNodeCollection[]>> => {
   try {
     const apiResponse = await authApiManager.get(`/collection`);
     return apiResponse.data;

@@ -97,15 +97,16 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
   };
 
   const fetchHistoric = async () => {
-    const data = await fetchHistoricWithoutValidation();
-    if(data.find(c => c.owner != userData.username)) {
+    const owner = await fetchHistoricWithoutValidation();
+    if(owner != userData.username) {
       fetchUser();
     }
   };
 
-  const fetchHistoricWithoutValidation = async (): Promise<Request[]> => {
+  const fetchHistoricWithoutValidation = async (): Promise<string> => {
     try {
-      const data = (await findAllHistoric())
+      const response = await findAllHistoric();
+      const data = response.payload
         .sort((a, b) => b.order - a.order)
         .map(n => n.request);
 
@@ -122,23 +123,24 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
         };
       });
 
-      return data;
+      return response.owner;
     } catch (error) {
       console.error("Error fetching history:", error);
-      return [];
+      return "";
     }
   };
 
   const fetchStored = async () => {
-    const data = await fetchStoredWithoutValidation();
-    if(data.find(c => c.owner != userData.username)) {
+    const owner = await fetchStoredWithoutValidation();
+    if(owner != userData.username) {
       fetchUser();
     }
   };
 
-  const fetchStoredWithoutValidation = async (): Promise<Request[]> => {
+  const fetchStoredWithoutValidation = async (): Promise<string> => {
     try {
-      const data = (await findAllAction())
+      const response = await findAllAction();
+      const data = response.payload
         .sort((a, b) => a.order - b.order)
         .map(n => n.request);
       
@@ -155,23 +157,24 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
         };
       });
 
-      return data;
+      return response.owner;
     } catch (error) {
       console.error("Error fetching stored:", error);
-      return [];
+      return "";
     }
   };
 
   const fetchCollection = async () => {
-    const data = await fetchCollectionWithoutValidation();
-    if(data.find(c => c.owner != userData.username)) {
+    const owner = await fetchCollectionWithoutValidation();
+    if(owner != userData.username) {
       fetchUser();
     }
   };
 
-  const fetchCollectionWithoutValidation = async (): Promise<ItemCollection[]> => {
+  const fetchCollectionWithoutValidation = async (): Promise<string> => {
     try {
-      const data = (await findAllCollection())
+      const request = await findAllCollection();
+      const data = request.payload
         .sort((a, b) => a.order - b.order)
         .map(n => n.collection);
     
@@ -188,10 +191,10 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
         };
       });
 
-      return data;
+      return request.owner;
     } catch (error) {
       console.error("Error fetching collection:", error);
-      return [];
+      return "";
     }
   };
 

@@ -3,32 +3,37 @@ import { Dict } from "../../types/Dict";
 import { Headers } from "../request/Request"
 import { StatusKeyValue } from "../StatusKeyValue";
 
+export interface SignedPayload<T> {
+  owner: string;
+  payload: T
+}
+
 export interface Response {
-    _id: string;
-    timestamp: number;
-    request: string;
-    date: number;
-    time: number;
-    status: number;
-    headers: Headers;
-    cookies: CookiesServer;
-    body: Body;
-    size: number;
-    owner: string;
+  _id: string;
+  timestamp: number;
+  request: string;
+  date: number;
+  time: number;
+  status: number;
+  headers: Headers;
+  cookies: CookiesServer;
+  body: Body;
+  size: number;
+  owner: string;
 }
 
 export interface ItemResponse {
-    _id: string;
-    timestamp: number;
-    request: string;
-    date: number;
-    time: number;
-    status: string;
-    headers: StatusKeyValue[];
-    cookies: CookieServer[];
-    body: ItemBody;
-    size: number;
-    owner: string;
+  _id: string;
+  timestamp: number;
+  request: string;
+  date: number;
+  time: number;
+  status: string;
+  headers: StatusKeyValue[];
+  cookies: CookieServer[];
+  body: ItemBody;
+  size: number;
+  owner: string;
 }
 
 export interface CookiesServer {
@@ -36,21 +41,21 @@ export interface CookiesServer {
 }
 
 export interface CookieServer {
-	status:     boolean,
-	code:       string,
-	value:      string,
-	domain:     string,
-	path:       string,
-	expiration: string,
-	maxage:     number,
-	secure:     boolean,
-	httponly:   boolean,
-	samesite:   string
+  status: boolean,
+  code: string,
+  value: string,
+  domain: string,
+  path: string,
+  expiration: string,
+  maxage: number,
+  secure: boolean,
+  httponly: boolean,
+  samesite: string
 }
 
 export interface Body {
-    content_type: string;
-    payload: string;
+  content_type: string;
+  payload: string;
 }
 
 export function newItemResponse(owner: string): ItemResponse {
@@ -64,8 +69,8 @@ export function newItemResponse(owner: string): ItemResponse {
     headers: [],
     cookies: [],
     body: {
-        content_type: "text",
-        payload: ""
+      content_type: "text",
+      payload: ""
     },
     size: NaN,
     owner: owner,
@@ -73,8 +78,8 @@ export function newItemResponse(owner: string): ItemResponse {
 }
 
 export interface ItemBody {
-    content_type: string;
-    payload: string;
+  content_type: string;
+  payload: string;
 }
 
 export const fromResponse = (response: Response): ItemResponse => {
@@ -110,11 +115,11 @@ export const toResponse = (response: ItemResponse): Response => {
 }
 
 export const mergeCookies = (newValues: CookieServer[]): Dict<CookieServer> => {
-    const merge: Dict<CookieServer> = {};
-    for (const value of newValues) {
-        merge[value.code] = value;
-    }
-    return merge;
+  const merge: Dict<CookieServer> = {};
+  for (const value of newValues) {
+    merge[value.code] = value;
+  }
+  return merge;
 }
 
 export function cookieToString(cookie: CookieServer): string {
