@@ -8,6 +8,8 @@ import { StoreProviderSystem } from "./system/StoreProviderSystem";
 import { StoreProviderCollections } from "./client/StoreProviderCollections";
 import { StoreProviderContext } from "./client/StoreProviderContext";
 import { StoreProviderRequest } from "./client/StoreProviderRequest";
+import { StoreProviderEndPoint } from "./mock/StoreProviderEndPoint";
+import { StoreProviderMock } from "./mock/StoreProviderMock";
 
 export const SystemProviders: React.FC<{ children: ReactNode }> = ({ children }) => {
     return (
@@ -36,5 +38,15 @@ export const ClientProviders: React.FC<{ children: ReactNode }> = ({ children })
                 </StoreProviderRequest>
             </StoreProviderContext>
         </StoreProviderCollections>
+    );
+}
+
+export const MockProviders: React.FC<{ children: ReactNode }> = ({ children }) => {
+    return (
+        <StoreProviderMock>
+            <StoreProviderEndPoint>
+                {children}
+            </StoreProviderEndPoint>
+        </StoreProviderMock>
     );
 }

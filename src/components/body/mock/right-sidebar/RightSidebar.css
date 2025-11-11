@@ -1,0 +1,10 @@
+.mock-selector-aux-option {
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+.mock-selector-preview-aux.show {
+    display: flex;
+}
