@@ -12,7 +12,6 @@ interface EndPointColumnProps {
 }
 
 export function EndPointColumn({ setCursor }: EndPointColumnProps) {
-
     const { endPoints } = useStoreMock();
     const { endPoint, fetchEndPoint } = useStoreEndPoint();
 

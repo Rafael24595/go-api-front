@@ -68,7 +68,7 @@ export function RightSidebar() {
       }
 
     return (
-        <div id='right-sidebar'>
+        <div id="right-sidebar-client">
             <div id="response-metadata">
                 <span className="section-header-element response-data">
                     <span 

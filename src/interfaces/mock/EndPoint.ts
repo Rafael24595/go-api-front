@@ -1,3 +1,4 @@
+import { HttpMethod } from "../../constants/HttpMethod";
 import { Dict } from "../../types/Dict";
 
 export interface EndPoint {
@@ -10,6 +11,20 @@ export interface EndPoint {
     responses: Dict<Response>;
     safe: boolean;
     owner: string;
+}
+
+export const emptyEndPoint = (owner: string): EndPoint => {
+    return {
+        _id: "",
+        timestamp: 0,
+        modified: 0,
+        name: "",
+        method: HttpMethod.GET,
+        path: "",
+        responses: {},
+        safe: false,
+        owner: owner,
+    }
 }
 
 export interface LiteEndPoint {

@@ -15,6 +15,6 @@
     flex: 1 1 auto;
 }
 
-.mock-selector-form-option .show {
+.mock-selector-form-option.show {
     display: flex;
 }

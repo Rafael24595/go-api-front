@@ -10,7 +10,7 @@ interface ContentContainerProps {
 export function ContentContainer({ cursor }: ContentContainerProps) {
     return (
         <div id='content-container'>
-            <div className={`mock-selector-form-option  ${cursor === VIEW_END_POINTS ? "show" : ""}`}>
+            <div className={`mock-selector-form-option ${cursor === VIEW_END_POINTS ? "show" : ""}`}>
                 <EndPointForm />
             </div>
         </div>

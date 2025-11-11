@@ -9,7 +9,7 @@ interface RightSidebarProps {
 
 export function RightSidebar({ cursor }: RightSidebarProps) {
     return (
-        <div id='mock-selector-aux-option'>
+        <div id="right-sidebar-mock">
             <div className={`mock-selector-aux-option ${cursor === VIEW_END_POINTS ? "show" : ""}`}>
                 <EndPointMetrics />
             </div>

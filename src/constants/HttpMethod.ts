@@ -10,6 +10,8 @@ export enum HttpMethod {
     PATCH = "PATCH",
 }
 
+export const HTTP_METHODS = Object.values(HttpMethod);
+
 export const allowPayload = (method: string) => {
     switch (method) {
         case HttpMethod.GET:

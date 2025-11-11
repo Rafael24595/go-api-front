@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { HttpMethod } from '../../../../../constants/HttpMethod';
+import { HTTP_METHODS } from '../../../../../constants/HttpMethod';
 import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
 
 import './MethodSelector.css'
 
 export function MethodSelector () {
     const {request, updateMethod } = useStoreRequest();
-    const methods = Object.values(HttpMethod);
     const [selected, setSelectedMethod] = useState(request.method);
 
     useEffect(() => {
@@ -20,7 +19,7 @@ export function MethodSelector () {
 
     return (
         <select id="method" className="client-bar-component section-header-element" name="method" value={selected} onChange={handleChange}>
-            {methods.map((method, index) => (
+            {HTTP_METHODS.map((method, index) => (
                 <option key={index} value={method}>
                     {method}
                 </option>

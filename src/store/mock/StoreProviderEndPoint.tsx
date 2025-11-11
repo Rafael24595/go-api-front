@@ -1,11 +1,11 @@
 import { createContext, ReactNode, useContext, useState } from "react";
-import { EndPoint, LiteEndPoint } from "../../interfaces/mock/EndPoint";
-import { Optional } from "../../types/Optional";
+import { emptyEndPoint, EndPoint, LiteEndPoint } from "../../interfaces/mock/EndPoint";
 import { useStoreCache } from "../StoreProviderCache";
 import { CacheEndPoint } from "../../interfaces/mock/Cache";
+import { useStoreSession } from "../system/StoreProviderSession";
 
 interface StoreProviderEndPointType {
-    endPoint: Optional<EndPoint>;
+    endPoint: EndPoint;
     fetchEndPoint: (endPoint: LiteEndPoint) => Promise<void>;
     cacheLenght: () => number;
     cacheComments: () => string[];
@@ -17,8 +17,10 @@ const StoreRequest = createContext<StoreProviderEndPointType | undefined>(undefi
 
 export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { gather, length } = useStoreCache();
+    const { userData } = useStoreSession();
 
-    const [endPoint, setEndPoint] = useState<Optional<EndPoint>>();
+    const [endPoint, setEndPoint] = useState<EndPoint>(
+        emptyEndPoint(userData.username));
 
     const fetchEndPoint = async () => {
 
