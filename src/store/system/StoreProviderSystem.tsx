@@ -1,14 +1,14 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { emptySystemMetadata, SystemMetadata, ViewerSource } from "../../interfaces/Metadata";
+import { emptySystemMetadata, SystemMetadata, ViewerSource } from "../../interfaces/system/Metadata";
 import { fetchSystemMetadata } from "../../services/api/ServiceManager";
 import { Modal } from "../../components/utils/modal/Modal";
 import { millisecondsToDate } from "../../services/Tools";
-import { useStoreSession } from "../StoreProviderSession";
+import { useStoreSession } from "./StoreProviderSession";
 import useInactivityRefresh from "../../hook/InactivityRefresh";
 import { generateHash } from "../../services/Utils";
 import { hostURL } from "../../services/api/ApiManager";
 import { useStoreStatus } from "../StoreProviderStatus";
-import { hasRole, Role } from "../../interfaces/UserData";
+import { hasRole, Role } from "../../interfaces/system/UserData";
 import { windowPreferences } from "../../utils/Window";
 
 import './StoreProviderSystem.css';

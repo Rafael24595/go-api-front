@@ -8,8 +8,8 @@ import { downloadFile } from "../../services/Utils";
 import { formatBytes, millisecondsToDate } from "../../services/Tools";
 import { Dict } from "../../types/Dict";
 import { Optional } from "../../types/Optional";
-import { useStoreSession } from "../StoreProviderSession";
-import { UserData } from "../../interfaces/UserData";
+import { useStoreSession } from "../system/StoreProviderSession";
+import { UserData } from "../../interfaces/system/UserData";
 import { createRoot } from "react-dom/client";
 import { windowPreferences } from "../../utils/Window";
 

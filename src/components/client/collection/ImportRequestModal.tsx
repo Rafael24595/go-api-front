@@ -3,7 +3,7 @@ import { Modal } from '../../utils/modal/Modal';
 import { useAlert } from '../../utils/alert/Alert';
 import { EAlertCategory } from '../../../interfaces/AlertData';
 import { formatBytes, millisecondsToDate } from '../../../services/Tools';
-import { ItemRequest } from '../../../interfaces/request/Request';
+import { ItemRequest } from '../../../interfaces/client/request/Request';
 import { useStoreStatus } from '../../../store/StoreProviderStatus';
 
 import './ImportModal.css';

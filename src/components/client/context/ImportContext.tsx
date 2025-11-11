@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAlert } from '../../utils/alert/Alert';
 import { EAlertCategory } from '../../../interfaces/AlertData';
 import { formatBytes, millisecondsToDate } from '../../../services/Tools';
-import { Context } from '../../../interfaces/context/Context';
+import { Context } from '../../../interfaces/client/context/Context';
 import { useStoreStatus } from '../../../store/StoreProviderStatus';
 
 import '../collection/ImportModal.css';

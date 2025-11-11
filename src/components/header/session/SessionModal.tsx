@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useStoreSession } from '../../../store/StoreProviderSession';
+import { useStoreSession } from '../../../store/system/StoreProviderSession';
 import { Modal } from '../../utils/modal/Modal';
 import { millisecondsToDate } from '../../../services/Tools';
 import { ProfileImage } from './ProfileImage';
@@ -8,7 +8,7 @@ import { useAlert } from '../../utils/alert/Alert';
 import { useStoreTheme } from '../../../store/theme/StoreProviderTheme';
 import { VoidCallback } from '../../../interfaces/Callback';
 import { TokenModal } from '../token/TokenModal';
-import { hasAnyRole, hasRole, Role } from '../../../interfaces/UserData';
+import { hasAnyRole, hasRole, Role } from '../../../interfaces/system/UserData';
 
 import './SessionModal.css';
 

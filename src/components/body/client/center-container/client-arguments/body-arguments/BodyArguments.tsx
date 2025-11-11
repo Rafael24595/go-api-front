@@ -1,8 +1,8 @@
 import { Fragment, useEffect, useState } from 'react';
 import { TextData } from './text/TextData';
-import { ItemBody, ItemBodyParameter, orderItemBodyParameter } from '../../../../../../interfaces/request/Request';
+import { ItemBody, ItemBodyParameter, orderItemBodyParameter } from '../../../../../../interfaces/client/request/Request';
 import { JsonData } from './json/JsonData';
-import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
+import { useStoreRequest } from '../../../../../../store/client/StoreProviderRequest';
 import { formatJson, formatXml } from '../../../../../../utils/Formatter';
 import { FormData } from './form-data/FormData';
 import { Dict } from '../../../../../../types/Dict';

@@ -1,7 +1,7 @@
 import { Modal } from '../../utils/modal/Modal'
-import { useStoreSession } from '../../../store/StoreProviderSession';
+import { useStoreSession } from '../../../store/system/StoreProviderSession';
 import { useState } from 'react';
-import { newToken, Token } from '../../../interfaces/Token';
+import { newToken, Token } from '../../../interfaces/system/Token';
 import { copyTextToClipboard } from '../../../services/Utils';
 import { EAlertCategory } from '../../../interfaces/AlertData';
 import { useAlert } from '../../utils/alert/Alert';

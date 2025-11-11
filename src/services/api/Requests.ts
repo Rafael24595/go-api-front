@@ -1,5 +1,5 @@
-import { Context } from "../../interfaces/context/Context";
-import { Request } from "../../interfaces/request/Request";
+import { Context } from "../../interfaces/client/context/Context";
+import { Request } from "../../interfaces/client/request/Request";
 
 export type Movement = "clone" | "move";
 

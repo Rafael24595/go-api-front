@@ -1,42 +1,34 @@
 import { useState } from 'react';
-import { useStoreContext } from '../../store/StoreProviderContext';
-import { useStoreRequest } from '../../store/StoreProviderRequest';
-import { useStoreSession } from '../../store/StoreProviderSession';
+import { useStoreSession } from '../../store/system/StoreProviderSession';
 import { SessionModal } from './session/SessionModal';
 import { ProfileImage } from './session/ProfileImage';
 import { useStoreSystem } from '../../store/system/StoreProviderSystem';
 
 import './Header.css';
 
+
+interface UnsavedProps {
+    messages: () => string;
+    isEmpty: () => boolean;
+}
+
+interface HeaderProps {
+    unsaved: UnsavedProps
+}
+
+
 interface Payload {
     modalSession: boolean;
 }
 
-export function Header() {
+export function Header({ unsaved }:HeaderProps) {
     const { userData, fetchUser } = useStoreSession();
     const { openModal } = useStoreSystem();
-    const request = useStoreRequest();
-    const context = useStoreContext();
+    
 
     const [data, setData] = useState<Payload>({
         modalSession: false,
     });
-
-    const makeUnsavedTitle = () => {
-        let title = "";
-        const requests = request.cacheComments();
-        if(requests.length > 0) {
-            title += requests.join("\n");
-        }
-        const contexts = context.cacheComments();
-        if(contexts.length > 0) {
-            if(title != "") {
-                title += "\n";
-            }
-            title += contexts.join("\n");
-        }
-        return title;
-    };
 
     const openSessionModal = () => {
         fetchUser();
@@ -59,9 +51,9 @@ export function Header() {
                 &lt;API&gt;
             </button>
             <div id="user-container">
-                {(request.cacheLenght() > 0 || context.cacheLenght() > 0) && (
+                {!unsaved.isEmpty() && (
                     <div id="unsave-container">
-                        <span className="button-modified-status visible" title={makeUnsavedTitle()}></span>
+                        <span className="button-modified-status visible" title={unsaved.messages()}></span>
                     </div>
                 )}
                 <button id="session-preview" className="button-div" type="button" onClick={openSessionModal}>

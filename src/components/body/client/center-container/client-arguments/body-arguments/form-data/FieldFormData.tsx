@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { CleanItemBodyParameter, ItemBodyParameter } from '../../../../../../../interfaces/request/Request';
+import { CleanItemBodyParameter, ItemBodyParameter } from '../../../../../../../interfaces/client/request/Request';
 import { useAlert } from '../../../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../../../interfaces/AlertData';
 import { useStoreTheme } from '../../../../../../../store/theme/StoreProviderTheme';

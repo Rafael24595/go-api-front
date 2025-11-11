@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Auth } from '../../../../../../../interfaces/request/Request';
+import { Auth } from '../../../../../../../interfaces/client/request/Request';
 
 import './BasicData.css';
 import '../../status-key-value/StatusKeyValue.css';

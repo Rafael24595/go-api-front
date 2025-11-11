@@ -1,7 +1,7 @@
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import { fetchCmd } from "../../services/api/ServiceManager";
 import { api } from "../../services/api/ApiManager";
-import { useStoreSession } from "../../store/StoreProviderSession";
+import { useStoreSession } from "../../store/system/StoreProviderSession";
 
 import './Terminal.css';
 

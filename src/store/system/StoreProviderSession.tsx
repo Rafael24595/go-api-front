@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from "react";
-import { deleteUserToken, fetchAuthenticate, fetchLogin, fetchLogout, fetchRefresh, fetchRemove, fetchSignin, fetchTokenScopes, fetchUserData, fetchUserTokens, insertUserToken } from "../services/api/ServiceManager";
-import { newUserData, UserData } from "../interfaces/UserData";
-import { Dict } from "../types/Dict";
-import { generateHash } from "../services/Utils";
-import { putRefreshHandler } from "../services/api/ApiManager";
-import { Scopes, Token } from "../interfaces/Token";
+import { deleteUserToken, fetchAuthenticate, fetchLogin, fetchLogout, fetchRefresh, fetchRemove, fetchSignin, fetchTokenScopes, fetchUserData, fetchUserTokens, insertUserToken } from "../../services/api/ServiceManager";
+import { newUserData, UserData } from "../../interfaces/system/UserData";
+import { Dict } from "../../types/Dict";
+import { generateHash } from "../../services/Utils";
+import { putRefreshHandler } from "../../services/api/ApiManager";
+import { Scopes, Token } from "../../interfaces/system/Token";
 
 interface StoreProviderSessionType {
   userData: UserData;

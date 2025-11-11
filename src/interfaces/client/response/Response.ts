@@ -1,7 +1,7 @@
-import { detachStatusKeyValue, mergeStatusKeyValue } from "../../services/Utils";
-import { Dict } from "../../types/Dict";
+import { detachStatusKeyValue, mergeStatusKeyValue } from "../../../services/Utils";
+import { Dict } from "../../../types/Dict";
 import { Headers } from "../request/Request"
-import { StatusKeyValue } from "../StatusKeyValue";
+import { StatusKeyValue } from "../../StatusKeyValue";
 
 export interface SignedPayload<T> {
   owner: string;

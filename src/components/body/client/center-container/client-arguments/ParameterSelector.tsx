@@ -4,11 +4,11 @@ import { HeaderArguments } from './header-arguments/HeaderArguments';
 import { AuthArguments } from './auth-arguments/AuthArguments';
 import { BodyArguments } from './body-arguments/BodyArguments';
 import { ContextModal } from '../../../../client/context/ContextModal';
-import { useStoreContext } from '../../../../../store/StoreProviderContext';
+import { useStoreContext } from '../../../../../store/client/StoreProviderContext';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { CookieArguments } from './cookie-arguments/CookieArguments';
 import { KeyValue } from '../../../../../interfaces/KeyValue';
-import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
+import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
 import { allowPayload } from '../../../../../constants/HttpMethod';
 
 import './ParameterSelector.css';

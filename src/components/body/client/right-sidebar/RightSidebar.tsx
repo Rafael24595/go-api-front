@@ -3,7 +3,7 @@ import { formatBytes, millisecondsToDate, millisecondsToTime } from '../../../..
 import { PayloadColumn } from './payload-column/PayloadColumn';
 import { HeaderColumn } from './header-column/HeaderColumn';
 import { CookieColumn } from './cookie-column/CookieColumn';
-import { useStoreRequest } from '../../../../store/StoreProviderRequest';
+import { useStoreRequest } from '../../../../store/client/StoreProviderRequest';
 import { useStoreStatus } from '../../../../store/StoreProviderStatus';
 import { httpStatusDescriptions } from '../../../../constants/HttpMethod';
 import { KeyValue } from '../../../../interfaces/KeyValue';

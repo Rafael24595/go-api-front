@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
+import { LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
 import { deleteHistoric as fetchDeleteHistoric, findAction, formatCurl, requestCollect } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
-import { useStoreCollections } from '../../../../../store/StoreProviderCollections';
+import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
+import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
 import { CollectModal } from '../../../../client/collection/CollectModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';
-import { useStoreSession } from '../../../../../store/StoreProviderSession';
+import { useStoreSession } from '../../../../../store/system/StoreProviderSession';
 import { RequestRequestCollect } from '../../../../../services/api/Requests';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { VoidCallback } from '../../../../../interfaces/Callback';
@@ -42,7 +42,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
         status: false,
     });
 
-    const defineHistoricRequest = async (item: LiteRequest) => {
+    const defineRequest = async (item: LiteRequest) => {
         await fetchFreeRequest(item);
     }
 
@@ -157,7 +157,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                     historic.map((cursor) => (
                         <div key={makeKey(cursor)} className={`request-preview ${cursor._id == request._id && "request-selected"}`}>
                             <button className="request-link" title={cursor.uri}
-                                onClick={() => defineHistoricRequest(cursor)}>
+                                onClick={() => defineRequest(cursor)}>
                                 <div className="request-sign">
                                     <span className={`request-sign-method ${cursor.method}`}>{cursor.method}</span>
                                     <span className="request-sign-url">{cursor.uri}</span>

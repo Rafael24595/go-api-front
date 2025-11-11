@@ -1,4 +1,4 @@
-import { LiteRequest } from "../../../../../interfaces/request/Request";
+import { LiteRequest } from "../../../../../interfaces/client/request/Request";
 
 export const storedGroupOptions = (actions: {
     exportAll: () => void;

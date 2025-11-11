@@ -1,8 +1,8 @@
-import { Context } from "../../interfaces/context/Context";
-import { Record, SystemMetadata } from "../../interfaces/Metadata";
-import { Request } from "../../interfaces/request/Request";
-import { Scopes, Token } from "../../interfaces/Token";
-import { UserData } from "../../interfaces/UserData";
+import { Context } from "../../interfaces/client/context/Context";
+import { Record, SystemMetadata } from "../../interfaces/system/Metadata";
+import { Request } from "../../interfaces/client/request/Request";
+import { Scopes, Token } from "../../interfaces/system/Token";
+import { UserData } from "../../interfaces/system/UserData";
 import { apiManager, sessionApiManager, authApiManager } from "./ApiManager";
 import { RequestAuthentication, RequestLogin, RequestSignin } from "./Requests";
 import { ResponseExecuteAction, ResponseFetch } from "./Responses";

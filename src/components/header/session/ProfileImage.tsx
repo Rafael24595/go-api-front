@@ -1,4 +1,4 @@
-import { useStoreSession } from '../../../store/StoreProviderSession';
+import { useStoreSession } from '../../../store/system/StoreProviderSession';
 
 import './ProfileImage.css';
 

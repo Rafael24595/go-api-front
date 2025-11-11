@@ -252,3 +252,21 @@ export const calculateWindowSize = (text: string, options: WindowSizeOptions): {
 
     return { width, height };
 }
+
+export const joinMessages = (...messages: string[][]) => {
+    let title = "";
+
+    for (const group of messages) {
+        if (group.length == 0) {
+            continue;
+        }
+
+        if (title != "") {
+            title += "\n";
+        }
+
+        title += group.join("\n");
+    }
+
+    return title;
+};

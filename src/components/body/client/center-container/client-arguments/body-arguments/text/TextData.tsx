@@ -1,7 +1,7 @@
 import CodeMirror from "@uiw/react-codemirror";
 import { lintGutter } from "@codemirror/lint";
-import { ItemBodyParameter } from "../../../../../../../interfaces/request/Request";
-import { useStoreRequest } from "../../../../../../../store/StoreProviderRequest";
+import { ItemBodyParameter } from "../../../../../../../interfaces/client/request/Request";
+import { useStoreRequest } from "../../../../../../../store/client/StoreProviderRequest";
 import { useEffect, useState } from "react";
 import { Optional } from "../../../../../../../types/Optional";
 import { DOCUMENT_PARAM, PAYLOAD_PARAM } from "../BodyArguments";

@@ -1,8 +1,8 @@
 import { deleteAction, findAction, formatCurl, importCurl, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
-import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
+import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
-import { useStoreCollections } from '../../../../../store/StoreProviderCollections';
+import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
+import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useState } from 'react';
 import { CollectModal } from '../../../../client/collection/CollectModal';
@@ -11,7 +11,7 @@ import { ImportRequestModal } from '../../../../client/collection/ImportRequestM
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
-import { useStoreSession } from '../../../../../store/StoreProviderSession';
+import { useStoreSession } from '../../../../../store/system/StoreProviderSession';
 import { VerticalDragDrop, PositionWrapper, FilterResult } from '../../../../utils/drag/VerticalDragDrop';
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
 import { Optional } from '../../../../../types/Optional';
@@ -93,7 +93,7 @@ export function StoredColumn() {
         status: false,
     });
 
-    const defineHistoricRequest = async (item: LiteRequest) => {
+    const defineRequest = async (item: LiteRequest) => {
         await fetchFreeRequest(item);
     }
 
@@ -402,7 +402,7 @@ export function StoredColumn() {
                 renderItem={(cursor) => (
                     <div key={makeKey(cursor)} className={`request-preview ${isRequestSelected(cursor) && "request-selected"} ${isRequestDrag(cursor) && "request-float"}`}>
                         <button className="request-link" title={cursor.uri}
-                            onClick={() => defineHistoricRequest(cursor)}>
+                            onClick={() => defineRequest(cursor)}>
                             <div className="request-sign">
                                 {isCached(cursor) && (
                                     <span className="button-modified-status small visible"></span>

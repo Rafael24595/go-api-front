@@ -1,7 +1,7 @@
-import { Collection, ItemCollection, ItemNodeCollection, ItemNodeRequest, LiteItemCollection } from "../../interfaces/collection/Collection";
-import { Context } from "../../interfaces/context/Context";
-import { ItemRequest, LiteRequest, Request } from "../../interfaces/request/Request";
-import { Response, SignedPayload } from "../../interfaces/response/Response";
+import { Collection, ItemCollection, ItemNodeCollection, ItemNodeRequest, LiteItemCollection } from "../../interfaces/client/collection/Collection";
+import { Context } from "../../interfaces/client/context/Context";
+import { ItemRequest, LiteRequest, Request } from "../../interfaces/client/request/Request";
+import { Response, SignedPayload } from "../../interfaces/client/response/Response";
 import { authApiManager } from "./ApiManager";
 import { RequestCloneCollection, RequestImportContext, RequestNode, RequestRequestCollect, RequestSortNodes } from "./Requests";
 import { ResponseExecuteAction } from "./Responses";

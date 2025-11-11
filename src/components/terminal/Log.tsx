@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { useEffect, useRef, useState } from "react";
-import { Record } from "../../interfaces/Metadata";
+import { Record } from "../../interfaces/system/Metadata";
 import { fetchSystemRecords } from "../../services/api/ServiceManager";
 import { generateHash } from "../../services/Utils";
 import { millisecondsToDate } from "../../services/Tools";

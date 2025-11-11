@@ -1,9 +1,9 @@
 import { Fragment, useEffect, useState } from 'react';
 import { AUTH_CODE_BASIC, BasicData } from './basic-data/BasicData';
 import { AUTH_CODE_BEARER, BearerData } from './bearer-data/BearerData';
-import { Auth, Auths } from '../../../../../../interfaces/request/Request';
+import { Auth, Auths } from '../../../../../../interfaces/client/request/Request';
 import { Dict } from '../../../../../../types/Dict';
-import { useStoreRequest } from '../../../../../../store/StoreProviderRequest';
+import { useStoreRequest } from '../../../../../../store/client/StoreProviderRequest';
 import { useStoreStatus } from '../../../../../../store/StoreProviderStatus';
 import { KeyValue } from '../../../../../../interfaces/KeyValue';
 

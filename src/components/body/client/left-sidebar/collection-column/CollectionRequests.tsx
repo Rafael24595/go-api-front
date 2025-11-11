@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { LiteItemCollection, LiteItemNodeRequest } from '../../../../../interfaces/collection/Collection';
-import { LiteRequest } from '../../../../../interfaces/request/Request';
+import { LiteItemCollection, LiteItemNodeRequest } from '../../../../../interfaces/client/collection/Collection';
+import { LiteRequest } from '../../../../../interfaces/client/request/Request';
 import { deleteFromCollection, findAction, formatCurl, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
-import { useStoreCollections } from '../../../../../store/StoreProviderCollections';
+import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
+import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { calculateWindowSize } from '../../../../../services/Utils';

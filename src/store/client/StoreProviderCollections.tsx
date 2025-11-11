@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { findAllAction, findAllCollection, findAllHistoric, findCollectionLite, sortCollectionRequests, sortCollections, sortRequests } from "../services/api/ServiceStorage";
-import { LiteRequest, Request } from "../interfaces/request/Request";
-import { ItemCollection, LiteItemCollection, newCollection } from "../interfaces/collection/Collection";
-import { useStoreSession } from "./StoreProviderSession";
-import { RequestNode } from "../services/api/Requests";
-import { generateHash } from "../services/Utils";
+import { findAllAction, findAllCollection, findAllHistoric, findCollectionLite, sortCollectionRequests, sortCollections, sortRequests } from "../../services/api/ServiceStorage";
+import { LiteRequest } from "../../interfaces/client/request/Request";
+import { LiteItemCollection, newCollection } from "../../interfaces/client/collection/Collection";
+import { useStoreSession } from "../system/StoreProviderSession";
+import { RequestNode } from "../../services/api/Requests";
+import { generateHash } from "../../services/Utils";
 
 interface StoreProviderCollectionsType {
   historic: LiteRequest[];
@@ -32,7 +32,7 @@ interface PayloadCollection {
 
 const TRIGGER_KEY = "StoreRequestsTrigger";
 
-const StoreRequests = createContext<StoreProviderCollectionsType | undefined>(undefined);
+const StoreCollection = createContext<StoreProviderCollectionsType | undefined>(undefined);
 
 export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { userData, fetchUser, pushTrigger } = useStoreSession();
@@ -293,14 +293,14 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
   }
 
   return (
-    <StoreRequests.Provider value={{ historic: historic.items, stored: stored.items, collection: collection.items, fetchAll, fetchHistoric, fetchStored, fetchCollection, fetchCollectionItem, updateStoredOrder, updateCollectionsOrder, updateCollectionRequestsOrder }}>
+    <StoreCollection.Provider value={{ historic: historic.items, stored: stored.items, collection: collection.items, fetchAll, fetchHistoric, fetchStored, fetchCollection, fetchCollectionItem, updateStoredOrder, updateCollectionsOrder, updateCollectionRequestsOrder }}>
       {children}
-    </StoreRequests.Provider>
+    </StoreCollection.Provider>
   );
 };
 
 export const useStoreCollections = (): StoreProviderCollectionsType => {
-  const context = useContext(StoreRequests);
+  const context = useContext(StoreCollection);
   if (!context) {
     throw new Error("useStore must be used within a StoreProviderRequests");
   }

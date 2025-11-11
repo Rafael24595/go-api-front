@@ -1,5 +1,5 @@
-import { Request } from "../../interfaces/request/Request";
-import { Response } from "../../interfaces/response/Response";
+import { Request } from "../../interfaces/client/request/Request";
+import { Response } from "../../interfaces/client/response/Response";
 
 export interface ResponseExecuteAction {
     request: Request,

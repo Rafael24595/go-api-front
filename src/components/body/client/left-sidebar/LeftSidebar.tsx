@@ -3,7 +3,7 @@ import { HistoricColumn } from './historic-column/HistoricColumn';
 import { StoredColumn } from './stored-column/StoredColumn';
 import { CollectionColumn } from './collection-column/CollectionColumn';
 import { useStoreStatus } from '../../../../store/StoreProviderStatus';
-import { useStoreCollections } from '../../../../store/StoreProviderCollections';
+import { useStoreCollections } from '../../../../store/client/StoreProviderCollections';
 import { KeyValue } from '../../../../interfaces/KeyValue';
 
 import './LeftSidebar.css';
@@ -30,7 +30,7 @@ const cursors: KeyValue[] = [
 const VALID_CURSORS = cursors.map(c => c.key);
 const DEFAULT_CURSOR = VIEW_HISTORIC;
 
-const CURSOR_KEY = "LeftSidebarCursor";
+const CURSOR_KEY = "ClientLeftSidebarCursor";
 
 export function LeftSidebar() {
     const { find, store } = useStoreStatus();
@@ -68,11 +68,11 @@ export function LeftSidebar() {
     };
 
     return (
-        <div id='left-sidebar'>
+        <div id="left-sidebar-client">
             <div className="radio-button-group cover border-bottom">
                 {cursors.map(c => (
                     <Fragment key={c.key}>
-                        <input type="radio" id={`tag-left-sidebar-${c.key.toLowerCase()}`} className="client-tag" name="cursor-left-sidebar"
+                        <input type="radio" id={`tag-left-sidebar-client-${c.key.toLowerCase()}`} className="client-tag" name="cursor-left-sidebar"
                             checked={cursor === c.key} 
                             value={c.key} 
                             onChange={cursorChangeEvent}/>
