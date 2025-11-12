@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Modal } from '../../utils/modal/Modal';
 import { v4 as uuidv4 } from 'uuid';
 import { cleanCopy, fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue as StrStatusCategoryKeyValue } from '../../../interfaces/StatusCategoryKeyValue';
-import { StatusCategoryKeyValue } from '../../body/client/center-container/client-arguments/status-category-key-value/StatusCategoryKeyValue';
+import { StatusCategoryKeyValue } from '../../structure/status-category-key-value/StatusCategoryKeyValue';
 import { Context, ItemContext, toContext } from '../../../interfaces/client/context/Context';
 import { importContext } from '../../../services/api/ServiceStorage';
 import { useStoreContext } from '../../../store/client/StoreProviderContext';

@@ -21,6 +21,11 @@
     content: "✖";
 }
 
+.add-button::after {
+    content: "✛";
+}
+
+.add-button,
 .remove-button {
     visibility: hidden;
     height: 25px;
@@ -34,6 +39,7 @@
     background-color: var(--button-delete-color);
 }
 
+.add-button.show,
 .remove-button.show {
     visibility: visible;
 }

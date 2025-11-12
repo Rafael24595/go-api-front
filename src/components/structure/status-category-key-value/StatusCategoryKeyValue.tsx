@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import type { StatusCategoryKeyValue } from '../../../../../../interfaces/StatusCategoryKeyValue';
-import type { KeyValue } from '../../../../../../interfaces/KeyValue';
+import type { StatusCategoryKeyValue } from '../../../interfaces/StatusCategoryKeyValue';
+import type { KeyValue } from '../../../interfaces/KeyValue';
 
 import '../status-key-value/StatusKeyValue.css'
 
