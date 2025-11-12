@@ -1,0 +1,57 @@
+#end-point-form-title-container {
+    display: flex;
+    margin-bottom: 5px;
+    justify-content: space-between;
+}
+
+#end-point-form-title {
+    margin-top: 0px;
+    margin-bottom: 5px;
+    font-size: 1.05em;
+    font-weight: bold;
+}
+
+#end-point-form-safe {
+    display: flex;
+}
+
+#end-point-data-form,
+#end-point-responses-form {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.end-point-form-fragment {
+    display: flex;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.end-point-form-field {
+    display: flex;
+    margin: 5px;
+}
+
+.end-point-form-field.column {
+    flex-direction: column;
+}
+
+.end-point-form-field.fix {
+    flex: 1 1 auto;
+}
+
+.end-point-form-field span {
+    font-weight: 600;
+}
+
+.end-point-form-input {
+    height: 22px;
+    box-sizing: border-box;
+}
+
+#mock-form-section {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}

@@ -1,12 +1,14 @@
 import { createContext, ReactNode, useContext, useState } from "react";
-import { emptyEndPoint, EndPoint, LiteEndPoint } from "../../interfaces/mock/EndPoint";
+import { emptyItemEndPoint, ItemEndPoint, LiteEndPoint } from "../../interfaces/mock/EndPoint";
 import { useStoreCache } from "../StoreProviderCache";
 import { CacheEndPoint } from "../../interfaces/mock/Cache";
 import { useStoreSession } from "../system/StoreProviderSession";
+import { ItemResponse } from "../../interfaces/mock/Response";
 
 interface StoreProviderEndPointType {
-    endPoint: EndPoint;
+    endPoint: ItemEndPoint;
     fetchEndPoint: (endPoint: LiteEndPoint) => Promise<void>;
+    resolveResponse: (response: ItemResponse) => void;
     cacheLenght: () => number;
     cacheComments: () => string[];
 }
@@ -19,11 +21,29 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     const { gather, length } = useStoreCache();
     const { userData } = useStoreSession();
 
-    const [endPoint, setEndPoint] = useState<EndPoint>(
-        emptyEndPoint(userData.username));
+    const [endPoint, setEndPoint] = useState<ItemEndPoint>(
+        emptyItemEndPoint(userData.username));
 
     const fetchEndPoint = async () => {
 
+    }
+
+    const resolveResponse = (response: ItemResponse) => {
+        setEndPoint(prevData => {
+            const index = prevData.responses.findIndex(r => r.condition == response.condition);
+            if (index != -1) {
+                prevData.responses[index] = response;
+            } else {
+                prevData.responses.push(response);
+            }
+
+            return {
+                ...prevData,
+                responses: [
+                    ...prevData.responses
+                ]
+            }
+        });
     }
 
     const cacheLenght = () => {
@@ -51,7 +71,8 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     return (
         <StoreRequest.Provider value={{
             endPoint: endPoint,
-            fetchEndPoint, cacheLenght, cacheComments
+            fetchEndPoint, resolveResponse, cacheLenght,
+            cacheComments
         }}>
             {children}
         </StoreRequest.Provider>

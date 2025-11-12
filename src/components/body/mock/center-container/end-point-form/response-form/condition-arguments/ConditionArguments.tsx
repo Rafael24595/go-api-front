@@ -1,0 +1,206 @@
+import { ItemStatusKeyValue } from '../../../../../../../interfaces/StatusKeyValue';
+import { ItemResponse } from '../../../../../../../interfaces/mock/Response';
+import { ChangeEvent, useEffect, useState } from 'react';
+import { StepType, Inputs, Operators, Types } from '../../../../../../../services/mock/Constants';
+import { ConditionStep, defaultValue, evalueSteps, evalueTypeValue, isLogicalOperator, newConditionStep } from '../../../../../../../services/mock/ConditionStep';
+
+import '../../../../../../structure/status-key-value/StatusKeyValue.css';
+import './ConditionArguments.css';
+
+interface HeaderArgumentsProps {
+    response: ItemResponse
+    resolveResponse: (response: ItemResponse) => void
+}
+
+interface Payload {
+    steps: ConditionStep[]
+    warnings: Map<number, string[]>
+}
+
+export function ConditionArguments({ response, resolveResponse }: HeaderArgumentsProps) {
+    const [data, setData] = useState<Payload>({
+        steps: [],
+        warnings: new Map<number, string[]>()
+    });
+
+    useEffect(() => {
+        setData((prevData) => ({
+            ...prevData,
+        }));
+    }, [response.headers]);
+
+    const addFragment = () => {
+        setData((prevData) => {
+            let prevStep = undefined;
+            if (prevData.steps.length > 0) {
+                prevStep = prevData.steps[prevData.steps.length - 1];
+            }
+
+            const newStep = newConditionStep(prevData.steps.length, prevStep);
+            const newFragments = prevData.steps.concat(newStep);
+            const newWarnings = evalueSteps(newFragments);
+            return {
+                warnings: newWarnings,
+                steps: newFragments
+            }
+        });
+    }
+
+    const removeStep = (step: ConditionStep) => {
+        setData((prevData) => {
+            let prevStep = undefined;
+            if (prevData.steps.length > 0) {
+                prevStep = prevData.steps[prevData.steps.length - 1];
+            }
+
+            const newFragments = prevData.steps
+                .filter(s => s !== step)
+                .map((s, i) => ({ ...s, order: i }));
+
+            const newWarnings = evalueSteps(newFragments);
+            return {
+                warnings: newWarnings,
+                steps: newFragments
+            }
+        });
+    }
+
+    const onFragmentTypeChange = (e: ChangeEvent<HTMLSelectElement>, target: ConditionStep) => {
+        let newType = e.target.value;
+        if (!Types.map(t => t.key).includes(newType)) {
+            newType = StepType.INPUT;
+        }
+
+        if (target.type != newType) {
+            target.value = defaultValue(newType);
+        }
+
+        target.type = newType;
+        return resolveFragment(target);
+    }
+
+    const onFragmentValueChange = (e: ChangeEvent<HTMLSelectElement> | ChangeEvent<HTMLInputElement>, target: ConditionStep) => {
+        target.value = e.target.value;
+        return resolveFragment(target);
+    }
+
+    const resolveFragment = (target: ConditionStep) => {
+        setData((prevData) => {
+            const newSteps = manageFragmentChange(prevData.steps, target);
+            const newWarnings = evalueSteps(newSteps);
+            return {
+                steps: newSteps,
+                warnings: newWarnings,
+            }
+        });
+    }
+
+    const manageFragmentChange = (fragments: ConditionStep[], target: ConditionStep) => {
+        const index = fragments.indexOf(target);
+        if (index == -1) {
+            return fragments;
+        }
+
+        fragments[index] = fixFragment(target);
+        return fragments;
+    }
+
+    const fixFragment = (target: ConditionStep) => {
+        const result = evalueTypeValue(target)
+        target.value = result.value;
+        return target;
+    }
+
+    const updateItems = async (items: ItemStatusKeyValue[]) => {
+        setData((prevData) => ({
+            ...prevData,
+        }));
+
+        const newResponse: ItemResponse = {
+            ...response,
+            headers: items
+        };
+
+        resolveResponse(newResponse);
+    };
+
+    const renderStepValue = (step: ConditionStep) => {
+        let condType = "text";
+        switch (step.type) {
+            case StepType.INPUT:
+                return (
+                    <select name={`cond-value-${step.order}`} id={`cond-value-${step.order}`} value={step.value} onChange={(e) => onFragmentValueChange(e, step)}>
+                        {Inputs.map(o => (
+                            <option value={o.key}>{o.value}</option>
+                        ))}
+                    </select>
+                )
+            case StepType.OPERATOR:
+                return (
+                    <select name={`cond-value-${step.order}`} id={`cond-value-${step.order}`} value={step.value} onChange={(e) => onFragmentValueChange(e, step)}>
+                        {Operators.map(o => (
+                            <option value={o.key}>{o.value}</option>
+                        ))}
+                    </select>
+                )
+            case StepType.ARRAY:
+                condType = "number";
+                break;
+        }
+        return (
+            <input id={`cond-value-${step.order}`} name={`cond-value-${step.order}`} type={condType} value={step.value} onChange={(e) => onFragmentValueChange(e, step)} />
+        )
+    };
+
+    const renderStepConnector = (index: number, step: ConditionStep) => {
+        if (index == 0) {
+            return <></>
+        }
+
+        if (step.type == StepType.OPERATOR) {
+            if (isLogicalOperator(step)) {
+                return <span className="step-connector">Evalue</span>
+            }
+
+            return <span className="step-connector">Compare</span>
+        }
+
+        if (data.steps[index - 1].type == StepType.OPERATOR) {
+            return <span className="step-connector">With</span>
+        }
+
+
+        return <span className="step-connector">Get</span>
+    };
+
+    return (
+        <>
+            <div id="condition-form-container">
+                <p id="condition-form-header">From:</p>
+                {data.steps.map((s, i) => (
+                    <>
+                        {renderStepConnector(i, s)}
+                        <div key={`${s.order}`} className="condition-form-step">
+                            <span className={`warning-step ${data.warnings.has(s.order) ? "show" : ""}`} title={data.warnings.get(s.order)?.join("\n")}>*</span>
+                            <label htmlFor={`cond-type-${s.order}`} className="cond-input">
+                                <select name="cond-type" id={`cond-type-${s.order}`} value={s.type} onChange={(e) => onFragmentTypeChange(e, s)}>
+                                    {Types.map(t => (
+                                        <option value={t.key}>{t.value}</option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label htmlFor={`cond-value-${s.order}`} className="cond-input cond-value-input">
+                                {renderStepValue(s)}
+                            </label>
+                            <button type="button" className="remove-button show" onClick={() => removeStep(s)}></button>
+                        </div>
+                    </>
+                ))}
+                <span className="step-connector">...</span>
+                <div id="condition-form-buttons">
+                    <button className="add-button show" type="button" onClick={() => addFragment()}></button>
+                </div>
+            </div>
+        </>
+    )
+}
