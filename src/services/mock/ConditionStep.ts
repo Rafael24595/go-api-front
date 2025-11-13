@@ -1,4 +1,4 @@
-import { StepInput, StepOperator, StepType, Inputs, Operators } from "./Constants"
+import { StepInput, StepOperator, StepType, Inputs, Operators, Formats, StepFormat } from "./Constants"
 
 export interface ConditionStep {
     order: number
@@ -32,13 +32,13 @@ export const evalueSteps = (fragments: ConditionStep[]): Map<number, string[]> =
         if (resultTyp.message != undefined) {
             stepMessages.push(resultTyp.message);
         }
-        
+
         const resultPos = evaluePosition(fragment, prev)
         if (resultPos != undefined) {
             stepMessages.push(resultPos);
         }
-        
-        if(stepMessages.length > 0) {
+
+        if (stepMessages.length > 0) {
             const list = messages.get(fragment.order) ?? [];
             const newList = list.concat(stepMessages);
             messages.set(fragment.order, newList);
@@ -54,6 +54,11 @@ export const evalueTypeValue = (target: ConditionStep) => {
     switch (target.type) {
         case StepType.INPUT:
             if (!Inputs.map(o => o.key).includes(target.value)) {
+                return { value: defaultValue(StepType.INPUT), message: `Invalid input type ${target.value} on position ${target.order}` }
+            }
+            break;
+        case StepType.FORMAT:
+            if (!Formats.map(o => o.key).includes(target.value)) {
                 return { value: defaultValue(StepType.INPUT), message: `Invalid input type ${target.value} on position ${target.order}` }
             }
             break;
@@ -75,6 +80,8 @@ export const defaultValue = (type: string) => {
     switch (type) {
         case StepType.INPUT:
             return StepInput.PAYLOAD;
+        case StepType.FORMAT:
+            return StepFormat.JSON;
         case StepType.ARRAY:
             return "0"
         case StepType.OPERATOR:
@@ -94,6 +101,10 @@ const evaluePosition = (cursor: ConditionStep, parent?: ConditionStep) => {
 
     if (parent.type != StepType.OPERATOR && cursor.type == StepType.INPUT) {
         return `An input operation cannot be applied in the middle of an operation, but ${cursor.type} found on ${cursor.order} position.`
+    }
+
+    if (isFormatedInput(cursor) && cursor.type == StepType.FORMAT) {
+        return `A formatted input requires a format specification, but ${cursor.type} found on ${cursor.order} position.`
     }
 
     if (isLogicalOperator(parent) && !isComparableRight(cursor)) {
@@ -117,6 +128,19 @@ const evaluePosition = (cursor: ConditionStep, parent?: ConditionStep) => {
     }
 
     return;
+}
+
+export const isFormatedInput = (cursor: ConditionStep) => {
+    if (cursor.type != StepType.INPUT) {
+        return false;
+    }
+
+    switch (cursor.value) {
+        case StepInput.PAYLOAD:
+            return true
+        default:
+            return false;
+    }
 }
 
 export const isLogicalOperator = (cursor: ConditionStep) => {

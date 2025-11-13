@@ -1,11 +1,13 @@
 import { ItemStatusKeyValue } from '../../../../../../../interfaces/StatusKeyValue';
 import { ItemResponse } from '../../../../../../../interfaces/mock/Response';
 import { ChangeEvent, useEffect, useState } from 'react';
-import { StepType, Inputs, Operators, Types } from '../../../../../../../services/mock/Constants';
+import { StepType, Inputs, Operators, Types, Formats } from '../../../../../../../services/mock/Constants';
 import { ConditionStep, defaultValue, evalueSteps, evalueTypeValue, isLogicalOperator, newConditionStep } from '../../../../../../../services/mock/ConditionStep';
 
 import '../../../../../../structure/status-key-value/StatusKeyValue.css';
 import './ConditionArguments.css';
+import { KeyValue } from '../../../../../../../interfaces/KeyValue';
+import { Optional } from '../../../../../../../types/Optional';
 
 interface HeaderArgumentsProps {
     response: ItemResponse
@@ -126,29 +128,35 @@ export function ConditionArguments({ response, resolveResponse }: HeaderArgument
 
     const renderStepValue = (step: ConditionStep) => {
         let condType = "text";
+        let enums: Optional<KeyValue[]> = undefined;
+
         switch (step.type) {
             case StepType.INPUT:
-                return (
-                    <select name={`cond-value-${step.order}`} id={`cond-value-${step.order}`} value={step.value} onChange={(e) => onFragmentValueChange(e, step)}>
-                        {Inputs.map(o => (
-                            <option value={o.key}>{o.value}</option>
-                        ))}
-                    </select>
-                )
+                enums = Inputs;
+                break;
+            case StepType.FORMAT:
+                enums = Formats;
+                break;
             case StepType.OPERATOR:
-                return (
-                    <select name={`cond-value-${step.order}`} id={`cond-value-${step.order}`} value={step.value} onChange={(e) => onFragmentValueChange(e, step)}>
-                        {Operators.map(o => (
-                            <option value={o.key}>{o.value}</option>
-                        ))}
-                    </select>
-                )
+                enums = Operators;
+                break;
             case StepType.ARRAY:
                 condType = "number";
                 break;
         }
+
+        if (enums == undefined) {
+            return (
+                <input id={`cond-value-${step.order}`} name={`cond-value-${step.order}`} type={condType} value={step.value} onChange={(e) => onFragmentValueChange(e, step)} />
+            )
+        }
+
         return (
-            <input id={`cond-value-${step.order}`} name={`cond-value-${step.order}`} type={condType} value={step.value} onChange={(e) => onFragmentValueChange(e, step)} />
+            <select name={`cond-value-${step.order}`} id={`cond-value-${step.order}`} value={step.value} onChange={(e) => onFragmentValueChange(e, step)}>
+                {enums.map(o => (
+                    <option value={o.key}>{o.value}</option>
+                ))}
+            </select>
         )
     };
 

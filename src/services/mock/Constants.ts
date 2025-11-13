@@ -3,6 +3,7 @@ import { KeyValue } from "../../interfaces/KeyValue"
 
 export enum StepType {
     INPUT = "input",
+    FORMAT = "format",
     ARRAY = "array",
     FIELD = "field",
     VALUE = "value",
@@ -13,6 +14,10 @@ export const Types: KeyValue[] = [
     {
         key: StepType.INPUT,
         value: "Input",
+    },
+    {
+        key: StepType.FORMAT,
+        value: "Format",
     },
     {
         key: StepType.ARRAY,
@@ -45,6 +50,37 @@ export const Inputs: KeyValue[] = [
     {
         key: StepInput.HEADER,
         value: "Header",
+    }
+];
+
+export enum StepFormat {
+    TEXT = "text",
+    JSON = "json",
+    VEC_JSON = "vec_json",
+    XML = "xml",
+    VEC_XML = "vec_xml",
+}
+
+export const Formats: KeyValue[] = [
+    {
+        key: StepFormat.TEXT,
+        value: "Text",
+    },
+    {
+        key: StepFormat.JSON,
+        value: "JSON",
+    },
+    {
+        key: StepFormat.VEC_JSON,
+        value: "Json vector",
+    },
+    {
+        key: StepFormat.XML,
+        value: "XML",
+    },
+    {
+        key: StepFormat.VEC_XML,
+        value: "XML vector",
     }
 ];
 
