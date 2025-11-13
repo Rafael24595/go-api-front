@@ -103,6 +103,10 @@ const evaluePosition = (cursor: ConditionStep, parent?: ConditionStep) => {
         return `An input operation cannot be applied in the middle of an operation, but ${cursor.type} found on ${cursor.order} position.`
     }
 
+    if (parent.type == StepType.OPERATOR && cursor.type == StepType.OPERATOR) {
+        return `A compare operation is required after operator, but ${cursor.type} found on ${cursor.order} position.`
+    }
+
     if (isFormatedInput(cursor) && cursor.type == StepType.FORMAT) {
         return `A formatted input requires a format specification, but ${cursor.type} found on ${cursor.order} position.`
     }
@@ -115,16 +119,16 @@ const evaluePosition = (cursor: ConditionStep, parent?: ConditionStep) => {
         return `A compare comparable value is required after compare operator, but ${cursor.type} found on ${cursor.order} position.`
     }
 
-    if (parent.type == StepType.OPERATOR && cursor.type == StepType.OPERATOR) {
-        return `A compare operation is required after operator, but ${cursor.type} found on ${cursor.order} position.`
-    }
-
     if (isCompareOperator(cursor) && !isComparableLeft(parent)) {
         return `A compare comparable value is required before compare operator, but ${parent.type} found on ${parent.order} position.`
     }
 
     if (parent.type == StepType.VALUE && cursor.type != StepType.OPERATOR) {
         return `A value cannot be extracted from a flat value, but ${parent.type} found on ${parent.order} position.`
+    }
+
+    if (cursor.type == StepType.VALUE && parent.type != StepType.OPERATOR) {
+        return `a defined value cannot be extracted from a structure type, but ${parent.type} found on ${parent.order} position`;
     }
 
     return;
