@@ -577,6 +577,22 @@ img {
   content: '*';
 }
 
-.preserve-space {
-  white-space: pre;
+.c1xx {
+    color: #007bff;
+}
+
+.c2xx {
+    color: #28a745;
+}
+
+.c3xx {
+    color: #17a2b8;
+}
+
+.c4xx {
+    color: #fd7e14;
+}
+
+.c5xx {
+    color: #dc3545;
 }
