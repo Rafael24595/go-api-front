@@ -33,6 +33,10 @@
     color: var(--body-text-color);
 }
 
+.options-button.disabled {
+    cursor: no-drop;
+}
+
 .options-button:hover {
     background-color: initial
 }

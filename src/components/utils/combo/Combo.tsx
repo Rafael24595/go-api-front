@@ -17,6 +17,8 @@ export const Combo = ({ custom, asSelect, selected, options }: OptionsMenuProps)
   const menuRef = useRef<HTMLDivElement | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
+  const isEmpty = options.filter(o => o.disable).length == options.length;
+
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -107,8 +109,9 @@ export const Combo = ({ custom, asSelect, selected, options }: OptionsMenuProps)
   return (
     <div ref={menuRef} className="options-container">
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="options-button"
+        onClick={() => !isEmpty && setIsOpen(!isOpen)}
+        className={`options-button ${isEmpty ? "disabled" : ""}`}
+        disabled={isEmpty}
       >
         {custom ? (
           <>
