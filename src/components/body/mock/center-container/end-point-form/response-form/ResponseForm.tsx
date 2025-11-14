@@ -76,7 +76,7 @@ export function ResponseForm({ response, resolveResponse }: ResponseFormProps) {
             <div id="mock-form-section">
                 <div id="parameter-selector-components" className="border-bottom">
                     <div className="radio-button-group">
-                        {cursors.filter(t => response.condition != DEFAULT_RESPONSE || t.key != VIEW_CONDITION).map(c => {
+                        {cursors.filter(t => response.name != DEFAULT_RESPONSE || t.key != VIEW_CONDITION).map(c => {
                             return (<Fragment key={c.key}>
                                 <input type="radio" id={`tag-client-${c.key.toLowerCase()}`} className="client-tag" name="cursor-client"
                                     checked={cursor === c.key}
@@ -97,7 +97,7 @@ export function ResponseForm({ response, resolveResponse }: ResponseFormProps) {
                         </div>
                     )}
                 </div>
-                {response.condition != DEFAULT_RESPONSE && (
+                {response.name != DEFAULT_RESPONSE && (
                     <div className={`client-argument-content-items ${cursor === VIEW_CONDITION ? "show" : ""}`}>
                         <ConditionArguments response={response} resolveResponse={resolveResponse} />
                     </div>

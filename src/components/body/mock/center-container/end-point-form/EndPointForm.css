@@ -15,7 +15,8 @@
     display: flex;
 }
 
-#end-point-data-form, #end-point-responses-form {
+#end-point-data-form,
+#end-point-responses-form {
     display: flex;
     flex-direction: column;
     padding: 10px;
@@ -47,4 +48,33 @@
 .end-point-form-input {
     height: 22px;
     box-sizing: border-box;
+}
+
+#end-point-responses {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+.end-point-response {
+    flex: 1 1 auto;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.response-sign {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.response-sign-status {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.response-sign-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

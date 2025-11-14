@@ -21,50 +21,58 @@ interface Payload {
 
 export function ConditionArguments({ response, resolveResponse }: HeaderArgumentsProps) {
     const [data, setData] = useState<Payload>({
-        steps: [],
+        steps: response.condition,
         warnings: new Map<number, string[]>()
     });
 
     useEffect(() => {
-        setData((prevData) => ({
-            ...prevData,
-        }));
-    }, [response.headers]);
+        const newWarnings = evalueSteps(response.condition);
+        setData({
+            warnings: newWarnings,
+            steps: response.condition
+        });
+    }, [response.condition]);
 
     const addFragment = () => {
-        setData((prevData) => {
-            let prevStep = undefined;
-            if (prevData.steps.length > 0) {
-                prevStep = prevData.steps[prevData.steps.length - 1];
-            }
+        let prevStep = undefined;
+        if (data.steps.length > 0) {
+            prevStep = data.steps[data.steps.length - 1];
+        }
 
-            const newStep = newConditionStep(prevData.steps.length, prevStep);
-            const newFragments = prevData.steps.concat(newStep);
-            const newWarnings = evalueSteps(newFragments);
-            return {
-                warnings: newWarnings,
-                steps: newFragments
-            }
+        const newStep = newConditionStep(data.steps.length, prevStep);
+        const newFragments = data.steps.concat(newStep);
+        const newWarnings = evalueSteps(newFragments);
+
+        setData({
+            warnings: newWarnings,
+            steps: newFragments
         });
+
+        response.condition = newFragments;
+
+        resolveResponse(response);
     }
 
     const removeStep = (step: ConditionStep) => {
-        setData((prevData) => {
-            let prevStep = undefined;
-            if (prevData.steps.length > 0) {
-                prevStep = prevData.steps[prevData.steps.length - 1];
-            }
+        let prevStep = undefined;
+        if (data.steps.length > 0) {
+            prevStep = data.steps[data.steps.length - 1];
+        }
 
-            const newFragments = prevData.steps
-                .filter(s => s !== step)
-                .map((s, i) => ({ ...s, order: i }));
+        const newFragments = data.steps
+            .filter(s => s !== step)
+            .map((s, i) => ({ ...s, order: i }));
 
-            const newWarnings = evalueSteps(newFragments);
-            return {
-                warnings: newWarnings,
-                steps: newFragments
-            }
+        const newWarnings = evalueSteps(newFragments);
+
+        setData({
+            warnings: newWarnings,
+            steps: newFragments
         });
+
+        response.condition = newFragments;
+
+        resolveResponse(response);
     }
 
     const onFragmentTypeChange = (e: ChangeEvent<HTMLSelectElement>, target: ConditionStep) => {

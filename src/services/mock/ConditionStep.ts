@@ -15,6 +15,14 @@ export const newConditionStep = (order?: number, prev?: ConditionStep): Conditio
         }
     }
 
+    if (prev.type == StepType.INPUT && prev.value == StepInput.PAYLOAD) {
+        return {
+            order: order || 0,
+            type: StepType.FORMAT,
+            value: defaultValue(StepType.FORMAT)
+        }
+    }
+
     return {
         order: order || 0,
         type: StepType.ARRAY,
@@ -59,7 +67,7 @@ export const evalueTypeValue = (target: ConditionStep) => {
             break;
         case StepType.FORMAT:
             if (!Formats.map(o => o.key).includes(target.value)) {
-                return { value: defaultValue(StepType.INPUT), message: `Invalid input type ${target.value} on position ${target.order}` }
+                return { value: defaultValue(StepType.INPUT), message: `Invalid format type ${target.value} on position ${target.order}` }
             }
             break;
         case StepType.ARRAY:
@@ -98,7 +106,7 @@ const evaluePosition = (cursor: ConditionStep, parent?: ConditionStep) => {
         }
         return;
     }
-
+    
     if (parent.type != StepType.OPERATOR && cursor.type == StepType.INPUT) {
         return `An input operation cannot be applied in the middle of an operation, but ${cursor.type} found on ${cursor.order} position.`
     }
@@ -107,7 +115,7 @@ const evaluePosition = (cursor: ConditionStep, parent?: ConditionStep) => {
         return `A compare operation is required after operator, but ${cursor.type} found on ${cursor.order} position.`
     }
 
-    if (isFormatedInput(cursor) && cursor.type == StepType.FORMAT) {
+    if (isFormatedInput(parent) && cursor.type != StepType.FORMAT) {
         return `A formatted input requires a format specification, but ${cursor.type} found on ${cursor.order} position.`
     }
 

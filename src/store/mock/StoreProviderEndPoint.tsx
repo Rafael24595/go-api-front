@@ -3,12 +3,12 @@ import { emptyItemEndPoint, ItemEndPoint, LiteEndPoint } from "../../interfaces/
 import { useStoreCache } from "../StoreProviderCache";
 import { CacheEndPoint } from "../../interfaces/mock/Cache";
 import { useStoreSession } from "../system/StoreProviderSession";
-import { ItemResponse } from "../../interfaces/mock/Response";
+import { DEFAULT_RESPONSE, fixResponses, ItemResponse } from "../../interfaces/mock/Response";
 
 interface StoreProviderEndPointType {
     endPoint: ItemEndPoint;
     fetchEndPoint: (endPoint: LiteEndPoint) => Promise<void>;
-    resolveResponse: (response: ItemResponse) => void;
+    resolveResponse: (response: ItemResponse, rename?: boolean) => boolean;
     cacheLenght: () => number;
     cacheComments: () => string[];
 }
@@ -28,10 +28,19 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     }
 
-    const resolveResponse = (response: ItemResponse) => {
+    const resolveResponse = (response: ItemResponse, rename?: boolean) => {
+        if (rename || response.name == "") {
+            const name = prompt("Insert a name: ", response.name);
+            if (name == null) {
+                return false;
+            }
+
+            response.name = name;
+        }
+
         setEndPoint(prevData => {
-            const index = prevData.responses.findIndex(r => r.condition == response.condition);
-            if (index != -1) {
+            const index = prevData.responses.findIndex(r => r.order == response.order);
+            if (index != -1 && prevData.responses[index].name != DEFAULT_RESPONSE) {
                 prevData.responses[index] = response;
             } else {
                 prevData.responses.push(response);
@@ -40,10 +49,12 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             return {
                 ...prevData,
                 responses: [
-                    ...prevData.responses
+                    ...fixResponses(prevData.responses)
                 ]
             }
         });
+
+        return true;
     }
 
     const cacheLenght = () => {

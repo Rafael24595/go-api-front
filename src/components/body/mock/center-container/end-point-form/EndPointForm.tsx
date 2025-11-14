@@ -3,6 +3,9 @@ import { HTTP_METHODS } from '../../../../../constants/HttpMethod';
 import { useStoreEndPoint } from '../../../../../store/mock/StoreProviderEndPoint';
 import { ResponseForm } from './response-form/ResponseForm';
 import { emptyItemResponse, ItemResponse } from '../../../../../interfaces/mock/Response';
+import { millisecondsToDate } from '../../../../../services/Tools';
+import { Combo } from '../../../../utils/combo/Combo';
+import { responseOptions } from './Constants';
 
 import './EndPointForm.css';
 
@@ -29,7 +32,7 @@ export function EndPointForm() {
     const showResponseForm = (cursor?: ItemResponse) => {
         setResponse({
             form: true,
-            cursor: cursor || response.cursor
+            cursor: cursor ? {...cursor} : response.cursor
         });
     }
 
@@ -38,9 +41,12 @@ export function EndPointForm() {
     }
 
     const saveResponseForm = () => {
+        if (!resolveResponse(response.cursor)) {
+            return;
+        }
+
         hideResponseForm();
         cleanResponseForm();
-        resolveResponse(response.cursor);
     }
 
     const resolveResponseForm = (response?: ItemResponse) => {
@@ -50,8 +56,24 @@ export function EndPointForm() {
         }));
     }
 
+    const actionDelete = (response: ItemResponse) => {
+
+    }
+
+    const actionRename = (response: ItemResponse) => {
+        resolveResponse(response, true);
+    }
+
     const cleanResponseForm = () => {
         resolveResponseForm();
+    }
+
+    const statusToCss = (status: number) => {
+        const toString = `${status}`;
+        if (toString.length == 0) {
+            return ""
+        }
+        return `c${toString[0]}xx`;
     }
 
     return (
@@ -106,11 +128,26 @@ export function EndPointForm() {
                         <>
                             <ResponseForm response={response.cursor} resolveResponse={resolveResponseForm} />
                         </>
-                    ) : Object.values(endPoint.responses).map((value) => (
-                        <>
-                            <button type="button" onClick={() => showResponseForm(value)}>{value.name}</button>
-                        </>
-                    ))}
+                    ) : (
+                        <div id="end-point-responses">
+                            {Object.values(endPoint.responses).map((value) => (
+                                <div className="end-point-response">
+                                    <button className="request-link border-bottom" type="button" onClick={() => showResponseForm(value)}>
+                                        <div className="response-sign">
+                                            <span className={`response-sign-status ${statusToCss(value.status)}`}>{value.status}</span>
+                                            <span className="response-sign-name">{value.name}</span>
+                                        </div>
+                                        <div className="request-sign-date">
+                                            <span className="request-sign-timestamp" title={millisecondsToDate(value.timestamp)}>{millisecondsToDate(value.timestamp)}</span>
+                                        </div>
+                                    </button>
+                                    <Combo options={responseOptions(value, {
+                                        delete: actionDelete, rename: actionRename
+                                    })} />
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div >
         </>
