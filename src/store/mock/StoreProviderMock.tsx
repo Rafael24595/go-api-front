@@ -4,7 +4,7 @@ import { LiteEndPoint } from "../../interfaces/mock/EndPoint";
 interface StoreProviderMockType {
     endPoints: LiteEndPoint[];
     fetchAll: () => Promise<void>;
-    fetchEndPoint: () => Promise<void>;
+    fetchEndPoints: () => Promise<void>;
 }
 
 interface PayloadEndPoint {
@@ -22,17 +22,17 @@ export const StoreProviderMock: React.FC<{ children: ReactNode }> = ({ children 
     });
 
     const fetchAll = async () => {
-        fetchEndPoint();
+        fetchEndPoints();
     }
 
-    const fetchEndPoint = async () => {
+    const fetchEndPoints = async () => {
 
     }
 
     return (
         <StoreRequest.Provider value={{
             endPoints: endPoints.items, 
-            fetchAll, fetchEndPoint,
+            fetchAll, fetchEndPoints,
         }}>
             {children}
         </StoreRequest.Provider>
