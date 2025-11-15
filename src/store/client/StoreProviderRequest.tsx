@@ -17,13 +17,13 @@ import { executeFormAction } from "../../services/api/ServiceManager";
 import { EAlertCategory } from "../../interfaces/AlertData";
 import { CacheRequestFocus } from "../../interfaces/client/Cache";
 import { UserData } from "../../interfaces/system/UserData";
+import { CACHE_CATEGORY_FOCUS } from "../Constants";
 
 const TRIGGER_KEY_VIEW = "StoreProviderRequestViewTrigger";
 const TRIGGER_KEY_CACHE = "StoreProviderRequestCacheTrigger";
-const CACHE_KEY = "StoreProviderRequestCache";
 
-const CACHE_ITEM_FOCUS = "StoreProviderCacheFocus";
-const CACHE_REQUEST_FOCUS = "StoreProviderRequestCacheFocus";
+const CACHE_CATEGORY_STORE = "StoreRequest";
+const CACHE_KEY_FOCUS = "FocusRequest";
 
 const VOID_FUNCTION = () => { };
 
@@ -121,17 +121,17 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     const actualHash = await calculateHash(data.request);
 
     if (actualHash != initialHash) {
-      insert(CACHE_KEY, request._id, {
+      insert(CACHE_CATEGORY_STORE, request._id, {
         parent: data.parent,
         backup: data.backup,
         request: request,
         response: data.response
       });
     } else {
-      remove(CACHE_KEY, request._id);
+      remove(CACHE_CATEGORY_STORE, request._id);
     }
 
-    insert(CACHE_ITEM_FOCUS, CACHE_REQUEST_FOCUS, {
+    insert(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS, {
       request: request._id,
       parent: data.parent,
       context: data.context
@@ -155,7 +155,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const focusLastRequest = () => {
-    const focus: Optional<CacheRequestFocus> = search(CACHE_ITEM_FOCUS, CACHE_REQUEST_FOCUS);
+    const focus: Optional<CacheRequestFocus> = search(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
     if (focus != undefined) {
       fetchRequestById(focus.request, focus.parent, focus.context);
       return true;
@@ -168,8 +168,8 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const cleanCache = () => {
-    remove(CACHE_KEY, CACHE_REQUEST_FOCUS);
-    excise(CACHE_KEY);
+    remove(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
+    excise(CACHE_CATEGORY_STORE);
   }
 
   const discardRequest = (request?: LiteRequest) => {
@@ -177,7 +177,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       return releaseItemRequest(data.backup, data.response, toRequest(data.request));
     }
 
-    remove(CACHE_KEY, request._id);
+    remove(CACHE_CATEGORY_STORE, request._id);
 
     setData(prevData => {
       return { ...prevData };
@@ -207,7 +207,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     evalueCancelRequest(request); 
 
     if (oldRequest && oldRequest._id != request._id) {
-      remove(CACHE_KEY, oldRequest._id);
+      remove(CACHE_CATEGORY_STORE, oldRequest._id);
     }
 
     setData(prevData => {
@@ -242,7 +242,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     setData(prevData => {
       if (oldRequest && oldRequest._id != request._id) {
-        remove(CACHE_KEY, oldRequest._id);
+        remove(CACHE_CATEGORY_STORE, oldRequest._id);
       }
 
       return {
@@ -265,7 +265,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     setData(prevData => {
       if (oldRequest && oldRequest._id != request._id) {
-        remove(CACHE_KEY, oldRequest._id);
+        remove(CACHE_CATEGORY_STORE, oldRequest._id);
       }
 
       return {
@@ -301,7 +301,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const fixRequest = (request: Request, oldRequest?: Request) => {
     let itemRequest = fromRequest(request);
     if (oldRequest && oldRequest._id != request._id) {
-      remove(CACHE_KEY, oldRequest._id);
+      remove(CACHE_CATEGORY_STORE, oldRequest._id);
     }
 
     setData(prevData => {
@@ -422,7 +422,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const fetchRequestById = async (request: string, parent?: string, context?: string) => {
-    const cached: Optional<CacheActionData> = search(CACHE_KEY, request);
+    const cached: Optional<CacheActionData> = search(CACHE_CATEGORY_STORE, request);
     if (cached != undefined) {
       defineItemRequest(cached.backup, cached.request, cached.response, undefined, cached.parent, context);
       return;
@@ -557,15 +557,15 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const isParentCached = (parent: string) => {
-    return exists(CACHE_KEY, (_: string, i: CacheActionData) => i.parent == parent);
+    return exists(CACHE_CATEGORY_STORE, (_: string, i: CacheActionData) => i.parent == parent);
   }
 
   const isCached = (request: LiteRequest) => {
-    return search(CACHE_KEY, request._id) != undefined;
+    return search(CACHE_CATEGORY_STORE, request._id) != undefined;
   }
 
   const cacheComments = () => {
-    const requests: CacheActionData[] = gather(CACHE_KEY);
+    const requests: CacheActionData[] = gather(CACHE_CATEGORY_STORE);
     return requests.map(cacheComment);
   }
 
@@ -584,7 +584,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const cacheLenght = () => {
-    return length(CACHE_KEY);
+    return length(CACHE_CATEGORY_STORE);
   }
 
   const defineFetchData = (fetch: ResponseFetch<ResponseExecuteAction>) => {
