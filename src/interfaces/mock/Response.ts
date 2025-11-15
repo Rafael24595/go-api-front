@@ -59,6 +59,17 @@ export const defaultItemResponse = (): ItemResponse => {
     }
 }
 
+export const resolveResponses = (responses: ItemResponse[], response: ItemResponse) => {
+    const index = responses.findIndex(r => r.order == response.order);
+    if (index != -1 && responses[index].name != DEFAULT_RESPONSE) {
+        responses[index] = response;
+    } else {
+        responses.push(response);
+    }
+
+    return fixResponses(responses);
+}
+
 export const fixResponses = (responses: ItemResponse[]): ItemResponse[] => {
     let newResponses = [...responses];
 

@@ -2,6 +2,7 @@ import { Collection, ItemCollection, ItemNodeCollection, ItemNodeRequest, LiteIt
 import { Context } from "../../interfaces/client/context/Context";
 import { ItemRequest, LiteRequest, Request } from "../../interfaces/client/request/Request";
 import { Response, SignedPayload } from "../../interfaces/client/response/Response";
+import { ItemEndPoint } from "../../interfaces/mock/EndPoint";
 import { authApiManager } from "./ApiManager";
 import { RequestCloneCollection, RequestImportContext, RequestNode, RequestRequestCollect, RequestSortNodes } from "./Requests";
 import { ResponseExecuteAction } from "./Responses";
@@ -334,6 +335,25 @@ export const importCurl = async (curls: string[], collection?: string): Promise<
   }
 };
 
+export const findEndPoint = async (endPoint: string): Promise<ItemEndPoint> => {
+  try {
+    const apiResponse = await authApiManager.get(`/mock/${endPoint}`);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const insertEndPoint = async (endPoint: ItemEndPoint): Promise<string> => {
+  try {
+    const apiResponse = await authApiManager.post(`/mock`, endPoint);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
 
 export const queryHelper = (...query: [string, any][]): string => {
   const result = query.filter(([_k, v]) => v != undefined)

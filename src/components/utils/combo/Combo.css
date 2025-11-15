@@ -34,7 +34,7 @@
 }
 
 .options-button.disabled {
-    cursor: no-drop;
+    cursor: auto;
     opacity: 0.5;
 }
 

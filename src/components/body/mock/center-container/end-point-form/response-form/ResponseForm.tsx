@@ -7,10 +7,12 @@ import { DEFAULT_RESPONSE, ItemResponse } from '../../../../../../interfaces/moc
 import { ConditionArguments } from './condition-arguments/ConditionArguments';
 import { ImportConditionsModal } from '../../../../../mock/endpoint/response/ImportConditionsModal';
 import { ConditionStep } from '../../../../../../services/mock/ConditionStep';
+import { DataArguments } from './data-arguments/DataArguments';
 
 import './ResponseForm.css';
 
 const VIEW_CONDITION = "condition";
+const VIEW_DATA = "data";
 const VIEW_HEADER = "header";
 const VIEW_BODY = "body";
 
@@ -18,6 +20,10 @@ const cursors: KeyValue[] = [
     {
         key: VIEW_CONDITION,
         value: "Condition",
+    },
+    {
+        key: VIEW_DATA,
+        value: "Data",
     },
     {
         key: VIEW_HEADER,
@@ -29,8 +35,7 @@ const cursors: KeyValue[] = [
     },
 ];
 
-const VALID_CURSORS = cursors.map(c => c.key);
-const DEFAULT_CURSOR = VIEW_CONDITION;
+const DEFAULT_CURSOR = VIEW_DATA;
 
 const CURSOR_KEY = "EndPointResponseForm";
 
@@ -39,13 +44,29 @@ interface ResponseFormProps {
     resolveResponse: (response: ItemResponse) => void
 }
 
+const filterCursors = (cursor: KeyValue, response: ItemResponse) => {
+    if(response.name != DEFAULT_RESPONSE) {
+        return true;
+    }
+
+    if(cursor.key == VIEW_CONDITION) {
+        return false;
+    }
+
+    return true;
+}
+
 export function ResponseForm({ response, resolveResponse }: ResponseFormProps) {
+    const stateCursors = cursors.filter(c => filterCursors(c, response));
+    const VALID_CURSORS = stateCursors.map(c => c.key);
+
     const { find, store } = useStoreStatus();
 
     const [cursor, setCursor] = useState<string>(
         find(CURSOR_KEY, {
             def: DEFAULT_CURSOR,
-            range: VALID_CURSORS
+            range: VALID_CURSORS,
+            strict: true
         }));
 
     const [modalConditionStatus, setModalConditionStatus] = useState<boolean>(false);
@@ -76,7 +97,7 @@ export function ResponseForm({ response, resolveResponse }: ResponseFormProps) {
             <div id="mock-form-section">
                 <div id="parameter-selector-components" className="border-bottom">
                     <div className="radio-button-group">
-                        {cursors.filter(t => response.name != DEFAULT_RESPONSE || t.key != VIEW_CONDITION).map(c => {
+                        {stateCursors.filter(t => response.name != DEFAULT_RESPONSE || t.key != VIEW_CONDITION).map(c => {
                             return (<Fragment key={c.key}>
                                 <input type="radio" id={`tag-client-${c.key.toLowerCase()}`} className="client-tag" name="cursor-client"
                                     checked={cursor === c.key}
@@ -102,6 +123,9 @@ export function ResponseForm({ response, resolveResponse }: ResponseFormProps) {
                         <ConditionArguments response={response} resolveResponse={resolveResponse} />
                     </div>
                 )}
+                <div className={`client-argument-content-items ${cursor === VIEW_DATA ? "show" : ""}`}>
+                    <DataArguments response={response} resolveResponse={resolveResponse} />
+                </div>
                 <div className={`client-argument-content-items ${cursor === VIEW_HEADER ? "show" : ""}`}>
                     <HeaderArguments response={response} resolveResponse={resolveResponse} />
                 </div>

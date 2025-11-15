@@ -173,6 +173,20 @@ img {
   background-color: var(--button-border-color);
 }
 
+.flat-button {
+  background-color: transparent;
+  border: none;
+}
+
+.flat-button:hover {
+  background-color: transparent;
+}
+
+.flat-emoji {
+  font-family: 'Segoe UI Symbol', sans-serif;
+  font-size: 1.1em;
+}
+
 /* Move to custom css file */
 
 .radio-button-group {

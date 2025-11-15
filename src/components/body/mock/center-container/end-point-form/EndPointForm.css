@@ -1,18 +1,28 @@
 #end-point-form-title-container {
     display: flex;
+    align-items: center;
     margin-bottom: 5px;
     justify-content: space-between;
 }
 
 #end-point-form-title {
     margin-top: 0px;
-    margin-bottom: 5px;
     font-size: 1.05em;
     font-weight: bold;
 }
 
 #end-point-form-safe {
     display: flex;
+    align-items: center;
+}
+
+#end-point-form-title,
+#end-point-form-safe {
+    margin-bottom: 3px;
+}
+
+#end-point-form-safe input {
+    display: none;
 }
 
 #end-point-data-form,
@@ -28,6 +38,10 @@
     margin-right: 5px;
 }
 
+.end-point-form-fragment.column {
+    flex-direction: column;
+}
+
 .end-point-form-field {
     display: flex;
     margin: 5px;
@@ -35,6 +49,17 @@
 
 .end-point-form-field.column {
     flex-direction: column;
+}
+
+.end-point-form-field.row span {
+    margin-right: 5px;
+}
+
+.end-point-form-field.row input,
+.end-point-form-field.row select,
+.end-point-form-field.row textarea {
+    width: 100%;
+    resize: none;
 }
 
 .end-point-form-field.fix {

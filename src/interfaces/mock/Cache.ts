@@ -1,6 +1,10 @@
-import { EndPoint } from "./EndPoint";
+import { ItemEndPoint } from "./EndPoint";
 
-export interface CacheEndPoint {
-    backup?: EndPoint,
-    endPoint?: EndPoint
+export interface CacheEndPointStore {
+    backup: ItemEndPoint,
+    endPoint: ItemEndPoint
+}
+
+export interface CacheEndPointFocus {
+    endPoint: string
 }

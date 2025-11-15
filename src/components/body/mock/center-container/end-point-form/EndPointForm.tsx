@@ -21,7 +21,7 @@ interface PayloadResponse {
 }
 
 export function EndPointForm() {
-    const { endPoint, resolveResponse } = useStoreEndPoint();
+    const { endPoint, initialHash, actualHash, resolveResponse, releaseEndPoint, discardEndPoint } = useStoreEndPoint();
 
     const [data, setData] = useState<PayloadData>({
         safe: endPoint.safe,
@@ -42,10 +42,10 @@ export function EndPointForm() {
         });
     }, [endPoint]);
 
-    const onSafeChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const onSafeChange = () => {
         setData((prevData) => ({
             ...prevData,
-            safe: e.target.checked
+            safe: !prevData.safe
         }))
     }
 
@@ -122,10 +122,7 @@ export function EndPointForm() {
             <div id="end-point-data-form">
                 <div id="end-point-form-title-container" className="border-bottom">
                     <p id="end-point-form-title">End Point data:</p>
-                    <label htmlFor="end-point-safe" id="end-point-form-safe">
-                        <span>{data.safe ? "🔒" : "🔓"}</span>
-                        <input id="end-point-safe" name="safe" type="checkbox" checked={data.safe} onChange={onSafeChange} />
-                    </label>
+                    <button id="end-point-form-safe" className="flat-button flat-emoji" onClick={onSafeChange} title={`${data.safe ? "Safe request" : "Unsafe request"}`}>{data.safe ? "🔒" : "🔓"}</button>
                 </div>
                 <div className="end-point-form-fragment">
                     <label htmlFor="end-point-method" className="end-point-form-field column">
@@ -190,7 +187,32 @@ export function EndPointForm() {
                         </div>
                     )}
                 </div>
-            </div >
+            </div>
+            <div id="client-buttons" className="border-top">
+                <span className="button-modified-status"></span>
+                <button type="submit" onClick={releaseEndPoint}>Save</button>
+                <div className={`button-modified-container ${initialHash != actualHash ? "visible" : ""}`}>
+                    <Combo
+                        custom={(
+                            <span className={`button-modified-status ${initialHash != actualHash ? "visible" : ""}`}></span>
+                        )}
+                        options={[
+                            {
+                                icon: "🧹",
+                                label: "Discard",
+                                title: "Discard request",
+                                action: discardEndPoint
+                            },
+                            {
+                                icon: "💾",
+                                label: "Save",
+                                title: "Save request",
+                                action: releaseEndPoint
+                            },
+                        ]}
+                    />
+                </div>
+            </div>
         </>
     );
 }

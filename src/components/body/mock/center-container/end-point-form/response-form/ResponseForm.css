@@ -22,6 +22,12 @@
     padding: 10px;
 }
 
+#end-point-responses-form {
+    scrollbar-gutter: stable;
+    overflow: auto;
+    height: 100%;
+}
+
 .end-point-form-fragment {
     display: flex;
     margin-left: 5px;
