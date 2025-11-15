@@ -16,9 +16,12 @@ interface StoreProviderEndPointType {
     actualHash: string;
     endPoint: ItemEndPoint;
     fetchEndPoint: (endPoint: LiteEndPoint) => Promise<void>;
-    resolveResponse: (response: ItemResponse, rename?: boolean) => boolean;
     releaseEndPoint: () => Promise<void>;
     discardEndPoint: (endPoint?: ItemEndPoint) => void;
+    switchSafe: () => void;
+    updateMethod: (method: string) => void;
+    updatePath: (path: string) => void;
+    resolveResponse: (response: ItemResponse, rename?: boolean) => boolean;
     cacheLenght: () => number;
     cacheComments: () => string[];
 }
@@ -28,14 +31,13 @@ interface PayloadData {
     actualHash: string;
     backup: ItemEndPoint;
     endPoint: ItemEndPoint;
-
 }
 
 const TRIGGER_SESSION_CHANGE = "SessionChangeEndPoint";
 const CACHE_CATEGORY_STORE = "StoreEndPoint";
 const CACHE_KEY_FOCUS = "FocusEndPoint";
 
-const StoreRequest = createContext<StoreProviderEndPointType | undefined>(undefined);
+const StoreEndPoint = createContext<StoreProviderEndPointType | undefined>(undefined);
 
 export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { search, gather, insert, excise, remove, length } = useStoreCache();
@@ -186,7 +188,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     const discardEndPoint = (endPoint?: ItemEndPoint) => {
         if (!endPoint || endPoint._id == data.backup._id) {
-            return restoreEndPoint(data.endPoint, data.backup);
+            return restoreEndPoint(data.backup);
         }
 
         remove(CACHE_CATEGORY_STORE, endPoint._id);
@@ -203,6 +205,36 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             backup: { ...(backup || endPoint) },
             endPoint: { ...endPoint },
         });
+    }
+
+    const switchSafe = () => {
+        setData(prevData => ({
+            ...prevData,
+            endPoint: {
+                ...prevData.endPoint,
+                safe: !prevData.endPoint.safe
+            }
+        }));
+    }
+
+    const updateMethod = (method: string) => {
+        setData(prevData => ({
+            ...prevData,
+            endPoint: {
+                ...prevData.endPoint,
+                method: method
+            }
+        }));
+    }
+
+    const updatePath = (path: string) => {
+        setData(prevData => ({
+            ...prevData,
+            endPoint: {
+                ...prevData.endPoint,
+                path: path
+            }
+        }));
     }
 
     const resolveResponse = (response: ItemResponse, rename?: boolean) => {
@@ -249,20 +281,21 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     }
 
     return (
-        <StoreRequest.Provider value={{
+        <StoreEndPoint.Provider value={{
             actualHash: data.actualHash,
             initialHash: data.initialHash,
             endPoint: data.endPoint,
-            fetchEndPoint, resolveResponse, releaseEndPoint,
+            fetchEndPoint, releaseEndPoint, switchSafe,
+            updateMethod, updatePath, resolveResponse, 
             discardEndPoint, cacheLenght, cacheComments
         }}>
             {children}
-        </StoreRequest.Provider>
+        </StoreEndPoint.Provider>
     );
 };
 
 export const useStoreEndPoint = (): StoreProviderEndPointType => {
-    const context = useContext(StoreRequest);
+    const context = useContext(StoreEndPoint);
     if (!context) {
         throw new Error("useStore must be used within a StoreProviderEndPoint");
     }

@@ -21,7 +21,7 @@ interface PayloadResponse {
 }
 
 export function EndPointForm() {
-    const { endPoint, initialHash, actualHash, resolveResponse, releaseEndPoint, discardEndPoint } = useStoreEndPoint();
+    const { endPoint, initialHash, actualHash, releaseEndPoint, discardEndPoint, switchSafe, updateMethod, updatePath, resolveResponse } = useStoreEndPoint();
 
     const [data, setData] = useState<PayloadData>({
         safe: endPoint.safe,
@@ -40,27 +40,36 @@ export function EndPointForm() {
             method: endPoint.method,
             path: endPoint.path
         });
+        setResponse((prevData) => ({
+            ...prevData,
+            cursor: emptyItemResponse()
+        }));
     }, [endPoint]);
 
     const onSafeChange = () => {
         setData((prevData) => ({
             ...prevData,
             safe: !prevData.safe
-        }))
+        }));
+        switchSafe();
     }
 
     const onMethodChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        const method = e.target.value;
         setData((prevData) => ({
             ...prevData,
-            method: e.target.value
-        }))
+            method: method
+        }));
+        updateMethod(method);
     }
 
     const onPathChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const path = e.target.value;
         setData((prevData) => ({
             ...prevData,
-            path: e.target.value
-        }))
+            path: path
+        }));
+        updatePath(path);
     }
 
     const hideResponseForm = () => {
@@ -78,7 +87,7 @@ export function EndPointForm() {
     }
 
     const showNewResponseForm = () => {
-        showResponseForm(emptyItemResponse())
+        showResponseForm(emptyItemResponse());
     }
 
     const saveResponseForm = () => {
