@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { HTTP_METHODS } from '../../../../../constants/HttpMethod';
 import { useStoreEndPoint } from '../../../../../store/mock/StoreProviderEndPoint';
 import { ResponseForm } from './response-form/ResponseForm';
@@ -9,7 +9,13 @@ import { responseOptions } from './Constants';
 
 import './EndPointForm.css';
 
-interface Payload {
+interface PayloadData {
+    safe: boolean
+    method: string
+    path: string
+}
+
+interface PayloadResponse {
     form: boolean
     cursor: ItemResponse
 }
@@ -17,10 +23,45 @@ interface Payload {
 export function EndPointForm() {
     const { endPoint, resolveResponse } = useStoreEndPoint();
 
-    const [response, setResponse] = useState<Payload>({
+    const [data, setData] = useState<PayloadData>({
+        safe: endPoint.safe,
+        method: endPoint.method,
+        path: endPoint.path
+    });
+
+    const [response, setResponse] = useState<PayloadResponse>({
         form: false,
         cursor: emptyItemResponse()
     });
+
+    useEffect(() => {
+        setData({
+            safe: endPoint.safe,
+            method: endPoint.method,
+            path: endPoint.path
+        });
+    }, [endPoint]);
+
+    const onSafeChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setData((prevData) => ({
+            ...prevData,
+            safe: e.target.checked
+        }))
+    }
+
+    const onMethodChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        setData((prevData) => ({
+            ...prevData,
+            method: e.target.value
+        }))
+    }
+
+    const onPathChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setData((prevData) => ({
+            ...prevData,
+            path: e.target.value
+        }))
+    }
 
     const hideResponseForm = () => {
         setResponse((prevData) => ({
@@ -32,7 +73,7 @@ export function EndPointForm() {
     const showResponseForm = (cursor?: ItemResponse) => {
         setResponse({
             form: true,
-            cursor: cursor ? {...cursor} : response.cursor
+            cursor: cursor ? { ...cursor } : response.cursor
         });
     }
 
@@ -82,14 +123,14 @@ export function EndPointForm() {
                 <div id="end-point-form-title-container" className="border-bottom">
                     <p id="end-point-form-title">End Point data:</p>
                     <label htmlFor="end-point-safe" id="end-point-form-safe">
-                        <span>{endPoint.safe ? "🔒" : "🔓"}</span>
-                        <input id="end-point-safe" name="safe" type="checkbox" checked={endPoint.safe} />
+                        <span>{data.safe ? "🔒" : "🔓"}</span>
+                        <input id="end-point-safe" name="safe" type="checkbox" checked={data.safe} onChange={onSafeChange} />
                     </label>
                 </div>
                 <div className="end-point-form-fragment">
                     <label htmlFor="end-point-method" className="end-point-form-field column">
                         <span>Method:</span>
-                        <select id="end-point-method" className="end-point-form-input" name="method" value={endPoint.method}>
+                        <select id="end-point-method" className="end-point-form-input" name="method" value={data.method} onChange={onMethodChange}>
                             {HTTP_METHODS.map((method, index) => (
                                 <option key={index} value={method}>
                                     {method}
@@ -99,7 +140,7 @@ export function EndPointForm() {
                     </label>
                     <label htmlFor="end-point-name" className="end-point-form-field column fix">
                         <span>Path:</span>
-                        <input id="end-point-name" className="end-point-form-input" name="name" type="text" placeholder="name" value={endPoint.path} autoComplete="on" />
+                        <input id="end-point-name" className="end-point-form-input" name="name" type="text" placeholder="name" value={data.path} autoComplete="on" onChange={onPathChange} />
                     </label>
                 </div>
                 <div className="end-point-form-fragment">
@@ -119,7 +160,7 @@ export function EndPointForm() {
                     ) : (
                         <>
                             <p id="end-point-form-title">Responses [{endPoint.responses.length}]:</p>
-                            <button type="button" onClick={() => showNewResponseForm()}>+</button>
+                            <button className="button-tag" type="button" onClick={() => showNewResponseForm()}>✚</button>
                         </>
                     )}
                 </div>
