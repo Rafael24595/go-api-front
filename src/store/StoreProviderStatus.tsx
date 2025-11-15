@@ -9,12 +9,14 @@ interface StoreOptions<T> {
 interface FindOptions<T> {
     def?: T;
     range?: T[];
+    strict?: boolean;
     parser?: (value: string) => T;
 }
 
 interface FindOptionsDefault<T> {
     def: T;
     range?: T[];
+    strict?: boolean;
     parser?: (value: string) => T;
 }
 
@@ -71,6 +73,10 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
             }
         }
 
+        if(options?.strict && options?.def != undefined) {
+            return options.def;
+        }
+
         return parsed;
     }
 
@@ -86,6 +92,10 @@ export const StoreProviderStatus: React.FC<{ children: ReactNode }> = ({ childre
             if(parsed == element) {
                 return parsed;
             }
+        }
+
+        if(options?.strict && options?.def != undefined) {
+            return options.def;
         }
 
         return parsed;
