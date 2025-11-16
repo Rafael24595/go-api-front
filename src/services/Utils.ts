@@ -137,6 +137,11 @@ export const mergeStatusCategoryKeyValueAsItem = (newValues: ItemStatusCategoryK
     return merge;
 }
 
+export const deepClone = <T>(object: T): T =>
+    typeof structuredClone === "function"
+        ? structuredClone(object)
+        : JSON.parse(JSON.stringify(object));
+
 export const generateHash = async (obj: any) => {
     const sortedObj = deepSort(obj);
 
