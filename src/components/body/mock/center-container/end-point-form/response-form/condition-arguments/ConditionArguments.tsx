@@ -192,7 +192,7 @@ export function ConditionArguments() {
 
     return (
         <>
-            <div id="condition-form-container">
+            <div id="end-form-arguments">
                 <p id="condition-form-header">From:</p>
                 {data.steps.map((s, i) => (
                     <>

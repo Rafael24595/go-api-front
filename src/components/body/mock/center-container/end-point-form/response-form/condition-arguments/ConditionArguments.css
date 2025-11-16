@@ -1,9 +1,3 @@
-#condition-form-container {
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
-}
-
 .condition-form-step {
     display: flex;
     align-items: center;

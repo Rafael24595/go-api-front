@@ -62,7 +62,7 @@ export function DataArguments() {
 
     return (
         <>
-            <div className="end-point-form-fragment column">
+            <div id="end-form-arguments" className="end-point-form-fragment column">
                 <label htmlFor="end-point-resp-status" className="end-point-form-field row">
                     <span>Method:</span>
                     <select id="end-point-resp-status" className="end-point-form-input" name="status" value={data.status} onChange={onStatusChange}>
