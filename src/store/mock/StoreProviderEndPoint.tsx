@@ -4,7 +4,7 @@ import { useStoreCache } from "../StoreProviderCache";
 import { CacheEndPointStore, CacheEndPointFocus, CacheResponseFocus } from "../../interfaces/mock/Cache";
 import { useStoreSession } from "../system/StoreProviderSession";
 import { emptyItemResponse, ItemResponse, resolveResponses } from "../../interfaces/mock/Response";
-import { generateHash } from "../../services/Utils";
+import { deepClone, generateHash } from "../../services/Utils";
 import { UserData } from "../../interfaces/system/UserData";
 import { Optional } from "../../types/Optional";
 import { findEndPoint, insertEndPoint } from "../../services/api/ServiceStorage";
@@ -130,8 +130,6 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
         const actualHash = await generateHash(responseData.response);
 
-        console.log(responseData.backup, responseData.response)
-
         insert<CacheResponseFocus>(CACHE_CATEGORY_FOCUS, CACHE_KEY_REQUEST_FOCUS, {
             response: response.order
         })
@@ -224,8 +222,8 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         setData({
             initialHash: "",
             actualHash: "",
-            backup: { ...newEndPoint },
-            endPoint: { ...newEndPoint },
+            backup: deepClone(newEndPoint),
+            endPoint: deepClone(newEndPoint),
         });
 
         fetchEndPoints();
@@ -240,7 +238,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         remove(CACHE_CATEGORY_STORE, endPoint._id);
 
         setData(prevData => {
-            return { ...prevData };
+            return deepClone(prevData);
         });
     }
 
@@ -248,8 +246,8 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         setData({
             initialHash: "",
             actualHash: "",
-            backup: { ...(backup || endPoint) },
-            endPoint: { ...endPoint },
+            backup: deepClone(backup || endPoint),
+            endPoint: deepClone(endPoint),
         });
     }
 
@@ -291,15 +289,15 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         setResponseData({
             initialHash: "",
             actualHash: "",
-            backup: { ...response },
-            response: { ...response }
-        })
+            backup: deepClone(response),
+            response: deepClone(response)
+        });
     }
 
     const updateResponse = (response: ItemResponse) => {
         setResponseData((prevData) => ({
             ...prevData,
-            response: response
+            response: deepClone(response)
         }))
     }
 
@@ -330,7 +328,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     }
 
     const discardResponse = () => {
-        setResponseData(clearResponse());
+        defineResponse(responseData.backup);
     }
 
     const cacheLenght = () => {

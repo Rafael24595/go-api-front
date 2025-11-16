@@ -1,6 +1,7 @@
 import { HttpStatusCode } from "axios";
 import { ItemStatusKeyValue, StatusKeyValue } from "../StatusKeyValue";
 import { ConditionStep } from "../../services/mock/ConditionStep";
+import { deepClone } from "../../services/Utils";
 
 export const DEFAULT_RESPONSE = "default";
 
@@ -75,7 +76,7 @@ export const resolveResponses = (responses: ItemResponse[], response: ItemRespon
 }
 
 export const fixResponses = (responses: ItemResponse[]): ItemResponse[] => {
-    let newResponses = [...responses];
+    let newResponses = deepClone(responses);
 
     const index = newResponses.findIndex(r => r.name == DEFAULT_RESPONSE);
 
