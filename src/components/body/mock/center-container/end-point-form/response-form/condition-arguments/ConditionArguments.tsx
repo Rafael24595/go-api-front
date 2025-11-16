@@ -3,34 +3,35 @@ import { ItemResponse } from '../../../../../../../interfaces/mock/Response';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { StepType, Inputs, Operators, Types, Formats } from '../../../../../../../services/mock/Constants';
 import { ConditionStep, defaultValue, evalueSteps, evalueTypeValue, isLogicalOperator, newConditionStep } from '../../../../../../../services/mock/ConditionStep';
+import { KeyValue } from '../../../../../../../interfaces/KeyValue';
+import { Optional } from '../../../../../../../types/Optional';
+import { useStoreEndPoint } from '../../../../../../../store/mock/StoreProviderEndPoint';
 
 import '../../../../../../structure/status-key-value/StatusKeyValue.css';
 import './ConditionArguments.css';
-import { KeyValue } from '../../../../../../../interfaces/KeyValue';
-import { Optional } from '../../../../../../../types/Optional';
-
-interface HeaderArgumentsProps {
-    response: ItemResponse
-    resolveResponse: (response: ItemResponse) => void
-}
 
 interface Payload {
     steps: ConditionStep[]
     warnings: Map<number, string[]>
 }
 
-export function ConditionArguments({ response, resolveResponse }: HeaderArgumentsProps) {
-    const [data, setData] = useState<Payload>({
-        steps: response.condition,
-        warnings: new Map<number, string[]>()
-    });
+export function ConditionArguments() {
+    const { response, updateResponse } = useStoreEndPoint();
+
+    const makePayload = (response: ItemResponse) => {
+        const newSteps = [...response.condition];
+        const newWarnings = evalueSteps(newSteps);
+
+        return {
+            warnings: newWarnings,
+            steps: newSteps
+        }
+    };
+
+    const [data, setData] = useState<Payload>(makePayload(response));
 
     useEffect(() => {
-        const newWarnings = evalueSteps(response.condition);
-        setData({
-            warnings: newWarnings,
-            steps: response.condition
-        });
+        setData(makePayload(response));
     }, [response.condition]);
 
     const addFragment = () => {
@@ -50,7 +51,7 @@ export function ConditionArguments({ response, resolveResponse }: HeaderArgument
 
         response.condition = newFragments;
 
-        resolveResponse(response);
+        updateResponse(response);
     }
 
     const removeStep = (step: ConditionStep) => {
@@ -72,7 +73,7 @@ export function ConditionArguments({ response, resolveResponse }: HeaderArgument
 
         response.condition = newFragments;
 
-        resolveResponse(response);
+        updateResponse(response);
     }
 
     const onFragmentTypeChange = (e: ChangeEvent<HTMLSelectElement>, target: ConditionStep) => {
@@ -131,7 +132,7 @@ export function ConditionArguments({ response, resolveResponse }: HeaderArgument
             headers: items
         };
 
-        resolveResponse(newResponse);
+        updateResponse(newResponse);
     };
 
     const renderStepValue = (step: ConditionStep) => {

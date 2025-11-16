@@ -17,11 +17,10 @@ interface PayloadData {
 
 interface PayloadResponse {
     form: boolean
-    cursor: ItemResponse
 }
 
 export function EndPointForm() {
-    const { endPoint, initialHash, actualHash, releaseEndPoint, discardEndPoint, switchSafe, updateMethod, updatePath, resolveResponse } = useStoreEndPoint();
+    const { endPoint, initialHash, actualHash, releaseEndPoint, discardEndPoint, switchSafe, updateMethod, updatePath, isResponseModified, defineResponse, releaseResponse, resolveResponse, discardResponse } = useStoreEndPoint();
 
     const [data, setData] = useState<PayloadData>({
         safe: endPoint.safe,
@@ -31,7 +30,6 @@ export function EndPointForm() {
 
     const [response, setResponse] = useState<PayloadResponse>({
         form: false,
-        cursor: emptyItemResponse()
     });
 
     useEffect(() => {
@@ -40,10 +38,6 @@ export function EndPointForm() {
             method: endPoint.method,
             path: endPoint.path
         });
-        setResponse((prevData) => ({
-            ...prevData,
-            cursor: emptyItemResponse()
-        }));
     }, [endPoint]);
 
     const onSafeChange = () => {
@@ -80,30 +74,23 @@ export function EndPointForm() {
     }
 
     const showResponseForm = (cursor?: ItemResponse) => {
+        defineResponse(cursor || emptyItemResponse());
         setResponse({
             form: true,
-            cursor: cursor ? { ...cursor } : response.cursor
         });
     }
 
     const showNewResponseForm = () => {
-        showResponseForm(emptyItemResponse());
+        showResponseForm();
     }
 
     const saveResponseForm = () => {
-        if (!resolveResponse(response.cursor)) {
+        if (!releaseResponse()) {
             return;
         }
 
         hideResponseForm();
         cleanResponseForm();
-    }
-
-    const resolveResponseForm = (response?: ItemResponse) => {
-        setResponse((prevData) => ({
-            ...prevData,
-            cursor: response || emptyItemResponse()
-        }));
     }
 
     const actionDelete = (response: ItemResponse) => {
@@ -115,7 +102,7 @@ export function EndPointForm() {
     }
 
     const cleanResponseForm = () => {
-        resolveResponseForm();
+        discardResponse();
     }
 
     const statusToCss = (status: number) => {
@@ -158,9 +145,28 @@ export function EndPointForm() {
                     {response.form ? (
                         <>
                             <p id="end-point-form-title">New response:</p>
-                            <div>
-                                <button className="button-tag" type="button" onClick={() => saveResponseForm()}>Save</button>
-                                <button className="button-tag" type="button" onClick={() => hideResponseForm()}>Close</button>
+                            <div id="end-point-reponse-buttons">
+                                <Combo
+                                    custom={(
+                                        <span className={`button-modified-status small ${isResponseModified() ? "visible" : ""}`}></span>
+                                    )}
+                                    options={[
+                                        {
+                                            icon: "🧹",
+                                            label: "Discard",
+                                            title: "Discard response",
+                                            action: discardResponse
+                                        },
+                                        {
+                                            icon: "💾",
+                                            label: "Save",
+                                            title: "Save response",
+                                            action: saveResponseForm
+                                        },
+                                    ]}
+                                />
+                                <button className="button-tag" type="button" onClick={saveResponseForm}>Save</button>
+                                <button className="button-tag" type="button" onClick={hideResponseForm}>Close</button>
                             </div>
                         </>
                     ) : (
@@ -173,7 +179,7 @@ export function EndPointForm() {
                 <div className="end-point-form-fragment">
                     {response.form ? (
                         <>
-                            <ResponseForm response={response.cursor} resolveResponse={resolveResponseForm} />
+                            <ResponseForm />
                         </>
                     ) : (
                         <div id="end-point-responses">
@@ -209,13 +215,13 @@ export function EndPointForm() {
                             {
                                 icon: "🧹",
                                 label: "Discard",
-                                title: "Discard request",
+                                title: "Discard end-point",
                                 action: discardEndPoint
                             },
                             {
                                 icon: "💾",
                                 label: "Save",
-                                title: "Save request",
+                                title: "Save end-point",
                                 action: releaseEndPoint
                             },
                         ]}

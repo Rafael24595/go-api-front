@@ -1,5 +1,5 @@
 
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { KeyValue } from '../../../../../../interfaces/KeyValue';
 import { useStoreStatus } from '../../../../../../store/StoreProviderStatus';
 import { HeaderArguments } from './header-arguments/HeaderArguments';
@@ -8,6 +8,7 @@ import { ConditionArguments } from './condition-arguments/ConditionArguments';
 import { ImportConditionsModal } from '../../../../../mock/endpoint/response/ImportConditionsModal';
 import { ConditionStep } from '../../../../../../services/mock/ConditionStep';
 import { DataArguments } from './data-arguments/DataArguments';
+import { useStoreEndPoint } from '../../../../../../store/mock/StoreProviderEndPoint';
 
 import './ResponseForm.css';
 
@@ -39,37 +40,49 @@ const DEFAULT_CURSOR = VIEW_DATA;
 
 const CURSOR_KEY = "EndPointResponseForm";
 
-interface ResponseFormProps {
-    response: ItemResponse
-    resolveResponse: (response: ItemResponse) => void
-}
 
 const filterCursors = (cursor: KeyValue, response: ItemResponse) => {
-    if(response.name != DEFAULT_RESPONSE) {
+    if (response.name != DEFAULT_RESPONSE) {
         return true;
     }
 
-    if(cursor.key == VIEW_CONDITION) {
+    if (cursor.key == VIEW_CONDITION) {
         return false;
     }
 
     return true;
 }
 
-export function ResponseForm({ response, resolveResponse }: ResponseFormProps) {
-    const stateCursors = cursors.filter(c => filterCursors(c, response));
-    const VALID_CURSORS = stateCursors.map(c => c.key);
+interface Payload {
+    cursor: string
+    options: KeyValue[]
 
+}
+
+export function ResponseForm() {
     const { find, store } = useStoreStatus();
 
-    const [cursor, setCursor] = useState<string>(
-        find(CURSOR_KEY, {
+    const { response } = useStoreEndPoint();
+
+    const makePayload = (response: ItemResponse): Payload => {
+        const options = cursors.filter(c => filterCursors(c, response));
+
+        const cursor = find(CURSOR_KEY, {
             def: DEFAULT_CURSOR,
-            range: VALID_CURSORS,
+            range: options.map(c => c.key),
             strict: true
-        }));
+        });
+
+        return { cursor, options };
+    }
+
+    const [cursorData, setCursorData] = useState<Payload>(() => makePayload(response));
 
     const [modalConditionStatus, setModalConditionStatus] = useState<boolean>(false);
+
+    useEffect(() => {
+        setCursorData(makePayload(response))
+    }, [response]);
 
     const cursorChangeEvent = (e: React.ChangeEvent<HTMLInputElement>) => {
         cursorChange(e.target.value);
@@ -77,7 +90,10 @@ export function ResponseForm({ response, resolveResponse }: ResponseFormProps) {
 
     const cursorChange = (cursor: string) => {
         store(CURSOR_KEY, cursor);
-        setCursor(cursor);
+        setCursorData((prevData) => ({
+            ...prevData,
+            cursor: cursor
+        }));
     };
 
     const openImportConditionModal = () => {
@@ -97,10 +113,10 @@ export function ResponseForm({ response, resolveResponse }: ResponseFormProps) {
             <div id="mock-form-section">
                 <div id="parameter-selector-components" className="border-bottom">
                     <div className="radio-button-group">
-                        {stateCursors.filter(t => response.name != DEFAULT_RESPONSE || t.key != VIEW_CONDITION).map(c => {
+                        {cursorData.options.filter(t => response.name != DEFAULT_RESPONSE || t.key != VIEW_CONDITION).map(c => {
                             return (<Fragment key={c.key}>
                                 <input type="radio" id={`tag-client-${c.key.toLowerCase()}`} className="client-tag" name="cursor-client"
-                                    checked={cursor === c.key}
+                                    checked={cursorData.cursor === c.key}
                                     value={c.key}
                                     onChange={cursorChangeEvent} />
                                 <button
@@ -112,24 +128,24 @@ export function ResponseForm({ response, resolveResponse }: ResponseFormProps) {
                             </Fragment>)
                         })}
                     </div>
-                    {cursor === VIEW_CONDITION && (
+                    {cursorData.cursor === VIEW_CONDITION && (
                         <div className="radio-button-group aux-group">
                             <button type="button" className="button-tag" onClick={openImportConditionModal}>Import</button>
                         </div>
                     )}
                 </div>
                 {response.name != DEFAULT_RESPONSE && (
-                    <div className={`client-argument-content-items ${cursor === VIEW_CONDITION ? "show" : ""}`}>
-                        <ConditionArguments response={response} resolveResponse={resolveResponse} />
+                    <div className={`client-argument-content-items ${cursorData.cursor === VIEW_CONDITION ? "show" : ""}`}>
+                        <ConditionArguments />
                     </div>
                 )}
-                <div className={`client-argument-content-items ${cursor === VIEW_DATA ? "show" : ""}`}>
-                    <DataArguments response={response} resolveResponse={resolveResponse} />
+                <div className={`client-argument-content-items ${cursorData.cursor === VIEW_DATA ? "show" : ""}`}>
+                    <DataArguments/>
                 </div>
-                <div className={`client-argument-content-items ${cursor === VIEW_HEADER ? "show" : ""}`}>
-                    <HeaderArguments response={response} resolveResponse={resolveResponse} />
+                <div className={`client-argument-content-items ${cursorData.cursor === VIEW_HEADER ? "show" : ""}`}>
+                    <HeaderArguments/>
                 </div>
-                <div className={`client-argument-content-items ${cursor === VIEW_BODY ? "show" : ""}`}>
+                <div className={`client-argument-content-items ${cursorData.cursor === VIEW_BODY ? "show" : ""}`}>
                     <p>TODO:</p>
                 </div>
             </div>

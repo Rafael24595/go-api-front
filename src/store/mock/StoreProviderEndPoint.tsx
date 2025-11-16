@@ -1,9 +1,9 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { emptyItemEndPoint, ItemEndPoint, LiteEndPoint } from "../../interfaces/mock/EndPoint";
 import { useStoreCache } from "../StoreProviderCache";
-import { CacheEndPointStore, CacheEndPointFocus } from "../../interfaces/mock/Cache";
+import { CacheEndPointStore, CacheEndPointFocus, CacheResponseFocus } from "../../interfaces/mock/Cache";
 import { useStoreSession } from "../system/StoreProviderSession";
-import { ItemResponse, resolveResponses } from "../../interfaces/mock/Response";
+import { emptyItemResponse, ItemResponse, resolveResponses } from "../../interfaces/mock/Response";
 import { generateHash } from "../../services/Utils";
 import { UserData } from "../../interfaces/system/UserData";
 import { Optional } from "../../types/Optional";
@@ -15,13 +15,19 @@ interface StoreProviderEndPointType {
     initialHash: string;
     actualHash: string;
     endPoint: ItemEndPoint;
+    response: ItemResponse;
     fetchEndPoint: (endPoint: LiteEndPoint) => Promise<void>;
     releaseEndPoint: () => Promise<void>;
     discardEndPoint: (endPoint?: ItemEndPoint) => void;
     switchSafe: () => void;
     updateMethod: (method: string) => void;
     updatePath: (path: string) => void;
+    isResponseModified: () => boolean;
+    defineResponse: (response: ItemResponse) => void;
+    updateResponse: (response: ItemResponse) => void;
+    releaseResponse: (rename?: boolean) => boolean;
     resolveResponse: (response: ItemResponse, rename?: boolean) => boolean;
+    discardResponse: () => void;
     cacheLenght: () => number;
     cacheComments: () => string[];
 }
@@ -33,9 +39,18 @@ interface PayloadData {
     endPoint: ItemEndPoint;
 }
 
+interface PayloadResponse {
+    initialHash: string;
+    actualHash: string;
+    backup: ItemResponse;
+    response: ItemResponse;
+}
+
 const TRIGGER_SESSION_CHANGE = "SessionChangeEndPoint";
 const CACHE_CATEGORY_STORE = "StoreEndPoint";
 const CACHE_KEY_FOCUS = "FocusEndPoint";
+const CACHE_KEY_REQUEST_FOCUS = "FocusRequest";
+
 
 const StoreEndPoint = createContext<StoreProviderEndPointType | undefined>(undefined);
 
@@ -45,30 +60,47 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     const { fetchEndPoints } = useStoreMock();
 
-    const [data, setData] = useState<PayloadData>({
-        initialHash: "",
-        actualHash: "",
-        backup: emptyItemEndPoint(userData.username),
-        endPoint: emptyItemEndPoint(userData.username),
-    });
+    const clearEndPoint = () => {
+        return {
+            initialHash: "",
+            actualHash: "",
+            backup: emptyItemEndPoint(userData.username),
+            endPoint: emptyItemEndPoint(userData.username),
+        }
+    };
+
+    const clearResponse = () => {
+        return {
+            initialHash: "",
+            actualHash: "",
+            backup: emptyItemResponse(),
+            response: emptyItemResponse(),
+        }
+    };
+
+    const [data, setData] = useState<PayloadData>(() => clearEndPoint());
+
+    const [responseData, setResponseData] = useState<PayloadResponse>(() => clearResponse());
 
     useEffect(() => {
         pushTrigger(TRIGGER_SESSION_CHANGE, onSessionChange);
     }, []);
 
     useEffect(() => {
-        updateStatus(data.endPoint);
+        updateDataStatus(data.endPoint);
     }, [data.endPoint]);
 
-    const updateStatus = async (endPoint: ItemEndPoint) => {
+    useEffect(() => {
+        updateResponseDataStatus(responseData.response);
+    }, [responseData.response]);
+
+    const updateDataStatus = async (endPoint: ItemEndPoint) => {
         let initialHash = data.initialHash;
         if (data.initialHash == "") {
             initialHash = await generateHash(data.backup);
         }
 
         const actualHash = await generateHash(data.endPoint);
-
-        console.log(initialHash, actualHash)
 
         if (actualHash != initialHash) {
             insert<CacheEndPointStore>(CACHE_CATEGORY_STORE, endPoint._id, {
@@ -90,6 +122,27 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         }));
     }
 
+    const updateResponseDataStatus = async (response: ItemResponse) => {
+        let initialHash = responseData.initialHash;
+        if (responseData.initialHash == "") {
+            initialHash = await generateHash(responseData.backup);
+        }
+
+        const actualHash = await generateHash(responseData.response);
+
+        console.log(responseData.backup, responseData.response)
+
+        insert<CacheResponseFocus>(CACHE_CATEGORY_FOCUS, CACHE_KEY_REQUEST_FOCUS, {
+            response: response.order
+        })
+
+        setResponseData(prevData => ({
+            ...prevData,
+            initialHash,
+            actualHash
+        }));
+    }
+
     const onSessionChange = (newUser: UserData, oldUser: UserData) => {
         tryFocusCached(newUser, oldUser);
         cleanCache();
@@ -97,7 +150,8 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     const tryFocusCached = (newUser: UserData, oldUser: UserData) => {
         if (newUser.username != oldUser.username || !focusCached()) {
-            cleanEndPoint();
+            setData(clearEndPoint());
+            setResponseData(clearResponse());
         }
     }
 
@@ -112,6 +166,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     const cleanCache = () => {
         remove(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
+        remove(CACHE_CATEGORY_FOCUS, CACHE_KEY_REQUEST_FOCUS);
         excise(CACHE_CATEGORY_STORE);
     }
 
@@ -146,16 +201,6 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         restoreEndPoint(endPoint);
     }
 
-    const cleanEndPoint = () => {
-        const endPoint = emptyItemEndPoint(userData.username);
-        setData({
-            initialHash: "",
-            actualHash: "",
-            backup: { ...endPoint },
-            endPoint: { ...endPoint },
-        });
-    }
-
     const releaseEndPoint = async () => {
         const oldEndPoint = { ...data.endPoint };
         const newEndPoint = { ...data.endPoint };
@@ -188,6 +233,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     const discardEndPoint = (endPoint?: ItemEndPoint) => {
         if (!endPoint || endPoint._id == data.backup._id) {
+            discardResponse();
             return restoreEndPoint(data.backup);
         }
 
@@ -237,25 +283,54 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         }));
     }
 
+    const isResponseModified = () => {
+        return responseData.initialHash != responseData.actualHash;
+    }
+
+    const defineResponse = (response: ItemResponse) => {
+        setResponseData({
+            initialHash: "",
+            actualHash: "",
+            backup: { ...response },
+            response: { ...response }
+        })
+    }
+
+    const updateResponse = (response: ItemResponse) => {
+        setResponseData((prevData) => ({
+            ...prevData,
+            response: response
+        }))
+    }
+
+    const releaseResponse = (rename?: boolean) => {
+        return resolveResponse({ ...responseData.response }, rename)
+    }
+
     const resolveResponse = (response: ItemResponse, rename?: boolean) => {
-        if (rename || response.name == "") {
-            const name = prompt("Insert a name: ", response.name);
+        const newResponse = response || { ...responseData.response };
+        if (rename || newResponse.name == "") {
+            const name = prompt("Insert a name: ", newResponse.name);
             if (name == null) {
                 return false;
             }
 
-            response.name = name;
+            newResponse.name = name;
         }
 
         setData(prevData => ({
             ...prevData,
             endPoint: {
                 ...prevData.endPoint,
-                responses: resolveResponses(prevData.endPoint.responses, response)
+                responses: resolveResponses(prevData.endPoint.responses, newResponse)
             }
         }));
 
         return true;
+    }
+
+    const discardResponse = () => {
+        setResponseData(clearResponse());
     }
 
     const cacheLenght = () => {
@@ -282,12 +357,15 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     return (
         <StoreEndPoint.Provider value={{
-            actualHash: data.actualHash,
             initialHash: data.initialHash,
+            actualHash: data.actualHash,
             endPoint: data.endPoint,
+            response: responseData.response,
             fetchEndPoint, releaseEndPoint, switchSafe,
-            updateMethod, updatePath, resolveResponse, 
-            discardEndPoint, cacheLenght, cacheComments
+            updateMethod, updatePath, discardEndPoint,
+            isResponseModified, defineResponse, updateResponse,
+            releaseResponse, resolveResponse, discardResponse,
+            cacheLenght, cacheComments
         }}>
             {children}
         </StoreEndPoint.Provider>

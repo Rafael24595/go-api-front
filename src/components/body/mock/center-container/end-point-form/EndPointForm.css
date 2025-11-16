@@ -32,6 +32,16 @@
     padding: 10px;
 }
 
+#end-point-reponse-buttons {
+    display: flex;
+}
+
+#end-point-form-title-container button,
+#end-point-reponse-buttons button {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
 .end-point-form-fragment {
     display: flex;
     margin-left: 5px;

@@ -4,6 +4,7 @@ import { HttpHeader } from '../../../../../../../constants/HttpHeader';
 import { ItemStatusKeyValue } from '../../../../../../../interfaces/StatusKeyValue';
 import { ItemResponse } from '../../../../../../../interfaces/mock/Response';
 import { useEffect, useState } from 'react';
+import { useStoreEndPoint } from '../../../../../../../store/mock/StoreProviderEndPoint';
 
 import './HeaderArguments.css';
 
@@ -18,45 +19,30 @@ const DATA_LIST: DataListPayload = {
     items: HttpHeader
 }
 
-interface HeaderArgumentsProps {
-    response: ItemResponse
-    resolveResponse: (response: ItemResponse) => void
-}
+export function HeaderArguments() {
+    const { response, updateResponse } = useStoreEndPoint();
 
-interface Payload {
-    items: ItemStatusKeyValue[]
-}
-
-export function HeaderArguments({ response, resolveResponse }: HeaderArgumentsProps) {
-    const [data, setData] = useState<Payload>({
-        items: response.headers
-    });
+    const [data, setData] = useState<ItemStatusKeyValue[]>([...response.headers]);
 
     useEffect(() => {
-        setData((prevData) => ({
-            ...prevData,
-            items: response.headers
-        }));
+        setData([...response.headers]);
     }, [response.headers]);
 
     const updateItems = async (items: ItemStatusKeyValue[]) => {
-        setData((prevData) => ({
-            ...prevData,
-            items: items
-        }));
+        setData(items);
 
         const newResponse: ItemResponse = {
             ...response,
             headers: items
         };
 
-        resolveResponse(newResponse);
+        updateResponse(newResponse);
     };
 
     return (
         <>
             <OrderedKeyValueArguments
-                items={data.items}
+                items={data}
                 updateItems={updateItems}
                 dataList={DATA_LIST}
                 definition={ROW_DEFINITION}

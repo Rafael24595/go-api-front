@@ -10,6 +10,7 @@ export interface Response {
     timestamp: number;
     condition: string;
     name: string;
+    description: string;
     headers: StatusKeyValue[];
     body: Body;
 }
@@ -25,6 +26,7 @@ export interface ItemResponse {
     timestamp: number;
     condition: ConditionStep[];
     name: string;
+    description: string;
     headers: ItemStatusKeyValue[];
     body: Body;
 }
@@ -36,6 +38,7 @@ export const emptyItemResponse = (): ItemResponse => {
         timestamp: Date.now(),
         condition: [],
         name: "",
+        description: "",
         headers: [],
         body: {
             content_type: "plain/text",
@@ -51,6 +54,7 @@ export const defaultItemResponse = (): ItemResponse => {
         timestamp: Date.now(),
         condition: [],
         name: DEFAULT_RESPONSE,
+        description: "Default response",
         headers: [],
         body: {
             content_type: "plain/text",
@@ -61,7 +65,7 @@ export const defaultItemResponse = (): ItemResponse => {
 
 export const resolveResponses = (responses: ItemResponse[], response: ItemResponse) => {
     const index = responses.findIndex(r => r.order == response.order);
-    if (index != -1 && responses[index].name != DEFAULT_RESPONSE) {
+    if (index != -1 && (responses[index].name == response.name || responses[index].name != DEFAULT_RESPONSE)) {
         responses[index] = response;
     } else {
         responses.push(response);

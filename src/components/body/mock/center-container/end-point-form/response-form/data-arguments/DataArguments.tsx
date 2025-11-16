@@ -1,32 +1,28 @@
-import { ItemStatusKeyValue } from '../../../../../../../interfaces/StatusKeyValue';
 import { ItemResponse } from '../../../../../../../interfaces/mock/Response';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { httpStatusDescriptions } from '../../../../../../../constants/HttpMethod';
+import { useStoreEndPoint } from '../../../../../../../store/mock/StoreProviderEndPoint';
 
 import './DataArguments.css';
-
-interface DataArgumentsProps {
-    response: ItemResponse
-    resolveResponse: (response: ItemResponse) => void
-}
 
 interface Payload {
     status: number
     description: string
 }
 
-export function DataArguments({ response, resolveResponse }: DataArgumentsProps) {
+export function DataArguments() {
+    const { response, updateResponse } = useStoreEndPoint();
+
     const [data, setData] = useState<Payload>({
         status: response.status,
-        description: ""
+        description: response.description
     });
 
     useEffect(() => {
-        setData((prevData) => ({
-            ...prevData,
+        setData({
             status: response.status,
-            description: ""
-        }));
+            description: response.description
+        });
     }, [response]);
 
     const onStatusChange = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -38,22 +34,31 @@ export function DataArguments({ response, resolveResponse }: DataArgumentsProps)
         setData((prevData) => ({
             ...prevData,
             status: status
-        }))
-    }
-
-    const updateItems = async (items: ItemStatusKeyValue[]) => {
-        setData((prevData) => ({
-            ...prevData,
-            items: items
         }));
 
         const newResponse: ItemResponse = {
             ...response,
-            headers: items
+            status: status
         };
 
-        resolveResponse(newResponse);
-    };
+        updateResponse(newResponse);
+    }
+
+    const onDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+        const description = e.target.value;
+
+        setData((prevData) => ({
+            ...prevData,
+            description: description
+        }));
+
+        const newResponse: ItemResponse = {
+            ...response,
+            description: description
+        };
+
+        updateResponse(newResponse);
+    }
 
     return (
         <>
@@ -69,7 +74,7 @@ export function DataArguments({ response, resolveResponse }: DataArgumentsProps)
                     </select>
                 </label>
                 <label htmlFor="end-point-resp-desc" className="end-point-form-field row">
-                    <textarea name="end-point-resp-desc" id="end-point-resp-desc" rows={5} placeholder="Description..."></textarea>
+                    <textarea name="end-point-resp-desc" id="end-point-resp-desc" rows={5} placeholder="Description..." onChange={onDescriptionChange}></textarea>
                 </label>
             </div>
         </>
