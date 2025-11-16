@@ -1,4 +1,6 @@
 import { KeyValue } from "../../interfaces/KeyValue"
+import { Optional } from "../../types/Optional";
+import { formatJson, formatXml } from "../../utils/Formatter";
 
 
 export enum StepType {
@@ -61,7 +63,7 @@ export enum StepFormat {
     VEC_XML = "vec_xml",
 }
 
-export const Formats: KeyValue[] = [
+export const FormatsLite: KeyValue[] = [
     {
         key: StepFormat.TEXT,
         value: "Text",
@@ -71,18 +73,42 @@ export const Formats: KeyValue[] = [
         value: "JSON",
     },
     {
-        key: StepFormat.VEC_JSON,
-        value: "Json vector",
-    },
-    {
         key: StepFormat.XML,
         value: "XML",
+    }
+];
+
+export const Formats: KeyValue[] = [
+    ...FormatsLite,
+    {
+        key: StepFormat.VEC_JSON,
+        value: "Json vector",
     },
     {
         key: StepFormat.VEC_XML,
         value: "XML vector",
     }
 ];
+
+export const Formattable: string[] = [
+    StepFormat.JSON,
+    StepFormat.VEC_JSON,
+    StepFormat.XML,
+    StepFormat.VEC_XML
+];
+
+type formatter = (payload: string) => Promise<string>;
+
+export const findFormatter = (format: string): Optional<formatter> => {
+    switch (format) {
+        case StepFormat.JSON || StepFormat.VEC_JSON:
+            return formatJson;
+        case StepFormat.XML || StepFormat.VEC_XML:
+            return formatXml;
+        default:
+            return undefined;
+    }
+}
 
 export enum StepOperator {
     EQ = "eq",

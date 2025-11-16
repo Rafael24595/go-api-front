@@ -9,6 +9,8 @@ import { ImportConditionsModal } from '../../../../../mock/endpoint/response/Imp
 import { ConditionStep } from '../../../../../../services/mock/ConditionStep';
 import { DataArguments } from './data-arguments/DataArguments';
 import { useStoreEndPoint } from '../../../../../../store/mock/StoreProviderEndPoint';
+import { BodyArguments } from './body-arguments/BodyArguments';
+import { Formattable, findFormatter } from '../../../../../../services/mock/Constants';
 
 import './ResponseForm.css';
 
@@ -40,6 +42,11 @@ const DEFAULT_CURSOR = VIEW_DATA;
 
 const CURSOR_KEY = "EndPointResponseForm";
 
+interface Payload {
+    cursor: string
+    options: KeyValue[]
+
+}
 
 const filterCursors = (cursor: KeyValue, response: ItemResponse) => {
     if (response.name != DEFAULT_RESPONSE) {
@@ -53,16 +60,10 @@ const filterCursors = (cursor: KeyValue, response: ItemResponse) => {
     return true;
 }
 
-interface Payload {
-    cursor: string
-    options: KeyValue[]
-
-}
-
 export function ResponseForm() {
     const { find, store } = useStoreStatus();
 
-    const { response } = useStoreEndPoint();
+    const { response, updateResponse } = useStoreEndPoint();
 
     const makePayload = (response: ItemResponse): Payload => {
         const options = cursors.filter(c => filterCursors(c, response));
@@ -108,6 +109,24 @@ export function ResponseForm() {
         setModalConditionStatus(false);
     };
 
+    const showFormat = () => {
+        return cursorData.cursor == VIEW_BODY &&
+            Formattable.includes(response.body.content_type);
+    };
+
+    const formatPayload = async () => {
+        const formatter = findFormatter(response.body.content_type);
+        if (!formatter) {
+            return;
+        }
+
+        
+        const newResponse = { ...response };
+        newResponse.body.payload = await formatter(newResponse.body.payload);
+        
+        updateResponse(response);
+    };
+
     return (
         <>
             <div id="mock-form-section">
@@ -133,6 +152,11 @@ export function ResponseForm() {
                             <button type="button" className="button-tag" onClick={openImportConditionModal}>Import</button>
                         </div>
                     )}
+                    {showFormat() && (
+                        <div className="radio-button-group aux-group">
+                            <button type="button" className="button-tag" onClick={formatPayload}>Format</button>
+                        </div>
+                    )}
                 </div>
                 {response.name != DEFAULT_RESPONSE && (
                     <div className={`client-argument-content-items ${cursorData.cursor === VIEW_CONDITION ? "show" : ""}`}>
@@ -140,13 +164,13 @@ export function ResponseForm() {
                     </div>
                 )}
                 <div className={`client-argument-content-items ${cursorData.cursor === VIEW_DATA ? "show" : ""}`}>
-                    <DataArguments/>
+                    <DataArguments />
                 </div>
                 <div className={`client-argument-content-items ${cursorData.cursor === VIEW_HEADER ? "show" : ""}`}>
-                    <HeaderArguments/>
+                    <HeaderArguments />
                 </div>
                 <div className={`client-argument-content-items ${cursorData.cursor === VIEW_BODY ? "show" : ""}`}>
-                    <p>TODO:</p>
+                    <BodyArguments />
                 </div>
             </div>
             <ImportConditionsModal
