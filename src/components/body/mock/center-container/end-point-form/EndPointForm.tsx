@@ -84,7 +84,7 @@ export function EndPointForm() {
         showResponseForm();
     }
 
-    const saveResponseForm = () => {
+    const actionReleaseResponse = () => {
         if (!releaseResponse()) {
             return;
         }
@@ -99,6 +99,16 @@ export function EndPointForm() {
 
     const actionRename = (response: ItemResponse) => {
         resolveResponse(response, true);
+    }
+
+    const actionDiscardEndPoint = () => {
+        discardEndPoint();
+        hideResponseForm();
+    }
+
+    const actionReleaseEndPoint = () => {
+        releaseEndPoint();
+        hideResponseForm();
     }
 
     const cleanResponseForm = () => {
@@ -161,11 +171,11 @@ export function EndPointForm() {
                                             icon: "💾",
                                             label: "Save",
                                             title: "Save response",
-                                            action: saveResponseForm
+                                            action: actionReleaseResponse
                                         },
                                     ]}
                                 />
-                                <button className="button-tag" type="button" onClick={saveResponseForm}>Save</button>
+                                <button className="button-tag" type="button" onClick={actionReleaseResponse}>Save</button>
                                 <button className="button-tag" type="button" onClick={hideResponseForm}>Close</button>
                             </div>
                         </>
@@ -216,13 +226,13 @@ export function EndPointForm() {
                                 icon: "🧹",
                                 label: "Discard",
                                 title: "Discard end-point",
-                                action: discardEndPoint
+                                action: actionDiscardEndPoint
                             },
                             {
                                 icon: "💾",
                                 label: "Save",
                                 title: "Save end-point",
-                                action: releaseEndPoint
+                                action: actionReleaseEndPoint
                             },
                         ]}
                     />

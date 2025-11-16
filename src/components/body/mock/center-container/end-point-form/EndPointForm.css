@@ -44,6 +44,7 @@
 
 .end-point-form-fragment {
     display: flex;
+    flex: 1 1 auto;
     margin-left: 5px;
     margin-right: 5px;
 }
@@ -68,7 +69,7 @@
 .end-point-form-field.row input,
 .end-point-form-field.row select,
 .end-point-form-field.row textarea {
-    width: 100%;
+    flex: 1 1 auto;
     resize: none;
 }
 
@@ -94,7 +95,6 @@
 .end-point-response {
     display: flex;
     justify-content: space-between;
-    flex: 1 1 auto;
     padding: 10px;
     border-bottom: 1px solid var(--border-color);
 }
