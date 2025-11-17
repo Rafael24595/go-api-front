@@ -90,7 +90,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
     fetchCollection();
   };
 
-   const fetchAllWithoutValidation = async () => {
+  const fetchAllWithoutValidation = async () => {
     fetchHistoricWithoutValidation();
     fetchStoredWithoutValidation();
     fetchCollectionWithoutValidation();
@@ -98,7 +98,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
 
   const fetchHistoric = async () => {
     const owner = await fetchHistoricWithoutValidation();
-    if(owner != userData.username) {
+    if (owner != userData.username) {
       fetchUser();
     }
   };
@@ -111,9 +111,9 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
         .map(n => n.request);
 
       const newHash = await generateHash(data);
-      
+
       setHistoric((prevData) => {
-        if(prevData.hash == newHash) {
+        if (prevData.hash == newHash) {
           return prevData;
         }
 
@@ -132,7 +132,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
 
   const fetchStored = async () => {
     const owner = await fetchStoredWithoutValidation();
-    if(owner != userData.username) {
+    if (owner != userData.username) {
       fetchUser();
     }
   };
@@ -143,11 +143,11 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
       const data = response.payload
         .sort((a, b) => a.order - b.order)
         .map(n => n.request);
-      
+
       const newHash = await generateHash(data);
 
       setStored((prevData) => {
-        if(prevData.hash == newHash) {
+        if (prevData.hash == newHash) {
           return prevData;
         }
 
@@ -166,7 +166,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
 
   const fetchCollection = async () => {
     const owner = await fetchCollectionWithoutValidation();
-    if(owner != userData.username) {
+    if (owner != userData.username) {
       fetchUser();
     }
   };
@@ -177,11 +177,11 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
       const data = request.payload
         .sort((a, b) => a.order - b.order)
         .map(n => n.collection);
-    
+
       const newHash = await generateHash(data);
 
       setCollection((prevData) => {
-        if(prevData.hash == newHash) {
+        if (prevData.hash == newHash) {
           return prevData;
         }
 
@@ -202,7 +202,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
     try {
       const source = await findCollectionLite(item);
       const index = collection.items.findIndex(i => i._id == item._id);
-      if(index < 0) {
+      if (index < 0) {
         return;
       }
 
@@ -211,7 +211,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
       const sourceHash = await generateHash(source);
       const targetHash = await generateHash(target);
 
-      if(sourceHash == targetHash) {
+      if (sourceHash == targetHash) {
         return;
       }
 
@@ -229,7 +229,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
     const newHash = await generateHash(items);
 
     setStored((prevData) => {
-      if(prevData.hash == newHash) {
+      if (prevData.hash == newHash) {
         return prevData;
       }
 
@@ -238,7 +238,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
         hash: newHash
       };
     });
-    
+
     await sortRequests(nodes)
   }
 
@@ -250,7 +250,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
     const newHash = await generateHash(items);
 
     setCollection((prevData) => {
-      if(prevData.hash == newHash) {
+      if (prevData.hash == newHash) {
         return prevData;
       }
 
@@ -265,7 +265,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
 
   const updateCollectionRequestsOrder = async (item: LiteItemCollection, nodes: RequestNode[]) => {
     const index = collection.items.findIndex(c => c._id == item._id);
-    if(index < 0) {
+    if (index < 0) {
       return;
     }
 
@@ -279,7 +279,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
     const newHash = await generateHash(newCollection);
 
     setCollection((prevData) => {
-      if(prevData.hash == newHash) {
+      if (prevData.hash == newHash) {
         return prevData;
       }
 
