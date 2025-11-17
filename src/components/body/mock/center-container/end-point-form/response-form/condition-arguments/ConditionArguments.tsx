@@ -16,7 +16,7 @@ interface Payload {
 }
 
 export function ConditionArguments() {
-    const { response, updateResponse } = useStoreEndPoint();
+    const { response, defineResponse } = useStoreEndPoint();
 
     const makePayload = (response: ItemResponse) => {
         const newSteps = [...response.condition];
@@ -51,15 +51,10 @@ export function ConditionArguments() {
 
         response.condition = newFragments;
 
-        updateResponse(response);
+        defineResponse(response);
     }
 
     const removeStep = (step: ConditionStep) => {
-        let prevStep = undefined;
-        if (data.steps.length > 0) {
-            prevStep = data.steps[data.steps.length - 1];
-        }
-
         const newFragments = data.steps
             .filter(s => s !== step)
             .map((s, i) => ({ ...s, order: i }));
@@ -73,7 +68,7 @@ export function ConditionArguments() {
 
         response.condition = newFragments;
 
-        updateResponse(response);
+        defineResponse(response);
     }
 
     const onFragmentTypeChange = (e: ChangeEvent<HTMLSelectElement>, target: ConditionStep) => {
@@ -121,19 +116,6 @@ export function ConditionArguments() {
         target.value = result.value;
         return target;
     }
-
-    const updateItems = async (items: ItemStatusKeyValue[]) => {
-        setData((prevData) => ({
-            ...prevData,
-        }));
-
-        const newResponse: ItemResponse = {
-            ...response,
-            headers: items
-        };
-
-        updateResponse(newResponse);
-    };
 
     const renderStepValue = (step: ConditionStep) => {
         let condType = "text";

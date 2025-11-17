@@ -15,12 +15,8 @@ interface PayloadData {
     path: string
 }
 
-interface PayloadResponse {
-    form: boolean
-}
-
 export function EndPointForm() {
-    const { endPoint, initialHash, actualHash, releaseEndPoint, discardEndPoint, switchSafe, updateMethod, updatePath, isResponseModified, defineResponse, releaseResponse, resolveResponse, discardResponse } = useStoreEndPoint();
+    const { endPoint, response, event, isModified: isEndPointModified, releaseEndPoint, discardEndPoint, switchSafe, updateMethod, updatePath, defineResponse, newResponse, resolveResponse } = useStoreEndPoint();
 
     const [data, setData] = useState<PayloadData>({
         safe: endPoint.safe,
@@ -28,9 +24,7 @@ export function EndPointForm() {
         path: endPoint.path
     });
 
-    const [response, setResponse] = useState<PayloadResponse>({
-        form: false,
-    });
+    const [responseForm, setResponseForm] = useState<boolean>(false);
 
     useEffect(() => {
         setData({
@@ -39,6 +33,18 @@ export function EndPointForm() {
             path: endPoint.path
         });
     }, [endPoint]);
+
+    useEffect(() => {
+        switch (event.reason) {
+            case "new":
+            case "fetch":
+            case "discard":
+                hideResponseForm();
+                break;
+            default:
+                break;
+        }
+    }, [event]);
 
     const onSafeChange = () => {
         setData((prevData) => ({
@@ -67,30 +73,20 @@ export function EndPointForm() {
     }
 
     const hideResponseForm = () => {
-        setResponse((prevData) => ({
-            ...prevData,
-            form: false,
-        }));
+        setResponseForm(false);
     }
 
-    const showResponseForm = (cursor?: ItemResponse) => {
+    const showResponseForm = (cursor: ItemResponse) => {
         defineResponse(cursor || emptyItemResponse());
-        setResponse({
-            form: true,
-        });
+        setResponseForm(true);
     }
 
     const showNewResponseForm = () => {
-        showResponseForm();
-    }
-
-    const actionReleaseResponse = () => {
-        if (!releaseResponse()) {
+        if (!newResponse()) {
             return;
         }
 
-        hideResponseForm();
-        cleanResponseForm();
+        setResponseForm(true);
     }
 
     const actionDelete = (response: ItemResponse) => {
@@ -109,10 +105,6 @@ export function EndPointForm() {
     const actionReleaseEndPoint = () => {
         releaseEndPoint();
         hideResponseForm();
-    }
-
-    const cleanResponseForm = () => {
-        discardResponse();
     }
 
     const statusToCss = (status: number) => {
@@ -152,30 +144,10 @@ export function EndPointForm() {
             </div>
             <div id="end-point-responses-form">
                 <div id="end-point-form-title-container" className="border-bottom">
-                    {response.form ? (
+                    {responseForm ? (
                         <>
-                            <p id="end-point-form-title">New response:</p>
+                            <p id="end-point-form-title">Response {response.name}:</p>
                             <div id="end-point-reponse-buttons">
-                                <Combo
-                                    custom={(
-                                        <span className={`button-modified-status small ${isResponseModified() ? "visible" : ""}`}></span>
-                                    )}
-                                    options={[
-                                        {
-                                            icon: "🧹",
-                                            label: "Discard",
-                                            title: "Discard response",
-                                            action: discardResponse
-                                        },
-                                        {
-                                            icon: "💾",
-                                            label: "Save",
-                                            title: "Save response",
-                                            action: actionReleaseResponse
-                                        },
-                                    ]}
-                                />
-                                <button className="button-tag" type="button" onClick={actionReleaseResponse}>Save</button>
                                 <button className="button-tag" type="button" onClick={hideResponseForm}>Close</button>
                             </div>
                         </>
@@ -187,7 +159,7 @@ export function EndPointForm() {
                     )}
                 </div>
                 <div className="end-point-form-fragment">
-                    {response.form ? (
+                    {responseForm ? (
                         <>
                             <ResponseForm />
                         </>
@@ -215,11 +187,11 @@ export function EndPointForm() {
             </div>
             <div id="client-buttons" className="border-top">
                 <span className="button-modified-status"></span>
-                <button type="submit" onClick={releaseEndPoint}>Save</button>
-                <div className={`button-modified-container ${initialHash != actualHash ? "visible" : ""}`}>
+                <button type="submit" onClick={actionReleaseEndPoint}>Save</button>
+                <div className={`button-modified-container ${isEndPointModified() ? "visible" : ""}`}>
                     <Combo
                         custom={(
-                            <span className={`button-modified-status ${initialHash != actualHash ? "visible" : ""}`}></span>
+                            <span className={`button-modified-status ${isEndPointModified() ? "visible" : ""}`}></span>
                         )}
                         options={[
                             {

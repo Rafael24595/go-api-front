@@ -2,7 +2,7 @@ import { Collection, ItemCollection, ItemNodeCollection, ItemNodeRequest, LiteIt
 import { Context } from "../../interfaces/client/context/Context";
 import { ItemRequest, LiteRequest, Request } from "../../interfaces/client/request/Request";
 import { Response, SignedPayload } from "../../interfaces/client/response/Response";
-import { ItemEndPoint } from "../../interfaces/mock/EndPoint";
+import { ItemEndPoint, LiteEndPoint } from "../../interfaces/mock/EndPoint";
 import { authApiManager } from "./ApiManager";
 import { RequestCloneCollection, RequestImportContext, RequestNode, RequestRequestCollect, RequestSortNodes } from "./Requests";
 import { ResponseExecuteAction } from "./Responses";
@@ -335,6 +335,16 @@ export const importCurl = async (curls: string[], collection?: string): Promise<
   }
 };
 
+export const findAllEndPoint = async (): Promise<SignedPayload<LiteEndPoint[]>> => {
+  try {
+    const apiResponse = await authApiManager.get(`/mock`);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
 export const findEndPoint = async (endPoint: string): Promise<ItemEndPoint> => {
   try {
     const apiResponse = await authApiManager.get(`/mock/${endPoint}`);
@@ -348,6 +358,16 @@ export const findEndPoint = async (endPoint: string): Promise<ItemEndPoint> => {
 export const insertEndPoint = async (endPoint: ItemEndPoint): Promise<string> => {
   try {
     const apiResponse = await authApiManager.post(`/mock`, endPoint);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const sortEndPoints = async (nodes: RequestNode[]): Promise<string[]> => {
+  try {
+    const apiResponse = await authApiManager.put(`/sort/mock/endpoint`, nodes);
     return apiResponse.data;
   } catch (error) {
     //TODO: Handle error.

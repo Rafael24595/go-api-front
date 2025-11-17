@@ -11,7 +11,7 @@ interface LeftSidebarProps {
 }
 
 export function LeftSidebar({ cursor, cursorChange }: LeftSidebarProps) {
-    const { fetchAll, fetchEndPoint } = useStoreMock();
+    const { fetchAll, fetchEndPoints } = useStoreMock();
 
     const onCursorChangeEvent = (e: React.ChangeEvent<HTMLInputElement>) => {
         const cursor = e.target.value;
@@ -21,7 +21,7 @@ export function LeftSidebar({ cursor, cursorChange }: LeftSidebarProps) {
     const onCursorChange = (cursor: string) => {
         switch (cursor) {
             case VIEW_END_POINTS:
-                fetchEndPoint();
+                fetchEndPoints();
                 break;
             default:
                 fetchAll();

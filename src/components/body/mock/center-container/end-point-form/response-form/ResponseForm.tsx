@@ -45,7 +45,6 @@ const CURSOR_KEY = "EndPointResponseForm";
 interface Payload {
     cursor: string
     options: KeyValue[]
-
 }
 
 const filterCursors = (cursor: KeyValue, response: ItemResponse) => {
@@ -63,7 +62,7 @@ const filterCursors = (cursor: KeyValue, response: ItemResponse) => {
 export function ResponseForm() {
     const { find, store } = useStoreStatus();
 
-    const { response, updateResponse } = useStoreEndPoint();
+    const { response, defineResponse } = useStoreEndPoint();
 
     const makePayload = (response: ItemResponse): Payload => {
         const options = cursors.filter(c => filterCursors(c, response));
@@ -124,7 +123,7 @@ export function ResponseForm() {
         const newResponse = { ...response };
         newResponse.body.payload = await formatter(newResponse.body.payload);
         
-        updateResponse(response);
+        defineResponse(response);
     };
 
     return (

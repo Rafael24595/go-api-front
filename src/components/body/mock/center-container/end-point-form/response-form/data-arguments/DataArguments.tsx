@@ -11,7 +11,7 @@ interface Payload {
 }
 
 export function DataArguments() {
-    const { response, updateResponse } = useStoreEndPoint();
+    const { response, defineResponse } = useStoreEndPoint();
 
     const [data, setData] = useState<Payload>({
         status: response.status,
@@ -41,7 +41,7 @@ export function DataArguments() {
             status: status
         };
 
-        updateResponse(newResponse);
+        defineResponse(newResponse);
     }
 
     const onDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -57,7 +57,7 @@ export function DataArguments() {
             description: description
         };
 
-        updateResponse(newResponse);
+        defineResponse(newResponse);
     }
 
     return (

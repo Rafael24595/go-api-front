@@ -20,7 +20,7 @@ const DATA_LIST: DataListPayload = {
 }
 
 export function HeaderArguments() {
-    const { response, updateResponse } = useStoreEndPoint();
+    const { response, defineResponse } = useStoreEndPoint();
 
     const [data, setData] = useState<ItemStatusKeyValue[]>([...response.headers]);
 
@@ -36,7 +36,7 @@ export function HeaderArguments() {
             headers: items
         };
 
-        updateResponse(newResponse);
+        defineResponse(newResponse);
     };
 
     return (

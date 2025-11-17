@@ -1,5 +1,8 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { LiteEndPoint } from "../../interfaces/mock/EndPoint";
+import { findAllEndPoint } from "../../services/api/ServiceStorage";
+import { generateHash } from "../../services/Utils";
+import { useStoreSession } from "../system/StoreProviderSession";
 
 interface StoreProviderMockType {
     endPoints: LiteEndPoint[];
@@ -12,26 +15,87 @@ interface PayloadEndPoint {
     hash: string;
 }
 
+const TRIGGER_SESSION_CHANGE = "SessionChangeMock";
 
 const StoreRequest = createContext<StoreProviderMockType | undefined>(undefined);
 
-export const StoreProviderMock: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [endPoints, setEndPoints] = useState<PayloadEndPoint>({
+const cleanEndPoints = (): PayloadEndPoint => {
+    return {
         items: [],
         hash: ""
-    });
+    }
+}
+
+export const StoreProviderMock: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const { userData, fetchUser, pushTrigger } = useStoreSession();
+
+    const [endPoints, setEndPoints] = useState<PayloadEndPoint>(cleanEndPoints());
+
+    useEffect(() => {
+        unsafeFetchAll();
+
+        const interval = setInterval(() => {
+            unsafeFetchAll();
+        }, 30 * 60 * 1000);
+
+        pushTrigger(TRIGGER_SESSION_CHANGE, refreshAll);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const fetchAll = async () => {
         fetchEndPoints();
     }
 
-    const fetchEndPoints = async () => {
+    const unsafeFetchAll = async () => {
+        fetchEndPoints();
+    };
 
-    }
+    const refreshAll = async () => {
+        clearAll();
+        unsafeFetchAll();
+    };
+
+    const clearAll = async () => {
+        setEndPoints(cleanEndPoints());
+    };
+
+    const fetchEndPoints = async () => {
+        const owner = await unsafeFetchEndPoints();
+        if (owner != userData.username) {
+            fetchUser();
+        }
+    };
+
+    const unsafeFetchEndPoints = async (): Promise<string> => {
+        try {
+            const request = await findAllEndPoint();
+            const data = request.payload
+                .sort((a, b) => a.order - b.order);
+
+            const newHash = await generateHash(data);
+
+            setEndPoints((prevData) => {
+                if (prevData.hash == newHash) {
+                    return prevData;
+                }
+
+                return {
+                    items: data,
+                    hash: newHash
+                };
+            });
+
+            return request.owner;
+        } catch (error) {
+            console.error("Error fetching collection:", error);
+            return "";
+        }
+    };
 
     return (
         <StoreRequest.Provider value={{
-            endPoints: endPoints.items, 
+            endPoints: endPoints.items,
             fetchAll, fetchEndPoints,
         }}>
             {children}

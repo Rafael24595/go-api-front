@@ -8,7 +8,3 @@ export interface CacheEndPointStore {
 export interface CacheEndPointFocus {
     endPoint: string
 }
-
-export interface CacheResponseFocus {
-    response: number
-}
