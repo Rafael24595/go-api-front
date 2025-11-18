@@ -6,7 +6,7 @@ import { useStoreEndPoint } from '../../../../../../../store/mock/StoreProviderE
 import './DataArguments.css';
 
 interface Payload {
-    status: number
+    code: number
     description: string
 }
 
@@ -14,31 +14,31 @@ export function DataArguments() {
     const { response, defineResponse } = useStoreEndPoint();
 
     const [data, setData] = useState<Payload>({
-        status: response.status,
+        code: response.code,
         description: response.description
     });
 
     useEffect(() => {
         setData({
-            status: response.status,
+            code: response.code,
             description: response.description
         });
     }, [response]);
 
-    const onStatusChange = (e: ChangeEvent<HTMLSelectElement>) => {
-        let status = parseInt(e.target.value, 10)
-        if(httpStatusDescriptions.get(status) == undefined) {
-            status = 200;
+    const onCodeChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        let code = parseInt(e.target.value, 10)
+        if(httpStatusDescriptions.get(code) == undefined) {
+            code = 200;
         }
 
         setData((prevData) => ({
             ...prevData,
-            status: status
+            code: code
         }));
 
         const newResponse: ItemResponse = {
             ...response,
-            status: status
+            code: code
         };
 
         defineResponse(newResponse);
@@ -63,9 +63,9 @@ export function DataArguments() {
     return (
         <>
             <div id="end-form-arguments" className="end-point-form-fragment column">
-                <label htmlFor="end-point-resp-status" className="end-point-form-field row">
-                    <span>Method:</span>
-                    <select id="end-point-resp-status" className="end-point-form-input" name="status" value={data.status} onChange={onStatusChange}>
+                <label htmlFor="end-point-resp-code" className="end-point-form-field row">
+                    <span>Code:</span>
+                    <select id="end-point-resp-code" className="end-point-form-input" name="code" value={data.code} onChange={onCodeChange}>
                         {Array.from(httpStatusDescriptions.entries()).map(([code, desc]) => (
                             <option key={code} value={code}>
                                 {code} - {desc}

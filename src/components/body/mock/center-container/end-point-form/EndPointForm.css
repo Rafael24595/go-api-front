@@ -21,6 +21,11 @@
     margin-bottom: 3px;
 }
 
+#end-point-status,
+.end-point-response-status.title {
+    margin-right: 10px;
+}
+
 #end-point-form-safe input {
     display: none;
 }
@@ -30,6 +35,15 @@
     display: flex;
     flex-direction: column;
     padding: 10px;
+}
+
+.end-point-sign-status {
+    display: flex;
+
+}
+
+.end-point-response-status {
+    margin-right: 15px;
 }
 
 #end-point-reponse-buttons {
@@ -105,7 +119,7 @@
     cursor: pointer;
 }
 
-.response-sign-status {
+.response-sign-code {
     font-weight: bold;
     margin-right: 5px;
 }

@@ -21,6 +21,7 @@ interface StoreProviderEndPointType {
     releaseEndPoint: (endPoint?: ItemEndPoint) => Promise<void>;
     discardEndPoint: (endPoint?: ItemEndPoint) => void;
 
+    updateStatus: (status: boolean) => void;
     switchSafe: () => void;
     updateMethod: (method: string) => void;
     updatePath: (path: string) => void;
@@ -237,6 +238,18 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         });
     }
 
+    const updateStatus = (status: boolean) => {
+        setData(prevData => {
+            return {
+                ...prevData,
+                endPoint: {
+                    ...prevData.endPoint,
+                    status: status
+                }
+            }
+        });
+    }
+
     const switchSafe = () => {
         setData(prevData => {
             return {
@@ -341,10 +354,10 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             endPoint: data.endPoint,
             response, event,
             isModified, newEndPoint, fetchEndPoint,
-            releaseEndPoint, switchSafe, updateMethod,
-            updatePath, discardEndPoint, newResponse,
-            defineResponse, resolveResponse, isCached,
-            cacheLenght, cacheComments
+            releaseEndPoint, updateStatus, switchSafe,
+            updateMethod, updatePath, discardEndPoint,
+            newResponse, defineResponse, resolveResponse,
+            isCached, cacheLenght, cacheComments
         }}>
             {children}
         </StoreEndPoint.Provider>

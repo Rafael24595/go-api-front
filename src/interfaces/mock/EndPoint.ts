@@ -4,6 +4,7 @@ import { defaultItemResponse, ItemResponse, Response } from "./Response";
 
 export interface EndPoint {
     _id: string;
+    status: boolean;
     order: number;
     timestamp: number;
     modified: number;
@@ -18,6 +19,7 @@ export interface EndPoint {
 export const emptyEndPoint = (owner: string): EndPoint => {
     return {
         _id: "",
+        status: true,
         order: 0,
         timestamp: 0,
         modified: 0,
@@ -32,6 +34,7 @@ export const emptyEndPoint = (owner: string): EndPoint => {
 
 export interface LiteEndPoint {
     _id: string;
+    status: boolean;
     order: number;
     timestamp: number;
     name: string;
@@ -44,6 +47,7 @@ export interface LiteEndPoint {
 
 export interface ItemEndPoint {
     _id: string;
+    status: boolean;
     order: number;
     timestamp: number;
     modified: number;
@@ -58,6 +62,7 @@ export interface ItemEndPoint {
 export const emptyItemEndPoint = (owner: string): ItemEndPoint => {
     return {
         _id: "",
+        status: true,
         order: 0,
         timestamp: 0,
         modified: 0,
@@ -72,4 +77,4 @@ export const emptyItemEndPoint = (owner: string): ItemEndPoint => {
     }
 }
 
-export const EndPointFilter = [ "timestamp", "name", "method", "path", "safe" ]
+export const EndPointFilter = ["timestamp", "name", "method", "path", "safe"]

@@ -1,24 +1,30 @@
 import { ChangeEvent, useEffect, useState } from 'react';
-import { HTTP_METHODS } from '../../../../../constants/HttpMethod';
+import { HTTP_METHODS, httpStatusDescriptions } from '../../../../../constants/HttpMethod';
 import { useStoreEndPoint } from '../../../../../store/mock/StoreProviderEndPoint';
 import { ResponseForm } from './response-form/ResponseForm';
 import { emptyItemResponse, ItemResponse } from '../../../../../interfaces/mock/Response';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { Combo } from '../../../../utils/combo/Combo';
-import { responseOptions } from './Constants';
+import { responseOptions, statusOptions } from './Constants';
 
 import './EndPointForm.css';
 
 interface PayloadData {
+    status: boolean
     safe: boolean
     method: string
     path: string
 }
 
 export function EndPointForm() {
-    const { endPoint, response, event, isModified: isEndPointModified, releaseEndPoint, discardEndPoint, switchSafe, updateMethod, updatePath, defineResponse, newResponse, resolveResponse } = useStoreEndPoint();
+    const { endPoint, response, event,
+        isModified, releaseEndPoint, discardEndPoint,
+        updateStatus, switchSafe, updateMethod,
+        updatePath, defineResponse, newResponse,
+        resolveResponse } = useStoreEndPoint();
 
     const [data, setData] = useState<PayloadData>({
+        status: endPoint.status,
         safe: endPoint.safe,
         method: endPoint.method,
         path: endPoint.path
@@ -28,6 +34,7 @@ export function EndPointForm() {
 
     useEffect(() => {
         setData({
+            status: endPoint.status,
             safe: endPoint.safe,
             method: endPoint.method,
             path: endPoint.path
@@ -45,6 +52,15 @@ export function EndPointForm() {
                 break;
         }
     }, [event]);
+
+    const onStatusChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const newStatus = e.target.checked;
+        setData((prevData) => ({
+            ...prevData,
+            status: newStatus
+        }));
+        updateStatus(newStatus);
+    }
 
     const onSafeChange = () => {
         setData((prevData) => ({
@@ -70,6 +86,11 @@ export function EndPointForm() {
             path: path
         }));
         updatePath(path);
+    }
+
+    const onRequestChange = (e: ChangeEvent<HTMLInputElement>, cursor: ItemResponse) => {
+        cursor.status = e.target.checked
+        defineResponse(cursor);
     }
 
     const hideResponseForm = () => {
@@ -107,8 +128,8 @@ export function EndPointForm() {
         hideResponseForm();
     }
 
-    const statusToCss = (status: number) => {
-        const toString = `${status}`;
+    const codeToCss = (code: number) => {
+        const toString = `${code}`;
         if (toString.length == 0) {
             return ""
         }
@@ -119,8 +140,16 @@ export function EndPointForm() {
         <>
             <div id="end-point-data-form">
                 <div id="end-point-form-title-container" className="border-bottom">
-                    <p id="end-point-form-title">End Point data:</p>
-                    <button id="end-point-form-safe" className="flat-button flat-emoji" onClick={onSafeChange} title={`${data.safe ? "Safe request" : "Unsafe request"}`}>{data.safe ? "🔒" : "🔓"}</button>
+                    <div className="end-point-form-fragment">
+                        <input id="end-point-status" name="status" type="checkbox"
+                            onChange={onStatusChange}
+                            title={`${data.status ? "Enabled end-point" : "Disabled end-point"}`}
+                            checked={data.status} />
+                        <p id="end-point-form-title">End Point data:</p>
+                    </div>
+                    <button id="end-point-form-safe" className="flat-button flat-emoji"
+                        onClick={onSafeChange}
+                        title={`${data.safe ? "Safe end-point" : "Unsafe end-point"}`}>{data.safe ? "🔒" : "🔓"}</button>
                 </div>
                 <div className="end-point-form-fragment">
                     <label htmlFor="end-point-method" className="end-point-form-field column">
@@ -135,7 +164,11 @@ export function EndPointForm() {
                     </label>
                     <label htmlFor="end-point-name" className="end-point-form-field column fix">
                         <span>Path:</span>
-                        <input id="end-point-name" className="end-point-form-input" name="name" type="text" placeholder="name" value={data.path} autoComplete="on" onChange={onPathChange} />
+                        <input id="end-point-name" className="end-point-form-input" name="name" type="text"
+                            placeholder="name"
+                            value={data.path}
+                            autoComplete="on"
+                            onChange={onPathChange} />
                     </label>
                 </div>
                 <div className="end-point-form-fragment">
@@ -146,7 +179,13 @@ export function EndPointForm() {
                 <div id="end-point-form-title-container" className="border-bottom">
                     {responseForm ? (
                         <>
-                            <p id="end-point-form-title">Response {response.name}:</p>
+                            <div className="end-point-sign-status">
+                                <input id={`end-point-status-${response.order}`} className="end-point-response-status title" name="status" type="checkbox"
+                                    onChange={(e) => onRequestChange(e, response)}
+                                    title={`${response.status ? "Enabled response" : "Disabled response"}`}
+                                    checked={response.status} />
+                                <p id="end-point-form-title">Response {response.name}:</p>
+                            </div>
                             <div id="end-point-reponse-buttons">
                                 <button className="button-tag" type="button" onClick={hideResponseForm}>Close</button>
                             </div>
@@ -160,23 +199,29 @@ export function EndPointForm() {
                 </div>
                 <div className="end-point-form-fragment">
                     {responseForm ? (
-                        <>
-                            <ResponseForm />
-                        </>
+                        <ResponseForm />
                     ) : (
                         <div id="end-point-responses">
-                            {Object.values(endPoint.responses).map((value) => (
+                            {Object.values(endPoint.responses).map((cursor) => (
                                 <div className="end-point-response">
-                                    <button className="request-link border-bottom" type="button" onClick={() => showResponseForm(value)}>
-                                        <div className="response-sign">
-                                            <span className={`response-sign-status ${statusToCss(value.status)}`}>{value.status}</span>
-                                            <span className="response-sign-name">{value.name}</span>
-                                        </div>
-                                        <div className="request-sign-date">
-                                            <span className="request-sign-timestamp" title={millisecondsToDate(value.timestamp)}>{millisecondsToDate(value.timestamp)}</span>
-                                        </div>
-                                    </button>
-                                    <Combo options={responseOptions(value, {
+                                    <div className="end-point-sign-status">
+                                        <input id={`end-point-status-${cursor.order}`} className="end-point-response-status" name="status" type="checkbox"
+                                            onChange={(e) => onRequestChange(e, cursor)}
+                                            title={`${cursor.status ? "Enabled response" : "Disabled response"}`}
+                                            checked={cursor.status} />
+                                        <button className="request-link border-bottom" type="button" onClick={() => showResponseForm(cursor)}>
+                                            <div className="response-sign">
+                                                <span className={`response-sign-code ${codeToCss(cursor.code)}`}
+                                                    title={httpStatusDescriptions.get(cursor.code) || ""}>{cursor.code}</span>
+                                                <span className="response-sign-name">{cursor.name}</span>
+                                            </div>
+                                            <div className="request-sign-date">
+                                                <span className="request-sign-timestamp"
+                                                    title={millisecondsToDate(cursor.timestamp)}>{millisecondsToDate(cursor.timestamp)}</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                    <Combo options={responseOptions(cursor, {
                                         delete: actionDelete, rename: actionRename
                                     })} />
                                 </div>
@@ -188,25 +233,14 @@ export function EndPointForm() {
             <div id="client-buttons" className="border-top">
                 <span className="button-modified-status"></span>
                 <button type="submit" onClick={actionReleaseEndPoint}>Save</button>
-                <div className={`button-modified-container ${isEndPointModified() ? "visible" : ""}`}>
+                <div className={`button-modified-container ${isModified() ? "visible" : ""}`}>
                     <Combo
                         custom={(
-                            <span className={`button-modified-status ${isEndPointModified() ? "visible" : ""}`}></span>
+                            <span className={`button-modified-status ${isModified() ? "visible" : ""}`}></span>
                         )}
-                        options={[
-                            {
-                                icon: "🧹",
-                                label: "Discard",
-                                title: "Discard end-point",
-                                action: actionDiscardEndPoint
-                            },
-                            {
-                                icon: "💾",
-                                label: "Save",
-                                title: "Save end-point",
-                                action: actionReleaseEndPoint
-                            },
-                        ]}
+                        options={statusOptions({
+                            discard: actionDiscardEndPoint, release: actionReleaseEndPoint
+                        })}
                     />
                 </div>
             </div>

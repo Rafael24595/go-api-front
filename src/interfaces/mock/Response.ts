@@ -7,7 +7,8 @@ export const DEFAULT_RESPONSE = "default";
 
 export interface Response {
     order: number;
-    status: number;
+    status: boolean;
+    code: number;
     timestamp: number;
     condition: string;
     name: string;
@@ -23,7 +24,8 @@ export interface Body {
 
 export interface ItemResponse {
     order: number;
-    status: number;
+    status: boolean;
+    code: number;
     timestamp: number;
     condition: ConditionStep[];
     name: string;
@@ -35,7 +37,8 @@ export interface ItemResponse {
 export const emptyItemResponse = (): ItemResponse => {
     return {
         order: -1,
-        status: HttpStatusCode.Ok,
+        status: true,
+        code: HttpStatusCode.Ok,
         timestamp: Date.now(),
         condition: [],
         name: "",
@@ -51,7 +54,8 @@ export const emptyItemResponse = (): ItemResponse => {
 export const defaultItemResponse = (): ItemResponse => {
     return {
         order: -1,
-        status: HttpStatusCode.Ok,
+        status: true,
+        code: HttpStatusCode.Ok,
         timestamp: Date.now(),
         condition: [],
         name: DEFAULT_RESPONSE,
