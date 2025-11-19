@@ -187,6 +187,10 @@ img {
   font-size: 1.1em;
 }
 
+.flat-emoji.small {
+  font-size: 1em;
+}
+
 /* Move to custom css file */
 
 .radio-button-group {

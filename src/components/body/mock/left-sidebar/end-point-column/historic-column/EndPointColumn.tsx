@@ -115,12 +115,22 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
                     <div key={makeKey(cursor)} className={`node-request-preview ${cursor._id == endPoint?._id && "node-request-selected"} ${isRequestDrag(cursor) && "node-request-drag"}`}>
                         <button className="node-request-link" title={cursor.path}
                             onClick={() => defineCursor(cursor)}>
-                            <div className="node-request-sign">
-                                {isCached(cursor) && (
-                                    <span className="button-modified-status small visible"></span>
-                                )}
-                                <span className={`node-request-sign-method ${cursor.method}`}>{cursor.method}</span>
-                                <span className="rnode-request-sign-name" title={cursor.path}>{cursor.name}</span>
+                            <div className="node-request-sign state">
+                                <div className="node-request-state-sign">
+                                    {isCached(cursor) && (
+                                        <span className="button-modified-status small visible"></span>
+                                    )}
+                                    <span className={`node-request-status colored-circle ${cursor.status ? "active" : "inactive"}`}
+                                        title={cursor.status ? "Active" : "Inactive"}></span>
+                                    <span className={`node-request-sign-method ${cursor.method}`} title={cursor.method}>{cursor.method}</span>
+                                    <span className="node-request-sign-name" title={cursor.name}>{cursor.name}</span>
+                                </div>
+                                <div className="node-request-status-container">
+                                    <span className="pipe-mid" />
+                                    <span className="flat-emoji small"
+                                        title={cursor.safe ? "Safe" : "Unsafe"}>{cursor.safe ? "🔒" : "🔓"}</span>
+                                    <span className="pipe-right" />
+                                </div>
                             </div>
                             <div className="node-request-date">
                                 <span className="node-request-date-timestamp" title={millisecondsToDate(cursor.timestamp)}>{millisecondsToDate(cursor.timestamp)}</span>
