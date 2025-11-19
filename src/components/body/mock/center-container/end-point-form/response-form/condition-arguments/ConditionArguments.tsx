@@ -1,4 +1,3 @@
-import { ItemStatusKeyValue } from '../../../../../../../interfaces/StatusKeyValue';
 import { ItemResponse } from '../../../../../../../interfaces/mock/Response';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { StepType, Inputs, Operators, Types, Formats } from '../../../../../../../services/mock/Constants';
@@ -34,44 +33,25 @@ export function ConditionArguments() {
         setData(makePayload(response));
     }, [response.condition]);
 
-    const addFragment = () => {
+    const addStep = () => {
         let prevStep = undefined;
         if (data.steps.length > 0) {
             prevStep = data.steps[data.steps.length - 1];
         }
 
         const newStep = newConditionStep(data.steps.length, prevStep);
-        const newFragments = data.steps.concat(newStep);
-        const newWarnings = evalueSteps(newFragments);
-
-        setData({
-            warnings: newWarnings,
-            steps: newFragments
-        });
-
-        response.condition = newFragments;
-
-        defineResponse(response);
+        const newSteps = data.steps.concat(newStep);
+        resolveResponseSteps(newSteps);
     }
 
     const removeStep = (step: ConditionStep) => {
-        const newFragments = data.steps
+        const newSteps = data.steps
             .filter(s => s !== step)
             .map((s, i) => ({ ...s, order: i }));
-
-        const newWarnings = evalueSteps(newFragments);
-
-        setData({
-            warnings: newWarnings,
-            steps: newFragments
-        });
-
-        response.condition = newFragments;
-
-        defineResponse(response);
+        resolveResponseSteps(newSteps);
     }
 
-    const onFragmentTypeChange = (e: ChangeEvent<HTMLSelectElement>, target: ConditionStep) => {
+    const onStepTypeChange = (e: ChangeEvent<HTMLSelectElement>, target: ConditionStep) => {
         let newType = e.target.value;
         if (!Types.map(t => t.key).includes(newType)) {
             newType = StepType.INPUT;
@@ -82,36 +62,41 @@ export function ConditionArguments() {
         }
 
         target.type = newType;
-        return resolveFragment(target);
+        return resolveStep(target);
     }
 
-    const onFragmentValueChange = (e: ChangeEvent<HTMLSelectElement> | ChangeEvent<HTMLInputElement>, target: ConditionStep) => {
+    const onStepValueChange = (e: ChangeEvent<HTMLSelectElement> | ChangeEvent<HTMLInputElement>, target: ConditionStep) => {
         target.value = e.target.value;
-        return resolveFragment(target);
+        return resolveStep(target);
     }
 
-    const resolveFragment = (target: ConditionStep) => {
-        setData((prevData) => {
-            const newSteps = manageFragmentChange(prevData.steps, target);
-            const newWarnings = evalueSteps(newSteps);
-            return {
-                steps: newSteps,
-                warnings: newWarnings,
-            }
+    const resolveStep = (target: ConditionStep) => {
+        const newSteps = manageStepChange(data.steps, target);
+        resolveResponseSteps(newSteps);
+    }
+
+    const resolveResponseSteps = (steps: ConditionStep[]) => {
+        setData({
+            steps: steps,
+            warnings: evalueSteps(steps)
         });
+
+        response.condition = steps;
+
+        defineResponse(response);
     }
 
-    const manageFragmentChange = (fragments: ConditionStep[], target: ConditionStep) => {
-        const index = fragments.indexOf(target);
+    const manageStepChange = (steps: ConditionStep[], target: ConditionStep) => {
+        const index = steps.indexOf(target);
         if (index == -1) {
-            return fragments;
+            return steps;
         }
 
-        fragments[index] = fixFragment(target);
-        return fragments;
+        steps[index] = fixStep(target);
+        return steps;
     }
 
-    const fixFragment = (target: ConditionStep) => {
+    const fixStep = (target: ConditionStep) => {
         const result = evalueTypeValue(target)
         target.value = result.value;
         return target;
@@ -138,12 +123,12 @@ export function ConditionArguments() {
 
         if (enums == undefined) {
             return (
-                <input id={`cond-value-${step.order}`} name={`cond-value-${step.order}`} type={condType} value={step.value} onChange={(e) => onFragmentValueChange(e, step)} />
+                <input id={`cond-value-${step.order}`} name={`cond-value-${step.order}`} type={condType} value={step.value} onChange={(e) => onStepValueChange(e, step)} />
             )
         }
 
         return (
-            <select name={`cond-value-${step.order}`} id={`cond-value-${step.order}`} value={step.value} onChange={(e) => onFragmentValueChange(e, step)}>
+            <select name={`cond-value-${step.order}`} id={`cond-value-${step.order}`} value={step.value} onChange={(e) => onStepValueChange(e, step)}>
                 {enums.map(o => (
                     <option value={o.key}>{o.value}</option>
                 ))}
@@ -182,7 +167,7 @@ export function ConditionArguments() {
                         <div key={`${s.order}`} className="condition-form-step">
                             <span className={`warning-step ${data.warnings.has(s.order) ? "show" : ""}`} title={data.warnings.get(s.order)?.join("\n")}>*</span>
                             <label htmlFor={`cond-type-${s.order}`} className="cond-input">
-                                <select name="cond-type" id={`cond-type-${s.order}`} value={s.type} onChange={(e) => onFragmentTypeChange(e, s)}>
+                                <select name="cond-type" id={`cond-type-${s.order}`} value={s.type} onChange={(e) => onStepTypeChange(e, s)}>
                                     {Types.map(t => (
                                         <option value={t.key}>{t.value}</option>
                                     ))}
@@ -197,7 +182,7 @@ export function ConditionArguments() {
                 ))}
                 <span className="step-connector">...</span>
                 <div id="condition-form-buttons">
-                    <button className="add-button show" type="button" onClick={() => addFragment()}></button>
+                    <button className="add-button show" type="button" onClick={() => addStep()}></button>
                 </div>
             </div>
         </>
