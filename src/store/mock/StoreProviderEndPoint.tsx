@@ -3,7 +3,7 @@ import { emptyItemEndPoint, ItemEndPoint, LiteEndPoint } from "../../interfaces/
 import { useStoreCache } from "../StoreProviderCache";
 import { CacheEndPointStore, CacheEndPointFocus } from "../../interfaces/mock/Cache";
 import { useStoreSession } from "../system/StoreProviderSession";
-import { emptyItemResponse, ItemResponse, resolveResponses } from "../../interfaces/mock/Response";
+import { emptyItemResponse, ItemResponse, resolveResponses, removeResponse as removeResponseFromList } from "../../interfaces/mock/Response";
 import { deepClone, generateHash } from "../../services/Utils";
 import { UserData } from "../../interfaces/system/UserData";
 import { Optional } from "../../types/Optional";
@@ -29,6 +29,7 @@ interface StoreProviderEndPointType {
     newResponse: () => boolean;
     defineResponse: (response: ItemResponse) => void;
     resolveResponse: (response: ItemResponse, rename?: boolean) => boolean;
+    removeResponse: (response: ItemResponse) => void;
 
     isModified: () => boolean;
     isCached: (endPoint: LiteEndPoint) => boolean;
@@ -319,6 +320,16 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         return true;
     }
 
+    const removeResponse = (response: ItemResponse) => {
+        setData(prevData => ({
+            ...prevData,
+            endPoint: {
+                ...prevData.endPoint,
+                responses: removeResponseFromList(prevData.endPoint.responses, response)
+            }
+        }));
+    }
+
     const isModified = () => {
         return data.initialHash != data.actualHash;
     }
@@ -357,7 +368,8 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             releaseEndPoint, updateStatus, switchSafe,
             updateMethod, updatePath, discardEndPoint,
             newResponse, defineResponse, resolveResponse,
-            isCached, cacheLenght, cacheComments
+            removeResponse, isCached, cacheLenght,
+            cacheComments
         }}>
             {children}
         </StoreEndPoint.Provider>

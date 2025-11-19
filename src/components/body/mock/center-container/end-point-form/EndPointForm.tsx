@@ -2,7 +2,7 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import { HTTP_METHODS, httpStatusDescriptions } from '../../../../../constants/HttpMethod';
 import { useStoreEndPoint } from '../../../../../store/mock/StoreProviderEndPoint';
 import { ResponseForm } from './response-form/ResponseForm';
-import { emptyItemResponse, ItemResponse } from '../../../../../interfaces/mock/Response';
+import { DEFAULT_RESPONSE, emptyItemResponse, ItemResponse } from '../../../../../interfaces/mock/Response';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { Combo } from '../../../../utils/combo/Combo';
 import { responseOptions, statusOptions } from './Constants';
@@ -21,7 +21,7 @@ export function EndPointForm() {
         isModified, releaseEndPoint, discardEndPoint,
         updateStatus, switchSafe, updateMethod,
         updatePath, defineResponse, newResponse,
-        resolveResponse } = useStoreEndPoint();
+        resolveResponse, removeResponse } = useStoreEndPoint();
 
     const [data, setData] = useState<PayloadData>({
         status: endPoint.status,
@@ -111,7 +111,7 @@ export function EndPointForm() {
     }
 
     const actionDelete = (response: ItemResponse) => {
-
+        removeResponse(response);
     }
 
     const actionRename = (response: ItemResponse) => {
@@ -125,7 +125,6 @@ export function EndPointForm() {
 
     const actionReleaseEndPoint = () => {
         releaseEndPoint();
-        hideResponseForm();
     }
 
     const codeToCss = (code: number) => {
@@ -205,7 +204,8 @@ export function EndPointForm() {
                             {Object.values(endPoint.responses).map((cursor) => (
                                 <div className="end-point-response">
                                     <div className="end-point-sign-status">
-                                        <input id={`end-point-status-${cursor.order}`} className="end-point-response-status" name="status" type="checkbox"
+                                        <input id={`end-point-status-${cursor.order}`} name="status" type="checkbox"
+                                            className={`end-point-response-status ${cursor.name == DEFAULT_RESPONSE ? "hide" : "" }`}
                                             onChange={(e) => onRequestChange(e, cursor)}
                                             title={`${cursor.status ? "Enabled response" : "Disabled response"}`}
                                             checked={cursor.status} />

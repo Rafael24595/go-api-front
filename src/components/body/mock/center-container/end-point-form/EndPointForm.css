@@ -46,6 +46,10 @@
     margin-right: 15px;
 }
 
+.end-point-response-status.hide {
+    visibility: hidden;
+}
+
 #end-point-reponse-buttons {
     display: flex;
 }

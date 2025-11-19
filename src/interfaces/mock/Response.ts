@@ -79,6 +79,16 @@ export const resolveResponses = (responses: ItemResponse[], response: ItemRespon
     return fixResponses(responses);
 }
 
+export const removeResponse = (responses: ItemResponse[], response: ItemResponse) => {
+    const index = responses.findIndex(r => r.order == response.order);
+    if (index == -1 || responses[index].name == DEFAULT_RESPONSE) {
+        return responses;
+    }
+
+    responses.splice(2, 1);
+    return fixResponses(responses);
+}
+
 export const fixResponses = (responses: ItemResponse[]): ItemResponse[] => {
     let newResponses = deepClone(responses);
 
@@ -93,6 +103,7 @@ export const fixResponses = (responses: ItemResponse[]): ItemResponse[] => {
         def = defaultItemResponse()
     }
 
+    def.status = true;
     def.order = 0;
 
     newResponses = newResponses.filter(r => r.name != DEFAULT_RESPONSE);
