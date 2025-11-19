@@ -24,7 +24,7 @@ const defaultPayload = (response: ItemResponse): Payload => {
 }
 
 export function BodyArguments() {
-    const { response, updateResponse } = useStoreEndPoint();
+    const { response, defineResponse } = useStoreEndPoint();
 
     const [data, setData] = useState<Payload>(defaultPayload(response));
 
@@ -47,7 +47,7 @@ export function BodyArguments() {
             }
         };
 
-        updateResponse(newResponse);
+        defineResponse(newResponse);
     }
 
     const onPayloadChange = (content: string, payload: string) => {
@@ -64,7 +64,7 @@ export function BodyArguments() {
             }
         };
 
-        updateResponse(newResponse);
+        defineResponse(newResponse);
     }
 
     return (
