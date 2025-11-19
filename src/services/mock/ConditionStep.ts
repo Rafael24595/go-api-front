@@ -23,6 +23,38 @@ export const newConditionStep = (order?: number, prev?: ConditionStep): Conditio
         }
     }
 
+    if (prev.type == StepType.FIELD) {
+        return {
+            order: order || 0,
+            type: StepType.OPERATOR,
+            value: StepOperator.EQ
+        }
+    }
+
+    if (isCompareOperator(prev)) {
+        return {
+            order: order || 0,
+            type: StepType.VALUE,
+            value: defaultValue(StepType.VALUE)
+        }
+    }
+
+    if (prev.type == StepType.VALUE) {
+        return {
+            order: order || 0,
+            type: StepType.OPERATOR,
+            value: StepOperator.AND
+        }
+    }
+
+    if (isLogicalOperator(prev)) {
+        return {
+            order: order || 0,
+            type: StepType.INPUT,
+            value: defaultValue(StepType.INPUT)
+        }
+    }
+
     return {
         order: order || 0,
         type: StepType.ARRAY,
