@@ -24,10 +24,10 @@ interface Payload {
 const StoreCache = createContext<StoreProviderCacheType | undefined>(undefined);
 
 export const StoreProviderCache: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { findOrDefault, store } = useStoreStatus();
+  const { find, store } = useStoreStatus();
 
   const [data, setData] = useState<Payload>({
-    cache: findOrDefault(CACHE_PROVIDER_KEY, {
+    cache: find(CACHE_PROVIDER_KEY, {
       def: {},
       parser: (v) => JSON.parse(v)
     })

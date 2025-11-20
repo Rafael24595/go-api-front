@@ -30,14 +30,14 @@ interface Payload {
 }
 
 export function PayloadColumn() {
-    const { findOrDefault, store } = useStoreStatus();
+    const { find, store } = useStoreStatus();
     
     const { push } = useAlert();
 
     const { response } = useStoreRequest();
 
     const [data, setData] = useState<Payload>(() => {
-        const autoFormat = findOrDefault(STATUS_KEY, {
+        const autoFormat = find(STATUS_KEY, {
             def: true,
             parser: (v) => v == "true"
         });

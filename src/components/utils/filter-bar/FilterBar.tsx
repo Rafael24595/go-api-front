@@ -29,7 +29,7 @@ export const emptyFilter = (filterDefault: string): PayloadFilter => ({
 })
 
 export function FilterBar({ filterDefault: defaultTarget, filterTargets: validTargets, options, cache, onFilterChange }: FilterBarProps) {
-    const { find, findOrDefault, store } = useStoreStatus();
+    const { find, store } = useStoreStatus();
 
     const makePaylaod = (): PayloadFilter => {
         if (!cache) {
@@ -40,7 +40,7 @@ export function FilterBar({ filterDefault: defaultTarget, filterTargets: validTa
         }
 
         return {
-            target: findOrDefault(cache.keyTarget, {
+            target: find(cache.keyTarget, {
                 def: defaultTarget,
                 range: validTargets,
             }),

@@ -118,7 +118,7 @@ interface Payload {
 }
 
 export function ContextModal({ isOpen, onClose }: ContextModalProps) {
-    const { find, findOrDefault, store } = useStoreStatus();
+    const { find, store } = useStoreStatus();
 
     const { initialHash, actualHash, context, getContext, discardContext, updateContext, fetchContext, releaseContext } = useStoreContext();
 
@@ -135,12 +135,12 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         preview: find(CONTENT_KEY, {
             def: TEMPLATE
         }),
-        showPreview: findOrDefault(STATUS_KEY, {
+        showPreview: find(STATUS_KEY, {
             def: true,
             parser: (v) => v == "true"
         }),
         showImport: false,
-        filter: findOrDefault(FILTER_KEY, {
+        filter: find(FILTER_KEY, {
             def: EMPTY_FILTER,
             parser: (v) => JSON.parse(v)
         }),

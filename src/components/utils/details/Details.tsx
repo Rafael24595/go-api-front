@@ -14,10 +14,10 @@ interface DetailsProps {
 }
 
 export const Details: React.FC<DetailsProps> = ({ identity, summary, options, subsummary, children, isEmpty, onToggle }) => {
-  const { findOrDefault, store } = useStoreStatus();
+  const { find, store } = useStoreStatus();
 
   const [isOpen, setIsOpen] = useState(
-    findOrDefault(identity, {
+    find(identity, {
       def: false,
       parser: (v) => v == "true"
     })

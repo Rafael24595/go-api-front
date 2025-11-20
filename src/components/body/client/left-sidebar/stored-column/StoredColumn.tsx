@@ -56,7 +56,7 @@ interface PayloadModalCurl {
 
 export function StoredColumn() {
     const { userData } = useStoreSession();
-    const { find, findOrDefault, store } = useStoreStatus();
+    const { find, store } = useStoreStatus();
 
     const { loadThemeWindow } = useStoreTheme();
 
@@ -70,7 +70,7 @@ export function StoredColumn() {
     });
 
     const [filterData, setFilterData] = useState<PayloadFilter>({
-        target: findOrDefault(FILTER_TARGET_KEY, {
+        target: find(FILTER_TARGET_KEY, {
             def: DEFAULT_CURSOR,
             range: VALID_CURSORS,
         }),

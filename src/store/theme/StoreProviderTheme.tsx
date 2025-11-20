@@ -137,6 +137,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     }
 
     const themeCache = find(cursorTheme, {
+      def: ThemesDefault["light"],
       parser: parseCache
     });
     if(themeCache && typeof themeCache === 'object') {
