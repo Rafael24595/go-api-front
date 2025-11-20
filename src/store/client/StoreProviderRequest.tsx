@@ -501,6 +501,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     fixRequest._id = apiResponse.request._id;
     fixRequest.name = apiResponse.request.name;
+    fixRequest.status = apiResponse.request.status;
 
     releaseRequest(fixRequest, fixResponse, request);
 
