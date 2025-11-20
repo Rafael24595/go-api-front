@@ -8,9 +8,6 @@ export interface UserData {
   picture: ""
 	username:  string
 	timestamp: number
-  history: string,
-	collection: string
-  context: string
   first_time: boolean
   roles: string[]
 }
@@ -28,9 +25,6 @@ export function newUserData(): UserData {
     picture: "",
     username: "",
     timestamp: 0,
-    history: "",
-    collection: "",
-    context: "",
     first_time: false,
     roles: []
   }
