@@ -337,7 +337,7 @@ export const importCurl = async (curls: string[], collection?: string): Promise<
 
 export const findAllEndPoint = async (): Promise<SignedPayload<LiteEndPoint[]>> => {
   try {
-    const apiResponse = await authApiManager.get(`/mock`);
+    const apiResponse = await authApiManager.get(`/mock/endpoint`);
     return apiResponse.data;
   } catch (error) {
     //TODO: Handle error.
@@ -347,7 +347,7 @@ export const findAllEndPoint = async (): Promise<SignedPayload<LiteEndPoint[]>> 
 
 export const findEndPoint = async (endPoint: string): Promise<ItemEndPoint> => {
   try {
-    const apiResponse = await authApiManager.get(`/mock/${endPoint}`);
+    const apiResponse = await authApiManager.get(`/mock/endpoint/${endPoint}`);
     return apiResponse.data;
   } catch (error) {
     //TODO: Handle error.
@@ -357,7 +357,7 @@ export const findEndPoint = async (endPoint: string): Promise<ItemEndPoint> => {
 
 export const insertEndPoint = async (endPoint: ItemEndPoint): Promise<string> => {
   try {
-    const apiResponse = await authApiManager.post(`/mock`, endPoint);
+    const apiResponse = await authApiManager.post(`/mock/endpoint`, endPoint);
     return apiResponse.data;
   } catch (error) {
     //TODO: Handle error.
