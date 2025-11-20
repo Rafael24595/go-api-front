@@ -2,6 +2,7 @@ import { HttpStatusCode } from "axios";
 import { ItemStatusKeyValue, StatusKeyValue } from "../StatusKeyValue";
 import { ConditionStep } from "../../services/mock/ConditionStep";
 import { deepClone } from "../../services/Utils";
+import { Dict } from "../../types/Dict";
 
 export const DEFAULT_RESPONSE = "default";
 
@@ -69,7 +70,7 @@ export const defaultItemResponse = (): ItemResponse => {
 }
 
 export const resolveResponses = (responses: ItemResponse[], response: ItemResponse) => {
-    const index = responses.findIndex(r => r.order == response.order);
+    const index = responses.findIndex(r => r.name == response.name);
     if (index != -1 && (responses[index].name == response.name || responses[index].name != DEFAULT_RESPONSE)) {
         responses[index] = response;
     } else {
@@ -113,5 +114,29 @@ export const fixResponses = (responses: ItemResponse[]): ItemResponse[] => {
     newResponses.unshift(def);
     newResponses.map((r, i) => r.order = i);
 
-    return newResponses
+    return fixResponsesName(newResponses);
+}
+
+const fixResponsesName = (responses: ItemResponse[]) => {
+	const cache: Dict<boolean> = {};
+
+    for (let i = 0; i < responses.length; i++) {
+        const name = fixResponseName(responses[i], cache)
+        responses[i].name = name;
+        cache[name] = true;
+    }
+
+	return responses;
+}
+
+const fixResponseName = (response: ItemResponse, cache: Dict<boolean>): string => {
+	let name = response.name;
+	let count = 1;
+
+    while (cache[name]) {   
+        name = `${response.name}-copy-${count}`;
+        count++
+    }
+
+	return name;
 }

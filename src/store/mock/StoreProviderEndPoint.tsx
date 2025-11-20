@@ -301,7 +301,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     const resolveResponse = (response: ItemResponse, rename?: boolean) => {
         if (rename || response.name == "") {
-            const name = prompt("Insert a name: ", response.name);
+            let name = resolveName(response);
             if (name == null) {
                 return false;
             }
@@ -318,6 +318,21 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         }));
 
         return true;
+    }
+
+    const resolveName = (response: ItemResponse) => {
+        let message = "Insert a name: ";
+
+        while (true) {
+            const name = prompt(message, response.name);
+
+            const exists = data.endPoint.responses.find(r => r.name === name);
+            if (!exists) {
+                return name
+            }
+
+            message = `There is already an answer with the name ${name}`;
+        }
     }
 
     const removeResponse = (response: ItemResponse) => {
