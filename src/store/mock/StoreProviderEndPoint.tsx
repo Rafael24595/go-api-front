@@ -7,19 +7,22 @@ import { emptyItemResponse, ItemResponse, resolveResponses, removeResponse as re
 import { deepClone, generateHash } from "../../services/Utils";
 import { UserData } from "../../interfaces/system/UserData";
 import { Optional } from "../../types/Optional";
-import { findEndPoint, insertEndPoint } from "../../services/api/ServiceStorage";
+import { findEndPoint, findMetrics, insertEndPoint } from "../../services/api/ServiceStorage";
 import { CACHE_CATEGORY_FOCUS } from "../Constants";
 import { useStoreMock } from "./StoreProviderMock";
+import { emptyMetrics, Metrics } from "../../interfaces/mock/Metrics";
 
 interface StoreProviderEndPointType {
     endPoint: ItemEndPoint;
     response: ItemResponse;
+    metrics: Metrics;
     event: EventAction;
 
     newEndPoint: () => void;
     fetchEndPoint: (endPoint: LiteEndPoint) => Promise<void>;
     releaseEndPoint: (endPoint?: ItemEndPoint) => Promise<void>;
     discardEndPoint: (endPoint?: ItemEndPoint) => void;
+    fetchMetrics: () => Promise<void>;
 
     updateStatus: (status: boolean) => void;
     switchSafe: () => void;
@@ -64,6 +67,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     const [data, setData] = useState<PayloadData>(clearEndPoint(userData));
     const [response, setResponse] = useState<ItemResponse>(emptyItemResponse());
+    const [metrics, setMetrics] = useState<Metrics>(emptyMetrics(data.endPoint));
 
     const [event, setEventAction] = useState<EventAction>({
         reason: "initial",
@@ -180,6 +184,29 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         }
 
         restoreEndPoint(endPoint);
+
+        fetchMetricsByEndPoint(endPoint);
+    }
+
+    const fetchMetrics = async () => {
+        return fetchMetricsByEndPoint(data.endPoint)
+    }
+
+    const fetchMetricsByEndPoint = async (endPoint: ItemEndPoint) => {
+        const metrics = await findMetrics(endPoint)
+            .catch(err => {
+                if (err.statusCode == 404) {
+                    fetchUser();
+                    return;
+                }
+                throw err;
+            });
+
+        if (!metrics) {
+            return;
+        }
+
+        setMetrics(metrics);
     }
 
     const releaseEndPoint = async (endPoint?: ItemEndPoint) => {
@@ -378,25 +405,26 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     return (
         <StoreEndPoint.Provider value={{
             endPoint: data.endPoint,
-            response, event,
+            metrics, response, event,
             isModified, newEndPoint, fetchEndPoint,
             releaseEndPoint, updateStatus, switchSafe,
             updateMethod, updatePath, discardEndPoint,
-            newResponse, defineResponse, resolveResponse,
-            removeResponse, isCached, cacheLenght,
-            cacheComments
+            fetchMetrics, newResponse, defineResponse,
+            resolveResponse, removeResponse, isCached,
+            cacheLenght, cacheComments
         }}>
             {children}
         </StoreEndPoint.Provider>
     );
 };
 
-const clearEndPoint = (userData: UserData) => {
+const clearEndPoint = (userData: UserData): PayloadData => {
+    const endPoint = emptyItemEndPoint(userData.username);
     return {
         initialHash: "",
         actualHash: "",
-        backup: emptyItemEndPoint(userData.username),
-        endPoint: emptyItemEndPoint(userData.username),
+        backup: endPoint,
+        endPoint: endPoint,
     }
 };
 

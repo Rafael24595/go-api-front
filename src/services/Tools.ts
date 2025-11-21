@@ -1,24 +1,36 @@
-export function millisecondsToTime(ms: number): string {
-    if(Number.isNaN(ms)) {
+const MILLISECOND = { label: "ms", time: 1 };
+const SECOND = { label: "s", time: 1000 };
+const MINUTE = { label: "m", time: SECOND.time * 60 };
+const HOUR = { label: "h", time: MINUTE.time * 60 };
+const DAY = { label: "d", time: HOUR.time * 24 };
+const YEAR = { label: "y", time: DAY.time * 365 };
+
+export const TIME_UNITS = [YEAR, DAY, HOUR, MINUTE, SECOND, MILLISECOND];
+
+export type TimeUnitLabel = typeof TIME_UNITS[number]["label"];
+
+export function millisecondsToTime(ms: number, limit?: TimeUnitLabel): string {
+    if (Number.isNaN(ms)) {
         return "";
     }
 
-	const hours = Math.floor(ms / (1000 * 60 * 60));
-    const minutes = Math.floor(ms / (1000 * 60)) % 60;
-    const seconds = Math.floor(ms / 1000) % 60;
-    const milliseconds = ms % 1000;
+    const units = [YEAR, DAY, HOUR, MINUTE, SECOND, MILLISECOND];
 
-    if (hours > 0) {
-        return `${hours}h ${minutes}m ${seconds}s`;
-    }
-    if (minutes > 0) {
-        return `${minutes}m ${seconds}s`;
-    }
-    if (seconds > 0) {
-        return `${seconds}s`;
+    const parts: string[] = [];
+
+    for (const u of units) {
+        if (limit && u.label === limit) {
+            break;
+        }
+
+        const amount = Math.floor(ms / u.time);
+        if (amount > 0 || parts.length > 0 || u.label === "ms") {
+            parts.push(`${amount}${u.label}`);
+        }
+        ms %= u.time;
     }
 
-    return `${milliseconds}ms`;
+    return parts.join(" ");
 }
 
 export function millisecondsToDate(milliseconds: number): string {
@@ -29,12 +41,12 @@ export function millisecondsToDate(milliseconds: number): string {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
 export function formatBytes(bytes: number): string {
-    if(bytes == null || Number.isNaN(bytes)) {
+    if (bytes == null || Number.isNaN(bytes)) {
         return "";
     }
 

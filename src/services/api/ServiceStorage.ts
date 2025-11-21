@@ -3,6 +3,7 @@ import { Context } from "../../interfaces/client/context/Context";
 import { ItemRequest, LiteRequest, Request } from "../../interfaces/client/request/Request";
 import { Response, SignedPayload } from "../../interfaces/client/response/Response";
 import { ItemEndPoint, LiteEndPoint } from "../../interfaces/mock/EndPoint";
+import { Metrics } from "../../interfaces/mock/Metrics";
 import { authApiManager } from "./ApiManager";
 import { RequestCloneCollection, RequestImportContext, RequestNode, RequestRequestCollect, RequestSortNodes } from "./Requests";
 import { ResponseExecuteAction } from "./Responses";
@@ -348,6 +349,16 @@ export const findAllEndPoint = async (): Promise<SignedPayload<LiteEndPoint[]>> 
 export const findEndPoint = async (endPoint: string): Promise<ItemEndPoint> => {
   try {
     const apiResponse = await authApiManager.get(`/mock/endpoint/${endPoint}`);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const findMetrics = async (endPoint: ItemEndPoint): Promise<Metrics> => {
+  try {
+    const apiResponse = await authApiManager.get(`/mock/metrics/endpoint/${endPoint._id}`);
     return apiResponse.data;
   } catch (error) {
     //TODO: Handle error.
