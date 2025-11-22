@@ -135,6 +135,19 @@ export function EndPointForm() {
         return `c${toString[0]}xx`;
     }
 
+    const makeEndPointTitle = (): string => {
+        if (endPoint._id == "") {
+            return "New End Point"    ;
+        }
+
+        return `End Point «${endPoint.name}»`;
+    }
+
+
+    const makeResponseKey = (item: ItemResponse): string => {
+        return `${item.timestamp}-${item.name}-${item.code}`;
+    }
+
     return (
         <>
             <div id="end-point-data-form">
@@ -144,7 +157,7 @@ export function EndPointForm() {
                             onChange={onStatusChange}
                             title={`${data.status ? "Enabled end-point" : "Disabled end-point"}`}
                             checked={data.status} />
-                        <p id="end-point-form-title">End Point data:</p>
+                        <p id="end-point-form-title">{makeEndPointTitle()}:</p>
                     </div>
                     <button id="end-point-form-safe" className="flat-button flat-emoji"
                         onClick={onSafeChange}
@@ -183,7 +196,7 @@ export function EndPointForm() {
                                     onChange={(e) => onRequestChange(e, response)}
                                     title={`${response.status ? "Enabled response" : "Disabled response"}`}
                                     checked={response.status} />
-                                <p id="end-point-form-title">Response {response.name}:</p>
+                                <p id="end-point-form-title">Response «{response.name}»:</p>
                             </div>
                             <div id="end-point-reponse-buttons">
                                 <button className="button-tag" type="button" onClick={hideResponseForm}>Close</button>
@@ -202,10 +215,10 @@ export function EndPointForm() {
                     ) : (
                         <div id="end-point-responses">
                             {Object.values(endPoint.responses).map((cursor) => (
-                                <div className="end-point-response">
+                                <div key={makeResponseKey(cursor)} className="end-point-response">
                                     <div className="end-point-sign-status">
                                         <input id={`end-point-status-${cursor.order}`} name="status" type="checkbox"
-                                            className={`end-point-response-status ${cursor.name == DEFAULT_RESPONSE ? "hide" : "" }`}
+                                            className={`end-point-response-status ${cursor.name == DEFAULT_RESPONSE ? "hide" : ""}`}
                                             onChange={(e) => onRequestChange(e, cursor)}
                                             title={`${cursor.status ? "Enabled response" : "Disabled response"}`}
                                             checked={cursor.status} />
