@@ -81,6 +81,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     useEffect(() => {
         updateDataStatus(data.endPoint);
+        updateMetricsStatus(data.endPoint);
     }, [data.endPoint]);
 
     const updateDataStatus = async (endPoint: ItemEndPoint) => {
@@ -109,6 +110,14 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             initialHash,
             actualHash
         }));
+    }
+
+    const updateMetricsStatus = async (endPoint: ItemEndPoint) => {
+        if (metrics.end_point == "" || metrics.end_point == endPoint._id) {
+            return;
+        }
+
+        setMetrics(emptyMetrics(data.endPoint));
     }
 
     const pushEvent = (reason: string, source: string, target: string) => {

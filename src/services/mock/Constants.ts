@@ -41,7 +41,7 @@ export const Types: KeyValue[] = [
 
 export enum StepInput {
     PAYLOAD = "payload",
-    HEADER = "header",
+    ARGUMENT = "argument",
 }
 
 export const Inputs: KeyValue[] = [
@@ -50,8 +50,8 @@ export const Inputs: KeyValue[] = [
         value: "Payload",
     },
     {
-        key: StepInput.HEADER,
-        value: "Header",
+        key: StepInput.ARGUMENT,
+        value: "Argument",
     }
 ];
 

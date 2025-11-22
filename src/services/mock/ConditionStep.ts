@@ -138,6 +138,10 @@ const evaluePosition = (cursor: ConditionStep, parent?: ConditionStep) => {
         }
         return;
     }
+
+    if (isInputHeader(parent) && cursor.type == StepType.FORMAT) {
+        return `An header input cannot be formatted, but ${cursor.type} found on ${cursor.order} position.`
+    }
     
     if (parent.type != StepType.OPERATOR && cursor.type == StepType.INPUT) {
         return `An input operation cannot be applied in the middle of an operation, but ${cursor.type} found on ${cursor.order} position.`
@@ -238,4 +242,8 @@ const isComparableRight = (cursor: ConditionStep) => {
         default:
             return false;
     }
+}
+
+const isInputHeader = (cursor: ConditionStep) => {
+    return cursor.type == StepType.INPUT && cursor.value == StepInput.ARGUMENT;
 }
