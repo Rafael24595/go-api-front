@@ -14,8 +14,10 @@
 }
 
 .end-point-metadata-title-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 10px;
-
 }
 
 .end-point-metadata-title-container.middle {
@@ -78,4 +80,8 @@
 #responses-table th {
     text-align: left;
     padding: 5px;
+}
+
+.empty-responses-table {
+    text-align: center;
 }

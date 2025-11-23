@@ -366,6 +366,16 @@ export const findMetrics = async (endPoint: ItemEndPoint): Promise<Metrics> => {
   }
 };
 
+export const removeMetrics = async (endPoint: ItemEndPoint): Promise<Metrics> => {
+  try {
+    const apiResponse = await authApiManager.delete(`/mock/metrics/endpoint/${endPoint._id}`);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
 export const insertEndPoint = async (endPoint: ItemEndPoint): Promise<string> => {
   try {
     const apiResponse = await authApiManager.post(`/mock/endpoint`, endPoint);
