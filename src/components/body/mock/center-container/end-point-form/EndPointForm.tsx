@@ -6,6 +6,8 @@ import { DEFAULT_RESPONSE, emptyItemResponse, ItemResponse } from '../../../../.
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { Combo } from '../../../../utils/combo/Combo';
 import { responseOptions, statusOptions } from './Constants';
+import { PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
+import { Optional } from '../../../../../types/Optional';
 
 import './EndPointForm.css';
 
@@ -21,7 +23,7 @@ export function EndPointForm() {
         isModified, releaseEndPoint, discardEndPoint,
         updateStatus, switchSafe, updateMethod,
         updatePath, defineResponse, newResponse,
-        resolveResponse, removeResponse } = useStoreEndPoint();
+        resolveResponse, removeResponse, orderResponses } = useStoreEndPoint();
 
     const [data, setData] = useState<PayloadData>({
         status: endPoint.status,
@@ -31,6 +33,8 @@ export function EndPointForm() {
     });
 
     const [responseForm, setResponseForm] = useState<boolean>(false);
+
+    const [dragData, setDragData] = useState<Optional<ItemResponse>>(undefined);
 
     useEffect(() => {
         setData({
@@ -137,16 +141,33 @@ export function EndPointForm() {
 
     const makeEndPointTitle = (): string => {
         if (endPoint._id == "") {
-            return "New End Point"    ;
+            return "New End Point";
         }
 
         return `End Point «${endPoint.name}»`;
     }
 
-
     const makeResponseKey = (item: ItemResponse): string => {
         return `${item.timestamp}-${item.name}-${item.code}`;
     }
+
+
+    const onRequestDrag = async (item: PositionWrapper<ItemResponse>) => {
+        setDragData(item.item);
+    };
+
+    const onRequestDrop = async () => {
+        setDragData(undefined);
+    };
+
+    const updateOrder = async (items: PositionWrapper<ItemResponse>[]) => {
+        const ordered = items.map((p) => { 
+            p.item.order = p.index; 
+            return p.item 
+        });
+
+        orderResponses(ordered);
+    };
 
     return (
         <>
@@ -213,8 +234,14 @@ export function EndPointForm() {
                     {responseForm ? (
                         <ResponseForm />
                     ) : (
-                        <div id="end-point-responses">
-                            {Object.values(endPoint.responses).map((cursor) => (
+                        <VerticalDragDrop
+                            id="end-point-responses"
+                            items={endPoint.responses}
+                            itemId={makeResponseKey}
+                            onItemDrag={onRequestDrag}
+                            onItemDrop={onRequestDrop}
+                            onItemsChange={updateOrder}
+                            renderItem={(cursor) => (
                                 <div key={makeResponseKey(cursor)} className="end-point-response">
                                     <div className="end-point-sign-status">
                                         <input id={`end-point-status-${cursor.order}`} name="status" type="checkbox"
@@ -238,8 +265,11 @@ export function EndPointForm() {
                                         delete: actionDelete, rename: actionRename
                                     })} />
                                 </div>
-                            ))}
-                        </div>
+                            )}
+                            emptyTemplate={(
+                                <p className="no-data"> - No history found - </p>
+                            )}
+                        />
                     )}
                 </div>
             </div>

@@ -31,6 +31,10 @@
     display: none;
 }
 
+#end-point-responses-form {
+    overflow: hidden;
+}
+
 #end-point-data-form,
 #end-point-responses-form {
     display: flex;
@@ -66,6 +70,7 @@
     flex: 1 1 auto;
     margin-left: 5px;
     margin-right: 5px;
+    overflow: hidden;
 }
 
 .end-point-form-fragment.column {
@@ -109,6 +114,8 @@
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
+    overflow: auto;
+    scrollbar-gutter: stable;
 }
 
 .end-point-response {

@@ -3,7 +3,7 @@ import { emptyItemEndPoint, ItemEndPoint, LiteEndPoint } from "../../interfaces/
 import { useStoreCache } from "../StoreProviderCache";
 import { CacheEndPointStore, CacheEndPointFocus } from "../../interfaces/mock/Cache";
 import { useStoreSession } from "../system/StoreProviderSession";
-import { emptyItemResponse, ItemResponse, resolveResponses, removeResponse as removeResponseFromList } from "../../interfaces/mock/Response";
+import { emptyItemResponse, ItemResponse, resolveResponses, removeResponse as removeResponseFromList, fixResponses } from "../../interfaces/mock/Response";
 import { deepClone, generateHash } from "../../services/Utils";
 import { UserData } from "../../interfaces/system/UserData";
 import { Optional } from "../../types/Optional";
@@ -33,6 +33,7 @@ interface StoreProviderEndPointType {
     defineResponse: (response: ItemResponse) => void;
     resolveResponse: (response: ItemResponse, rename?: boolean) => boolean;
     removeResponse: (response: ItemResponse) => void;
+    orderResponses: (responses: ItemResponse[]) => void;
 
     isModified: () => boolean;
     isCached: (endPoint: LiteEndPoint) => boolean;
@@ -381,6 +382,16 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         }));
     }
 
+    const orderResponses = (responses: ItemResponse[]) => {
+        setData(prevData => ({
+            ...prevData,
+            endPoint: {
+                ...prevData.endPoint,
+                responses: fixResponses(responses)
+            }
+        }));
+    }
+
     const isModified = () => {
         return data.initialHash != data.actualHash;
     }
@@ -419,8 +430,8 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             releaseEndPoint, updateStatus, switchSafe,
             updateMethod, updatePath, discardEndPoint,
             fetchMetrics, newResponse, defineResponse,
-            resolveResponse, removeResponse, isCached,
-            cacheLenght, cacheComments
+            resolveResponse, removeResponse, orderResponses,
+            isCached, cacheLenght, cacheComments
         }}>
             {children}
         </StoreEndPoint.Provider>

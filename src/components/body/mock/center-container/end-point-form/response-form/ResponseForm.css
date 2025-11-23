@@ -69,3 +69,9 @@
     padding-left: 10px;
     padding-right: 10px;
 }
+
+#end-form-arguments.scroll {
+    overflow: auto;
+    scrollbar-gutter: stable;
+}
+
