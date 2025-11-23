@@ -56,3 +56,14 @@
     display: flex;
     justify-content: center;
 }
+
+.condition-form-step-container {
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.condition-form-step-container.operator.and {
+    margin-top: 13px;
+    margin-bottom: 13px;
+}
+

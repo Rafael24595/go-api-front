@@ -2,7 +2,7 @@ import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { VoidCallback } from '../../../../../interfaces/Callback';
 import { DEFAULT_RESPONSE } from '../../../../../interfaces/mock/Response';
 import { removeMetrics } from '../../../../../services/api/ServiceStorage';
-import { millisecondsToDate, millisecondsToTime } from '../../../../../services/Tools';
+import { MILLISECOND, millisecondsToDate, millisecondsToTime } from '../../../../../services/Tools';
 import { useStoreEndPoint } from '../../../../../store/mock/StoreProviderEndPoint';
 import { useAlert } from '../../../../utils/alert/Alert';
 
@@ -19,7 +19,7 @@ export function EndPointMetrics() {
             time = metrics.total_uptime;
         }
 
-        return millisecondsToTime(time);
+        return millisecondsToTime(time, MILLISECOND);
     }
 
     const lastStarted = () => {

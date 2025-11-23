@@ -159,14 +159,14 @@ export function ConditionArguments() {
 
     return (
         <>
-            <div id="end-form-arguments">
+            <div id="end-form-arguments" className="scroll">
                 <p id="condition-form-header">From:</p>
                 {data.steps.map((s, i) => (
-                    <>
+                    <div className={`condition-form-step-container ${s.type} ${s.value}`}>
                         {renderStepConnector(i, s)}
                         <div key={`${s.order}`} className="condition-form-step">
                             <span className={`warning-step ${data.warnings.has(s.order) ? "show" : ""}`} title={data.warnings.get(s.order)?.join("\n")}>*</span>
-                            <label htmlFor={`cond-type-${s.order}`} className="cond-input">
+                            <label htmlFor={`cond-type-${s.order}`} className="cond-input ">
                                 <select name="cond-type" id={`cond-type-${s.order}`} value={s.type} onChange={(e) => onStepTypeChange(e, s)}>
                                     {Types.map(t => (
                                         <option value={t.key}>{t.value}</option>
@@ -178,7 +178,7 @@ export function ConditionArguments() {
                             </label>
                             <button type="button" className="remove-button show" onClick={() => removeStep(s)}></button>
                         </div>
-                    </>
+                    </div>
                 ))}
                 <span className="step-connector">...</span>
                 <div id="condition-form-buttons">

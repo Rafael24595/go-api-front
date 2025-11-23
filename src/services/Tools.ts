@@ -1,25 +1,27 @@
-const MILLISECOND = { label: "ms", time: 1 };
-const SECOND = { label: "s", time: 1000 };
-const MINUTE = { label: "m", time: SECOND.time * 60 };
-const HOUR = { label: "h", time: MINUTE.time * 60 };
-const DAY = { label: "d", time: HOUR.time * 24 };
-const YEAR = { label: "y", time: DAY.time * 365 };
+export interface TimeUnit {
+    label: string,
+    time: number
+}
+
+export const MILLISECOND: TimeUnit = { label: "ms", time: 1 };
+export const SECOND: TimeUnit = { label: "s", time: 1000 };
+export const MINUTE: TimeUnit = { label: "m", time: SECOND.time * 60 };
+export const HOUR: TimeUnit = { label: "h", time: MINUTE.time * 60 };
+export const DAY: TimeUnit = { label: "d", time: HOUR.time * 24 };
+export const YEAR: TimeUnit = { label: "y", time: DAY.time * 365 };
 
 export const TIME_UNITS = [YEAR, DAY, HOUR, MINUTE, SECOND, MILLISECOND];
 
-export type TimeUnitLabel = typeof TIME_UNITS[number]["label"];
 
-export function millisecondsToTime(ms: number, limit?: TimeUnitLabel): string {
+export function millisecondsToTime(ms: number, limit?: TimeUnit): string {
     if (Number.isNaN(ms)) {
         return "";
     }
 
-    const units = [YEAR, DAY, HOUR, MINUTE, SECOND, MILLISECOND];
-
     const parts: string[] = [];
 
-    for (const u of units) {
-        if (limit && u.label === limit) {
+    for (const u of TIME_UNITS) {
+        if (limit && u.label === limit.label) {
             break;
         }
 
