@@ -4,6 +4,7 @@ import { ItemRequest, LiteRequest, Request } from "../../interfaces/client/reque
 import { Response, SignedPayload } from "../../interfaces/client/response/Response";
 import { ItemEndPoint, LiteEndPoint } from "../../interfaces/mock/EndPoint";
 import { Metrics } from "../../interfaces/mock/Metrics";
+import { ConditionStep } from "../mock/ConditionStep";
 import { authApiManager } from "./ApiManager";
 import { RequestCloneCollection, RequestImportContext, RequestNode, RequestRequestCollect, RequestSortNodes } from "./Requests";
 import { ResponseExecuteAction } from "./Responses";
@@ -389,6 +390,26 @@ export const insertEndPoint = async (endPoint: ItemEndPoint): Promise<string> =>
 export const sortEndPoints = async (nodes: RequestNode[]): Promise<string[]> => {
   try {
     const apiResponse = await authApiManager.put(`/sort/mock/endpoint`, nodes);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const translateEndPointConditions = async (conditions: string): Promise<ConditionStep[]> => {
+  try {
+    const apiResponse = await authApiManager.post(`/bridge/mock/response/step`, conditions);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const translateEndPointSteps = async (steps: ConditionStep[]): Promise<string> => {
+  try {
+    const apiResponse = await authApiManager.post(`/bridge/mock/response/cond`, steps);
     return apiResponse.data;
   } catch (error) {
     //TODO: Handle error.

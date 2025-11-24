@@ -157,19 +157,23 @@ export function ConditionArguments() {
         return <span className="step-connector">Get</span>
     };
 
+    const makeKey = (item: ConditionStep): string => {
+        return `${item.order}-${item.type}`;
+    }
+
     return (
         <>
             <div id="end-form-arguments" className="scroll">
                 <p id="condition-form-header">From:</p>
                 {data.steps.map((s, i) => (
-                    <div className={`condition-form-step-container ${s.type} ${s.value}`}>
+                    <div key={makeKey(s)} className={`condition-form-step-container ${s.type} ${s.value}`}>
                         {renderStepConnector(i, s)}
                         <div key={`${s.order}`} className="condition-form-step">
                             <span className={`warning-step ${data.warnings.has(s.order) ? "show" : ""}`} title={data.warnings.get(s.order)?.join("\n")}>*</span>
                             <label htmlFor={`cond-type-${s.order}`} className="cond-input ">
                                 <select name="cond-type" id={`cond-type-${s.order}`} value={s.type} onChange={(e) => onStepTypeChange(e, s)}>
                                     {Types.map(t => (
-                                        <option value={t.key}>{t.value}</option>
+                                        <option key={t.key} value={t.key}>{t.value}</option>
                                     ))}
                                 </select>
                             </label>

@@ -6,11 +6,16 @@ import { HeaderArguments } from './header-arguments/HeaderArguments';
 import { DEFAULT_RESPONSE, ItemResponse } from '../../../../../../interfaces/mock/Response';
 import { ConditionArguments } from './condition-arguments/ConditionArguments';
 import { ImportConditionsModal } from '../../../../../mock/endpoint/response/ImportConditionsModal';
-import { ConditionStep } from '../../../../../../services/mock/ConditionStep';
 import { DataArguments } from './data-arguments/DataArguments';
 import { useStoreEndPoint } from '../../../../../../store/mock/StoreProviderEndPoint';
 import { BodyArguments } from './body-arguments/BodyArguments';
 import { Formattable, findFormatter } from '../../../../../../services/mock/Constants';
+import { Combo } from '../../../../../utils/combo/Combo';
+import { responseConditionOptions } from './Constants';
+import { calculateWindowSize } from '../../../../../../services/Utils';
+import { useStoreTheme } from '../../../../../../store/theme/StoreProviderTheme';
+import { CodeArea } from '../../../../../utils/code-area/CodeArea';
+import { translateEndPointSteps } from '../../../../../../services/api/ServiceStorage';
 
 import './ResponseForm.css';
 
@@ -61,6 +66,7 @@ const filterCursors = (cursor: KeyValue, response: ItemResponse) => {
 
 export function ResponseForm() {
     const { find, store } = useStoreStatus();
+    const { loadThemeWindow } = useStoreTheme();
 
     const { response, defineResponse } = useStoreEndPoint();
 
@@ -100,12 +106,27 @@ export function ResponseForm() {
         setModalConditionStatus(true);
     };
 
-    const submitImportConditionModal = (steps: ConditionStep[]) => {
+    const submitImportConditionModal = () => {
         closeImportConditionModal();
     }
 
     const closeImportConditionModal = () => {
         setModalConditionStatus(false);
+    };
+
+    const exportSteps = async (item?: ItemResponse) => {
+        const curl = await translateEndPointSteps((item || response).condition);
+        const { width, height } = calculateWindowSize(curl, {
+            minWidth: 550,
+            minHeight: 200
+        });
+        loadThemeWindow(width, height, <CodeArea code={curl} />);
+    }
+
+    const cleanSteps = () => {
+        const newResponse = { ...response };
+        newResponse.condition = [];
+        defineResponse(newResponse);
     };
 
     const showFormat = () => {
@@ -119,11 +140,10 @@ export function ResponseForm() {
             return;
         }
 
-        
         const newResponse = { ...response };
         newResponse.body.payload = await formatter(newResponse.body.payload);
-        
-        defineResponse(response);
+
+        defineResponse(newResponse);
     };
 
     return (
@@ -148,7 +168,13 @@ export function ResponseForm() {
                     </div>
                     {cursorData.cursor === VIEW_CONDITION && (
                         <div className="radio-button-group aux-group">
-                            <button type="button" className="button-tag" onClick={openImportConditionModal}>Import</button>
+                            <Combo custom={(
+                                <span>⚙️</span>
+                            )} options={responseConditionOptions({
+                                importSteps: openImportConditionModal,
+                                cleanSteps: cleanSteps,
+                                exportSteps: exportSteps
+                            })} />
                         </div>
                     )}
                     {showFormat() && (

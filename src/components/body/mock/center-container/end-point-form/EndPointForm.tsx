@@ -151,7 +151,6 @@ export function EndPointForm() {
         return `${item.timestamp}-${item.name}-${item.code}`;
     }
 
-
     const onRequestDrag = async (item: PositionWrapper<ItemResponse>) => {
         setDragData(item.item);
     };

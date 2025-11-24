@@ -30,11 +30,9 @@ interface Payload {
 }
 
 export function CollectionRequests({ collection, showDuplicateModal, showMoveModal }: Payload) {
-
     const { ask } = useAlert();
 
     const { loadThemeWindow } = useStoreTheme();
-
 
     const { request, cleanRequest, discardRequest, defineFreeRequest, fetchGroupRequest, isCached } = useStoreRequest();
     const { fetchStored, fetchCollection, updateCollectionRequestsOrder } = useStoreCollections();

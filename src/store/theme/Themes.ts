@@ -46,6 +46,8 @@ export interface IThemeData {
     "landing-area-color": string;
     "terminal-color": string;
     "terminal-text-color": string;
+    "step-group-color": string;
+    "step-group-block-color": string;
 }
 
 export const isITheme = (obj: any): obj is ITheme => {
@@ -110,7 +112,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ecf0f1",
             "landing-area-color": "#ffffff",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#4a6a7b",
+            "step-group-block-color": "#2980b9"
         }
     },
     ocean: {
@@ -150,7 +154,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#d4f0f8",
             "landing-area-color": "#eef9fb",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#254d5f",
+            "step-group-block-color": "#1f3a4c"
         }
     },
     desert: {
@@ -190,7 +196,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ffe0c4",
             "landing-area-color": "#fff5ec",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#d6a178",
+            "step-group-block-color": "#ff9966"
         }
     },
     forest: {
@@ -230,7 +238,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#e0f2f1",
             "landing-area-color": "#f0fdf4",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#40654a",
+            "step-group-block-color": "#365e45"
         }
     },
     tropical: {
@@ -270,7 +280,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#c5f1f3",
             "landing-area-color": "#e0f8f9",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#58a0b3",
+            "step-group-block-color": "#3a8e99"
         }
     },
     autumn: {
@@ -310,7 +322,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#f9d7bd",
             "landing-area-color": "#fcf2e7",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#6d4f4b",
+            "step-group-block-color": "#b34d4d"
         }
     },
     twilight: {
@@ -350,7 +364,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#a1bbcc",
             "landing-area-color": "#f8f9fc",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#44475a",
+            "step-group-block-color": "#546392"
         }
     },
     sunrise: {
@@ -390,7 +406,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#efdaf4",
             "landing-area-color": "#f8e3f8",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#6f3879",
+            "step-group-block-color": "#5d2a6d"
         }
     },
     quartz: {
@@ -430,7 +448,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ffe1ef",
             "landing-area-color": "#fff1f7",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#8c4a70",
+            "step-group-block-color": "#9e4774"
         }
     },
     dragon: {
@@ -470,7 +490,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ffccff",
             "landing-area-color": "#1a0033",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#ff00cc",
+            "step-group-block-color": "#33ccff"
         }
     },
     vintage: {
@@ -510,7 +532,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#eee3d3",
             "landing-area-color": "#fdfaf4",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#a69888",
+            "step-group-block-color": "#c3a384"
         }
     },
     shelter: {
@@ -553,7 +577,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#00ff99",
             "landing-area-color": "#001a00",
             "terminal-color": "#000000",
-            "terminal-text-color": "#00ff00"
+            "terminal-text-color": "#00ff00",
+            "step-group-color": "#008000",
+            "step-group-block-color": "#006600"
         }
     },
     nevada: {
@@ -596,7 +622,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ffcc99",
             "landing-area-color": "#331a00",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ff9900"
+            "terminal-text-color": "#ff9900",
+            "step-group-color": "#cc6600",
+            "step-group-block-color": "#994c00"
         }
     },
     solarized: {
@@ -636,7 +664,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#586e75",
             "landing-area-color": "#fdf6e3",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#93a1a1",
+            "step-group-block-color": "#d4ccaa"
         }
     },
     nebula: {
@@ -676,7 +706,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#8b949e",
             "landing-area-color": "#0d1117",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#30363d",
+            "step-group-block-color": "#22262b"
         }
     },
     sun: {
@@ -716,7 +748,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#a1887f",
             "landing-area-color": "#fff3e0",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#a1887f",
+            "step-group-block-color": "#ffb74d"
         }
     },
     strawberry: {
@@ -756,7 +790,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ffc1cc",
             "landing-area-color": "#fff5f9",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#ffacc0",
+            "step-group-block-color": "#ff94a2"
         }
     },
     cyberpunk_0: {
@@ -796,7 +832,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#00ccff",
             "landing-area-color": "#001e2a",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#00ccff",
+            "step-group-block-color": "#66ffff"
         }
     },
     cyberpunk_1: {
@@ -836,7 +874,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ff00cc",
             "landing-area-color": "#1e002a",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#ff00cc",
+            "step-group-block-color": "#ff66ff"
         }
     },
     cyberpunk_2: {
@@ -876,7 +916,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#00ff66",
             "landing-area-color": "#002a1e",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#00ff66",
+            "step-group-block-color": "#66ff99"
         }
     },
     cyberpunk_3: {
@@ -916,7 +958,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ff9900",
             "landing-area-color": "#2a1800",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#ff9900",
+            "step-group-block-color": "#ffcc66"
         }
     },
     cyberpunk_4: {
@@ -956,7 +1000,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ff33aa",
             "landing-area-color": "#2a001e",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#ff33aa",
+            "step-group-block-color": "#ff99cc"
         }
     },
     cyberpunk_5: {
@@ -996,7 +1042,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#00ffe5",
             "landing-area-color": "#002a26",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#00ffe5",
+            "step-group-block-color": "#66fff5"
         }
     },
     cyberpunk_6: {
@@ -1036,7 +1084,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ffff33",
             "landing-area-color": "#2a2a00",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#ffff33",
+            "step-group-block-color": "#ffff99"
         }
     },
     notebook: {
@@ -1076,7 +1126,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#a6977c",
             "landing-area-color": "#fffef7",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#c0b299",
+            "step-group-block-color": "#a89b7d"
         }
     },
     harvest: {
@@ -1116,7 +1168,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#c5aa91",
             "landing-area-color": "#fff9f0",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#c5a88e",
+            "step-group-block-color": "#e0c4a3"
         }
     },
     futuristic: {
@@ -1156,7 +1210,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#5c5c66",
             "landing-area-color": "#0b0b0d",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#242429",
+            "step-group-block-color": "#484851"
         }
     },
     retro: {
@@ -1196,7 +1252,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#bfd9d5",
             "landing-area-color": "#ffffff",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#7aa7a0",
+            "step-group-block-color": "#74a49c"
         }
     },
     midnight: {
@@ -1236,7 +1294,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#768fff",
             "landing-area-color": "#1a2238",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#2e3451",
+            "step-group-block-color": "#5671dc"
         }
     },
     carnival: {
@@ -1276,7 +1336,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#e5b9f3",
             "landing-area-color": "#21021c",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#3e1f47",
+            "step-group-block-color": "#ad3bde"
         }
     },
     inferno: {
@@ -1316,7 +1378,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ff6b6b",
             "landing-area-color": "#1a0000",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#660000",
+            "step-group-block-color": "#ff2e2e"
         }
     },
     ice: {
@@ -1356,7 +1420,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#64b5f6",
             "landing-area-color": "#f0f8ff",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#cbe4ff",
+            "step-group-block-color": "#90caf9"
         }
     },
     bloom: {
@@ -1396,7 +1462,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ffcde0",
             "landing-area-color": "#fff6f9",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#ffd9e8",
+            "step-group-block-color": "#ffb3d4"
         }
     },
     paprika: {
@@ -1436,7 +1504,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#FF4500",
             "landing-area-color": "#FFFACD",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#FFB067",
+            "step-group-block-color": "#FF8A3D"
         }
     },
     electric: {
@@ -1476,7 +1546,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#f7a41d",
             "landing-area-color": "#1a1a1a",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#f7a41d",
+            "step-group-block-color": "#ffb833"
         }
     },
     honey: {
@@ -1516,7 +1588,9 @@ export const Themes: IThemes = {
             "scrollbar-hover-color": "#ffff8d",
             "landing-area-color": "#fffaf0",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#ffb84d",
+            "step-group-block-color": "#ffa000"
         }
     },
 }
@@ -1559,7 +1633,9 @@ export const ThemesDefault: IThemes = {
             "scrollbar-hover-color": "#555555",
             "landing-area-color": "#000000",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#878787",
+            "step-group-block-color": "#333333",
         }
     },
     dark: {
@@ -1599,7 +1675,9 @@ export const ThemesDefault: IThemes = {
             "scrollbar-hover-color": "#d4d4d4",
             "landing-area-color": "#ffffff",
             "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff"
+            "terminal-text-color": "#ffffff",
+            "step-group-color": "#000000",
+            "step-group-block-color": "#818181"
         }
     },
 }
@@ -1641,5 +1719,7 @@ export const ThemeTemplate: IThemeData = {
     "scrollbar-hover-color": "#ffffff",
     "landing-area-color": "#ffffff",
     "terminal-color": "#000000",
-    "terminal-text-color": "#ffffff"
+    "terminal-text-color": "#ffffff",
+    "step-group-color": "#ffffff",
+    "step-group-block-color": "#ffffff"
 }

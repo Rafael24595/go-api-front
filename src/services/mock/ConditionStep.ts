@@ -191,8 +191,8 @@ export const isFormatedInput = (cursor: ConditionStep) => {
     }
 }
 
-export const isLogicalOperator = (cursor: ConditionStep) => {
-    if (cursor.type != StepType.OPERATOR) {
+export const isLogicalOperator = (cursor?: ConditionStep) => {
+    if (!cursor || cursor.type != StepType.OPERATOR) {
         return false;
     }
 

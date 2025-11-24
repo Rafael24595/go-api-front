@@ -8,7 +8,8 @@
     align-items: flex-start;
 }
 
-#selector-container, #metadata-container {
+#selector-container,
+#metadata-container {
     padding: 10px;
 }
 
@@ -58,11 +59,12 @@
     flex: 1 1 auto;
 }
 
-#selector-file input, #selector-file textarea {
+#selector-file input,
+#selector-file textarea {
     margin-right: 10px;
 }
 
-#selector-file input{
+#selector-file input {
     width: 100%;
 }
 
@@ -76,7 +78,7 @@
     margin-bottom: 5px;
 }
 
-.selector-title.paragraph{
+.selector-title.paragraph {
     font-weight: bold;
     margin-top: 5px;
 }
@@ -105,4 +107,105 @@
     margin-top: 15px;
     padding-top: 10px;
     border-top: 1px solid darkgrey;
+}
+
+#steps-input-loader-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.steps-loader-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.steps-loader-title h3 {
+    margin: 0px;
+}
+
+#steps-input-loader-textarea {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+#steps-input-loader-textarea textarea {
+    width: 100%;
+    resize: none;
+}
+
+#steps-description-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#steps-description-title {
+    font-weight: 600;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.step-sentence {
+    display: flex;
+}
+
+.step-sentence:first-child, .step-sentence.block + .step-sentence  {
+    padding-top: 10px;
+}
+
+.step-sentence:last-child, .step-sentence:has(+ .step-sentence.block) {
+    padding-bottom: 10px;
+}
+
+.step-sentence:not(.block) {
+    border-left: 2px solid var(--step-group-color);
+    background: color-mix(in srgb, var(--step-group-color) 10%, transparent);
+    padding-left: 10px;
+}
+
+.step-sentence.block {
+    border-left: 2px solid var(--step-group-block-color);
+    background: color-mix(in srgb, var(--step-group-block-color) 10%, transparent);
+    padding-left: 15px;
+}
+
+.step-sentence.block {
+    display: block;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.step-type-tag {
+    font-weight: 600;
+}
+
+.step-type-tag.input {
+    background: color-mix(in srgb, var(--string-color) 7%, transparent);
+    color: var(--string-color)
+}
+
+.step-type-tag.format {
+    background: color-mix(in srgb, var(--number-color) 7%, transparent);
+    color: var(--number-color);
+}
+
+.step-type-tag.array {
+    background: color-mix(in srgb, var(--boolean-color) 7%, transparent);
+    color: var(--boolean-color);
+}
+
+.step-type-tag.field {
+    background: color-mix(in srgb, var(--undefined-color) 7%, transparent);
+    color: var(--undefined-color);
+}
+
+.step-type-tag.operator {
+    background: color-mix(in srgb, var(--tag-color) 7%, transparent);
+    color: var(--tag-color);
+}
+
+.step-type-tag.value {
+    background: color-mix(in srgb, var(--string-color) 7%, transparent);
+    color: var(--string-color);
 }
