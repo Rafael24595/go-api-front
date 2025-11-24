@@ -21,7 +21,7 @@ interface StoreProviderEndPointType {
     newEndPoint: () => void;
     fetchEndPoint: (endPoint: LiteEndPoint) => Promise<void>;
     releaseEndPoint: (endPoint?: ItemEndPoint) => Promise<void>;
-    discardEndPoint: (endPoint?: ItemEndPoint) => void;
+    discardEndPoint: (endPoint?: ItemEndPoint | LiteEndPoint) => void;
     fetchMetrics: () => Promise<void>;
 
     updateStatus: (status: boolean) => void;
@@ -253,7 +253,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         fetchEndPoints();
     }
 
-    const discardEndPoint = (endPoint?: ItemEndPoint) => {
+    const discardEndPoint = (endPoint?: ItemEndPoint | LiteEndPoint) => {
         pushEvent("discard", data.endPoint._id, (endPoint || data.backup)._id);
 
         if (!endPoint || endPoint._id == data.backup._id) {

@@ -28,7 +28,7 @@ interface EndPointColumnProps {
 
 export function EndPointColumn({ setCursor }: EndPointColumnProps) {
     const { endPoints, fetchEndPoints } = useStoreMock();
-    const { endPoint, newEndPoint, fetchEndPoint, isCached } = useStoreEndPoint();
+    const { endPoint, newEndPoint, fetchEndPoint, discardEndPoint, isCached } = useStoreEndPoint();
 
     const [dragData, setDragData] = useState<Optional<LiteEndPoint>>(undefined);
 
@@ -137,6 +137,7 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
                             </div>
                         </button>
                         <Combo options={endPointOptions(cursor, {
+                            isCached: isCached, discard: discardEndPoint
                         })} />
                     </div>
                 )}

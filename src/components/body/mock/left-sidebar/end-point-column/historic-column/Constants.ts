@@ -9,9 +9,17 @@ export const endPointGroupOptions = (actions: {
 }
 
 export const endPointOptions = (endPoint: LiteEndPoint, actions: {
-
+    isCached: (endPoint: LiteEndPoint) => boolean;
+    discard: (endPoint: LiteEndPoint) => void;
 }) => {
     return [
+        {
+            icon: "🧹",
+            label: "Discard",
+            title: "Discard changes",
+            disable: !actions.isCached(endPoint),
+            action: () => actions.discard(endPoint)
+        },
     ]
 }
 
