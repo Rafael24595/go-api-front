@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ItemCollection, LiteItemCollection, LiteItemNodeRequest, newCollection, toCollection } from '../../../../../interfaces/client/collection/Collection';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
-import { cloneCollection, deleteCollection, findAction, findCollection, imporOpenApi, importCollections, importCurl, importToCollection, insertCollection, requestCollect } from '../../../../../services/api/ServiceStorage';
+import { cloneCollection, deleteCollection, exportAllCollections, exportManyCollections, findAction, findCollection, imporOpenApi, importCollections, importCurl, importToCollection, insertCollection, requestCollect } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
 import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
@@ -277,20 +277,41 @@ export function CollectionColumn() {
         return field.toLowerCase().includes(filterData.value.toLowerCase());
     }
 
-    const exportAll = () => {
+    const exportAll = async () => {
+        const collections = await exportAllCollections();
         const name = `collections_${Date.now()}.json`;
-        downloadFile(name, collection);
+        downloadFile(name, collections);
     }
 
     const exportCollection = async (item: LiteItemCollection) => {
-        const collection = await findCollection(item);
+        const collections = await exportManyCollections(item._id);
+        if (collections.length == 0) {
+            push({
+                category: EAlertCategory.ERRO,
+                content: `Collection '${item.name}' not found`
+            });
+            return;
+        }
+
+        const collection = collections[0];
+
         let name = collection.name.toLowerCase().replace(/\s+/g, "_");
         name = `collection_${name}_${Date.now()}.json`;
         downloadFile(name, collection);
     }
 
     const exportRequests = async (item: LiteItemCollection) => {
-        const collection = await findCollection(item);
+        const collections = await exportManyCollections(item._id);
+        if (collections.length == 0) {
+            push({
+                category: EAlertCategory.ERRO,
+                content: `Collection '${item.name}' not found`
+            });
+            return;
+        }
+
+        const collection = collections[0];
+
         let name = collection.name.toLowerCase().replace(/\s+/g, "_");
         name = `requests_${name}_${Date.now()}.json`;
         const requests = collection.nodes.map(n => n.request);

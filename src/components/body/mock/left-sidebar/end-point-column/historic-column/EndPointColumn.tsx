@@ -9,7 +9,11 @@ import { emptyFilter, FilterBar, PayloadFilter } from '../../../../../utils/filt
 import { endPointGroupOptions, endPointOptions, searchOptions } from './Constants';
 import { Optional } from '../../../../../../types/Optional';
 import { RequestNode } from '../../../../../../services/api/Requests';
-import { sortEndPoints } from '../../../../../../services/api/ServiceStorage';
+import { exportAllEndPoints, exportManyEndPoints, findEndPoint, insertEndPoint, removeEndPoint, sortEndPoints } from '../../../../../../services/api/ServiceStorage';
+import { ModalButton } from '../../../../../../interfaces/ModalButton';
+import { useAlert } from '../../../../../utils/alert/Alert';
+import { EAlertCategory } from '../../../../../../interfaces/AlertData';
+import { downloadFile } from '../../../../../../services/Utils';
 
 import '../../../../../style/NodeRequest.css'
 import './EndPointColumn.css';
@@ -27,20 +31,14 @@ interface EndPointColumnProps {
 }
 
 export function EndPointColumn({ setCursor }: EndPointColumnProps) {
+    const { ask, push } = useAlert();
+
     const { endPoints, fetchEndPoints } = useStoreMock();
-    const { endPoint, newEndPoint, fetchEndPoint, discardEndPoint, isCached } = useStoreEndPoint();
+    const { endPoint, newEndPoint, fetchEndPoint, discardEndPoint, injectEndPoint, renameEndPoint, isFocused, isCached } = useStoreEndPoint();
 
     const [dragData, setDragData] = useState<Optional<LiteEndPoint>>(undefined);
 
     const [filterData, setFilterData] = useState<PayloadFilter>(emptyFilter(FILTER_DEFAULT));
-
-    const defineCursor = async (item: LiteEndPoint) => {
-        await fetchEndPoint(item);
-    }
-
-    const makeKey = (item: LiteEndPoint): string => {
-        return `${item.name}-${item.timestamp}-${item.method}-${item.path}`;
-    }
 
     const applyFilter = (item: LiteEndPoint): FilterResult<LiteEndPoint> => {
         let field = item[filterData.target as keyof LiteEndPoint]
@@ -91,6 +89,107 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
         });
     }
 
+    const remove = async (cursor: LiteEndPoint) => {
+        await removeEndPoint(cursor).catch(e => {
+            push({
+                category: EAlertCategory.ERRO,
+                content: `The end-point cannot be removed.`
+            });
+            console.error(e);
+        });
+
+        discardEndPoint(cursor);
+        await fetchEndPoints();
+
+        if (isFocused(cursor)) {
+            newEndPoint();
+        }
+    }
+
+    const actionRemove = (cursor: LiteEndPoint) => {
+        const content = `The end-point '${cursor.name}' will be deleted, are you sure?`;
+        const buttons: ModalButton[] = [
+            {
+                title: "Yes",
+                type: "submit",
+                callback: {
+                    func: remove,
+                    args: [cursor]
+                }
+            },
+            {
+                title: "No",
+                type: 'button',
+            }
+        ];
+
+        ask({ content, buttons });
+    }
+
+    const actionRename = async (cursor: LiteEndPoint) => {
+        const result = await findEndPoint(cursor._id);
+        const { endPoint, ok } = renameEndPoint(result);
+        if (!ok) {
+            return;
+        }
+
+        await insertEndPoint(endPoint).catch(e => {
+            push({
+                category: EAlertCategory.ERRO,
+                content: `The end-point cannot be defined.`
+            });
+            console.error(e);
+        });
+
+        await fetchEndPoints();
+    }
+
+    const actionClone = async (cursor: LiteEndPoint) => {
+        const endPoint = await findEndPoint(cursor._id);
+        endPoint._id = "";
+        endPoint.name = "";
+        injectEndPoint(endPoint);
+    }
+
+    const actionDuplicate = async (cursor: LiteEndPoint) => {
+        const endPoint = await findEndPoint(cursor._id);
+        endPoint._id = "";
+        endPoint.name += "-copy";
+
+        await insertEndPoint(endPoint).catch(e => {
+            push({
+                category: EAlertCategory.ERRO,
+                content: `The end-point cannot be defined.`
+            });
+            console.error(e);
+        });
+
+        await fetchEndPoints();
+    }
+
+    const actionExportAll = async () => {
+        const endPoints = await exportAllEndPoints();
+        const name = `mock_endpoints_${Date.now()}.json`;
+        downloadFile(name, endPoints);
+    }
+
+    const actionExportOne = async (item: LiteEndPoint) => {
+        const endPoints = await exportManyEndPoints(item._id);
+        if (endPoints.length == 0) {
+            push({
+                category: EAlertCategory.ERRO,
+                content: `End-point '${item.name}' not found`
+            });
+            return;
+        }
+
+        const endPoint = endPoints[0];
+
+        let name = endPoint.name.toLowerCase().replace(/\s+/g, "_");
+        name = `mock_endpoint_${name}_${Date.now()}.json`;
+        downloadFile(name, endPoint);
+    }
+
     return (
         <>
             <div className="column-option options border-bottom">
@@ -100,6 +199,8 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
                 <button type="button" className="button-anchor" onClick={newEndPoint}>New</button>
                 <div id="right-options show">
                     <Combo options={endPointGroupOptions({
+                        export: actionExportAll,
+                        fetch: fetchEndPoints
                     })} />
                 </div>
             </div>
@@ -114,7 +215,7 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
                 renderItem={(cursor) => (
                     <div key={makeKey(cursor)} className={`node-request-preview ${cursor._id == endPoint?._id && "node-request-selected"} ${isRequestDrag(cursor) && "node-request-drag"}`}>
                         <button className="node-request-link" title={cursor.path}
-                            onClick={() => defineCursor(cursor)}>
+                            onClick={() => fetchEndPoint(cursor)}>
                             <div className="node-request-sign state">
                                 <div className="node-request-state-sign">
                                     {isCached(cursor) && (
@@ -137,7 +238,13 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
                             </div>
                         </button>
                         <Combo options={endPointOptions(cursor, {
-                            isCached: isCached, discard: discardEndPoint
+                            remove: actionRemove,
+                            rename: actionRename,
+                            clone: actionClone,
+                            duplicate: actionDuplicate,
+                            isCached: isCached,
+                            discard: discardEndPoint,
+                            export: actionExportOne
                         })} />
                     </div>
                 )}
@@ -154,4 +261,8 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
             />
         </>
     );
+}
+
+const makeKey = (item: LiteEndPoint): string => {
+    return `${item.name}-${item.timestamp}-${item.method}-${item.path}`;
 }

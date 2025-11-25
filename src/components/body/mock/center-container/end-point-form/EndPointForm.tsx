@@ -48,6 +48,7 @@ export function EndPointForm() {
     useEffect(() => {
         switch (event.reason) {
             case "new":
+            case "define":
             case "fetch":
             case "discard":
                 hideResponseForm();

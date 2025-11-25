@@ -4,7 +4,7 @@ export const storedGroupOptions = (actions: {
     exportAll: () => void;
     openImportModal: () => void;
     openCurlModal: () => void;
-    fetchStored: () => void;
+    fetch: () => void;
 
 }) => {
     return [
@@ -30,21 +30,21 @@ export const storedGroupOptions = (actions: {
             icon: "🔄",
             label: "Refresh",
             title: "Refresh",
-            action: () => actions.fetchStored
+            action: () => actions.fetch
         }
     ]
 }
 
 export const storedOptions = (request: LiteRequest, actions: {
-    deleteStored: (request: LiteRequest) => void;
-    renameStored: (request: LiteRequest) => void;
-    cloneStored: (request: LiteRequest) => void;
-    duplicateStored: (request: LiteRequest) => void;
-    openCollectModal: (request: LiteRequest) => void;
-    openMoveModal: (request: LiteRequest) => void;
-    exportRequest: (request: LiteRequest) => void;
+    remove: (request: LiteRequest) => void;
+    rename: (request: LiteRequest) => void;
+    clone: (request: LiteRequest) => void;
+    duplicate: (request: LiteRequest) => void;
+    showCollect: (request: LiteRequest) => void;
+    showMove: (request: LiteRequest) => void;
+    export: (request: LiteRequest) => void;
     isCached: (request: LiteRequest) => boolean;
-    discardRequest: (request: LiteRequest) => void;
+    discard: (request: LiteRequest) => void;
     showCurl: (request: LiteRequest, raw?: boolean) => void;
 }) => {
     return [
@@ -52,50 +52,50 @@ export const storedOptions = (request: LiteRequest, actions: {
             icon: "🗑️",
             label: "Delete",
             title: "Delete request",
-            action: () => actions.deleteStored(request)
+            action: () => actions.remove(request)
         },
         {
             icon: "✏️",
             label: "Rename",
             title: "Rename request",
-            action: () => actions.renameStored(request)
+            action: () => actions.rename(request)
         },
         {
             icon: "🐑",
             label: "Clone",
             title: "Clone request",
-            action: () => actions.cloneStored(request)
+            action: () => actions.clone(request)
         },
         {
             icon: "🐏",
             label: "Duplicate",
             title: "Duplicate request",
-            action: () => actions.duplicateStored(request)
+            action: () => actions.duplicate(request)
         },
         {
             icon: "📚",
             label: "Collect",
             title: "Copy to collection",
-            action: () => actions.openCollectModal(request)
+            action: () => actions.showCollect(request)
         },
         {
             icon: "📦",
             label: "Move",
             title: "Move to collection",
-            action: () => actions.openMoveModal(request)
+            action: () => actions.showMove(request)
         },
         {
             icon: "💾",
             label: "Export",
             title: "Export request",
-            action: () => actions.exportRequest(request)
+            action: () => actions.export(request)
         },
         {
             icon: "🧹",
             label: "Discard",
             title: "Discard changes",
             disable: !actions.isCached(request),
-            action: () => actions.discardRequest(request)
+            action: () => actions.discard(request)
         },
         {
             icon: "⌨️",

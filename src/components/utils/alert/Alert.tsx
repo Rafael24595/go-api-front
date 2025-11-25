@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { AlertData, AlertDataAsk, EAlertCategory } from "../../../interfaces/AlertData";
 import { v4 as uuidv4 } from 'uuid';
-import { CallBack, executeCallback } from "../../../interfaces/Callback";
+import { executeCallback } from "../../../interfaces/Callback";
+import { ModalButtonCallBack } from "../../../interfaces/ModalButton";
 
 import './Alert.css';
 
@@ -115,7 +116,7 @@ export const Alert: React.FC<{ children: ReactNode }> = ({ children }) => {
     });
   }
 
-  const callback = (alert: AlertData, callback: Function | CallBack) => {
+  const callback = (alert: AlertData, callback: ModalButtonCallBack) => {
     executeCallback(callback);
     remove(alert);
   }

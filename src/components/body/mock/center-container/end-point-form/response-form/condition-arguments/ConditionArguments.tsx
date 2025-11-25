@@ -130,7 +130,7 @@ export function ConditionArguments() {
         return (
             <select name={`cond-value-${step.order}`} id={`cond-value-${step.order}`} value={step.value} onChange={(e) => onStepValueChange(e, step)}>
                 {enums.map(o => (
-                    <option value={o.key}>{o.value}</option>
+                    <option key={o.key} value={o.key}>{o.value}</option>
                 ))}
             </select>
         )

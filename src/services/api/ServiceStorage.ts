@@ -2,7 +2,7 @@ import { Collection, ItemCollection, ItemNodeCollection, ItemNodeRequest, LiteIt
 import { Context } from "../../interfaces/client/context/Context";
 import { ItemRequest, LiteRequest, Request } from "../../interfaces/client/request/Request";
 import { Response, SignedPayload } from "../../interfaces/client/response/Response";
-import { ItemEndPoint, LiteEndPoint } from "../../interfaces/mock/EndPoint";
+import { EndPoint, ItemEndPoint, LiteEndPoint } from "../../interfaces/mock/EndPoint";
 import { Metrics } from "../../interfaces/mock/Metrics";
 import { ConditionStep } from "../mock/ConditionStep";
 import { authApiManager } from "./ApiManager";
@@ -251,7 +251,27 @@ export const deleteFromCollection = async (collection: LiteItemCollection, reque
   }
 };
 
-export const importRequests = async (request: ItemRequest[]): Promise<ItemRequest[]> => {
+export const exportAllRequests = async (): Promise<ItemRequest[]> => {
+  try {
+    const apiResponse = await authApiManager.get(`/export/request`);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const exportManyRequests = async (...ids: string[]): Promise<ItemRequest[]> => {
+  try {
+    const apiResponse = await authApiManager.post(`/export/request`, ids);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const importRequests = async (request: ItemRequest[]): Promise<string[]> => {
   try {
     const apiResponse = await authApiManager.post(`/import/request`, request);
     return apiResponse.data;
@@ -260,6 +280,27 @@ export const importRequests = async (request: ItemRequest[]): Promise<ItemReques
     throw error;
   }
 };
+
+export const exportAllCollections = async (): Promise<ItemCollection[]> => {
+  try {
+    const apiResponse = await authApiManager.get(`/export/collection`);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const exportManyCollections = async (...ids: string[]): Promise<ItemCollection[]> => {
+  try {
+    const apiResponse = await authApiManager.post(`/export/collection`, ids);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
 
 export const importCollections = async (collections: ItemCollection[]): Promise<ItemCollection[]> => {
   try {
@@ -337,6 +378,36 @@ export const importCurl = async (curls: string[], collection?: string): Promise<
   }
 };
 
+export const exportAllEndPoints = async (): Promise<EndPoint[]> => {
+  try {
+    const apiResponse = await authApiManager.get(`/export/mock/endpoint`);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const exportManyEndPoints = async (...ids: string[]): Promise<EndPoint[]> => {
+  try {
+    const apiResponse = await authApiManager.post(`/export/mock/endpoint`, ids);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const importEndPoints = async (endPoints: EndPoint[]): Promise<string[]> => {
+  try {
+    const apiResponse = await authApiManager.post(`/import/mock/endpoint`, endPoints);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
 export const findAllEndPoint = async (): Promise<SignedPayload<LiteEndPoint[]>> => {
   try {
     const apiResponse = await authApiManager.get(`/mock/endpoint`);
@@ -350,6 +421,26 @@ export const findAllEndPoint = async (): Promise<SignedPayload<LiteEndPoint[]>> 
 export const findEndPoint = async (endPoint: string): Promise<ItemEndPoint> => {
   try {
     const apiResponse = await authApiManager.get(`/mock/endpoint/${endPoint}`);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const insertEndPoint = async (endPoint: ItemEndPoint): Promise<string> => {
+  try {
+    const apiResponse = await authApiManager.post(`/mock/endpoint`, endPoint);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const removeEndPoint = async (endPoint: LiteEndPoint | ItemEndPoint): Promise<ItemEndPoint> => {
+  try {
+    const apiResponse = await authApiManager.delete(`/mock/endpoint/${endPoint._id}`);
     return apiResponse.data;
   } catch (error) {
     //TODO: Handle error.
@@ -377,16 +468,6 @@ export const removeMetrics = async (endPoint: ItemEndPoint): Promise<Metrics> =>
   }
 };
 
-export const insertEndPoint = async (endPoint: ItemEndPoint): Promise<string> => {
-  try {
-    const apiResponse = await authApiManager.post(`/mock/endpoint`, endPoint);
-    return apiResponse.data;
-  } catch (error) {
-    //TODO: Handle error.
-    throw error;
-  }
-};
-
 export const sortEndPoints = async (nodes: RequestNode[]): Promise<string[]> => {
   try {
     const apiResponse = await authApiManager.put(`/sort/mock/endpoint`, nodes);
@@ -399,7 +480,7 @@ export const sortEndPoints = async (nodes: RequestNode[]): Promise<string[]> => 
 
 export const translateEndPointConditions = async (conditions: string): Promise<ConditionStep[]> => {
   try {
-    const apiResponse = await authApiManager.post(`/bridge/mock/response/step`, conditions);
+    const apiResponse = await authApiManager.post(`/bridge/mock/response/to/step`, conditions);
     return apiResponse.data;
   } catch (error) {
     //TODO: Handle error.
@@ -409,7 +490,7 @@ export const translateEndPointConditions = async (conditions: string): Promise<C
 
 export const translateEndPointSteps = async (steps: ConditionStep[]): Promise<string> => {
   try {
-    const apiResponse = await authApiManager.post(`/bridge/mock/response/cond`, steps);
+    const apiResponse = await authApiManager.post(`/bridge/mock/response/from/step`, steps);
     return apiResponse.data;
   } catch (error) {
     //TODO: Handle error.

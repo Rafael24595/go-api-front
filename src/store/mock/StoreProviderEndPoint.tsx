@@ -20,10 +20,12 @@ interface StoreProviderEndPointType {
 
     newEndPoint: () => void;
     fetchEndPoint: (endPoint: LiteEndPoint) => Promise<void>;
+    injectEndPoint: (endPoint: ItemEndPoint) => void;
     releaseEndPoint: (endPoint?: ItemEndPoint) => Promise<void>;
     discardEndPoint: (endPoint?: ItemEndPoint | LiteEndPoint) => void;
     fetchMetrics: () => Promise<void>;
 
+    renameEndPoint: (endPoint?: ItemEndPoint) => {endPoint: ItemEndPoint, ok: boolean};
     updateStatus: (status: boolean) => void;
     switchSafe: () => void;
     updateMethod: (method: string) => void;
@@ -35,6 +37,7 @@ interface StoreProviderEndPointType {
     removeResponse: (response: ItemResponse) => void;
     orderResponses: (responses: ItemResponse[]) => void;
 
+    isFocused: (endPoint: LiteEndPoint) => boolean;
     isModified: () => boolean;
     isCached: (endPoint: LiteEndPoint) => boolean;
     cacheLenght: () => number;
@@ -66,7 +69,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     const { fetchEndPoints } = useStoreMock();
 
-    const [data, setData] = useState<PayloadData>(clearEndPoint(userData));
+    const [data, setData] = useState<PayloadData>(newEndPointData(userData));
     const [response, setResponse] = useState<ItemResponse>(emptyItemResponse());
     const [metrics, setMetrics] = useState<Metrics>(emptyMetrics(data.endPoint));
 
@@ -156,7 +159,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     }
 
     const clearAll = () => {
-        setData(clearEndPoint(userData));
+        setData(newEndPointData(userData));
         setResponse(emptyItemResponse());
     }
 
@@ -219,22 +222,23 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         setMetrics(metrics);
     }
 
+    const injectEndPoint = (endPoint: ItemEndPoint) => {
+        clearAll();
+        setData(clearEndPointData(endPoint));
+        pushEvent("define", data.endPoint._id, "");
+    }
+
     const releaseEndPoint = async (endPoint?: ItemEndPoint) => {
         endPoint = endPoint || data.endPoint;
 
-        pushEvent("release", data.endPoint._id, endPoint._id);
-
         const oldEndPoint = { ...endPoint };
         const newEndPoint = { ...endPoint };
-
-        if (newEndPoint.name == "") {
-            const name = prompt("Insert a name: ", newEndPoint.name);
-            if (name == null) {
-                return;
-            }
-
-            newEndPoint.name = name;
+        
+        if (newEndPoint.name == "" && !renameEndPoint(newEndPoint).ok) {
+            return;
         }
+
+        pushEvent("release", data.endPoint._id, endPoint._id);
 
         const id = await insertEndPoint(newEndPoint);
         newEndPoint._id = id;
@@ -243,12 +247,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             remove(CACHE_CATEGORY_STORE, oldEndPoint._id);
         }
 
-        setData({
-            initialHash: "",
-            actualHash: "",
-            backup: deepClone(newEndPoint),
-            endPoint: deepClone(newEndPoint),
-        });
+        setData(clearEndPointData(newEndPoint));
 
         fetchEndPoints();
     }
@@ -268,12 +267,19 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     }
 
     const restoreEndPoint = (endPoint: ItemEndPoint, backup?: ItemEndPoint) => {
-        setData({
-            initialHash: "",
-            actualHash: "",
-            backup: deepClone(backup || endPoint),
-            endPoint: deepClone(endPoint),
-        });
+        setData(clearEndPointData(endPoint, backup));
+    }
+
+    const renameEndPoint = (endPoint?: ItemEndPoint): {endPoint: ItemEndPoint, ok: boolean} => {
+        endPoint = endPoint || data.endPoint;
+
+        const name = prompt("Insert a name: ", endPoint.name);
+        if (name == null) {
+            return { endPoint, ok: false };
+        }
+
+        endPoint.name = name;
+        return { endPoint, ok: true };
     }
 
     const updateStatus = (status: boolean) => {
@@ -392,6 +398,10 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         }));
     }
 
+    const isFocused = (endPoint: LiteEndPoint) => {
+        return data.endPoint._id == endPoint._id;
+    }
+
     const isModified = () => {
         return data.initialHash != data.actualHash;
     }
@@ -426,25 +436,30 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         <StoreEndPoint.Provider value={{
             endPoint: data.endPoint,
             metrics, response, event,
-            isModified, newEndPoint, fetchEndPoint,
-            releaseEndPoint, updateStatus, switchSafe,
-            updateMethod, updatePath, discardEndPoint,
-            fetchMetrics, newResponse, defineResponse,
-            resolveResponse, removeResponse, orderResponses,
-            isCached, cacheLenght, cacheComments
+            isFocused, isModified, newEndPoint, fetchEndPoint,
+            injectEndPoint, releaseEndPoint, renameEndPoint,
+            updateStatus, switchSafe, updateMethod,
+            updatePath, discardEndPoint, fetchMetrics,
+            newResponse, defineResponse, resolveResponse,
+            removeResponse, orderResponses, isCached,
+            cacheLenght, cacheComments
         }}>
             {children}
         </StoreEndPoint.Provider>
     );
 };
 
-const clearEndPoint = (userData: UserData): PayloadData => {
+const newEndPointData = (userData: UserData): PayloadData => {
     const endPoint = emptyItemEndPoint(userData.username);
+    return clearEndPointData(endPoint);
+};
+
+const clearEndPointData = (endPoint: ItemEndPoint, backup?: ItemEndPoint): PayloadData => {
     return {
         initialHash: "",
         actualHash: "",
-        backup: endPoint,
-        endPoint: endPoint,
+        backup: deepClone(backup || endPoint),
+        endPoint: deepClone(endPoint),
     }
 };
 

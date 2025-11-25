@@ -3,11 +3,16 @@ export interface CallBack {
     args?: any[]
 }
 
-export const executeCallback = (callBack: CallBack | Function) => {
+export const executeCallback = (callBack?: CallBack | Function) => {
+    if (!callBack) {
+        return;    
+    }
+
     if(typeof callBack == "function") {
         return callBack();
     }
-    return callBack.func(callBack.args);
+    
+    return callBack.func(...(callBack.args || []));
 }
 
 export const VoidCallback: CallBack = {

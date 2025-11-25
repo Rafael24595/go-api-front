@@ -1,4 +1,4 @@
-import { deleteAction, findAction, formatCurl, importCurl, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
+import { deleteAction, exportAllRequests, exportManyRequests, findAction, formatCurl, importCurl, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
@@ -104,74 +104,6 @@ export function StoredColumn() {
         await fetchFreeRequest(result.request);
     }
 
-    const duplicateStored = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        request._id = "";
-        request.name = `${request.name}-copy`;
-        request.status = 'draft';
-
-        await insertRequest(request);
-        await fetchStored();
-    };
-
-    const renameStored = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        const name = prompt("Insert a name: ", request.name);
-        if (name == null && name != request.name) {
-            return;
-        }
-
-        request.name = name;
-        await updateAction(request);
-        await fetchStored();
-    };
-
-    const deleteStored = async (item: LiteRequest) => {
-        const content = `The request '${item.name}' will be deleted, are you sure?`;
-        const buttons: ModalButton[] = [
-            {
-                title: "Yes",
-                type: "submit",
-                callback: {
-                    func: async () => { deleteRequest(item); }
-                }
-            },
-            {
-                title: "No",
-                callback: VoidCallback
-            }
-        ];
-
-        ask({ content, buttons });
-    };
-
-    const deleteRequest = async (item: LiteRequest) => {
-        try {
-            await deleteAction(item);
-            discardRequest(item);
-            await fetchStored();
-            if (request._id == item._id) {
-                cleanRequest();
-            }
-        } catch (error) {
-            console.error("Error deleting request:", error);
-        }
-    }
-
-    const cloneStored = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        request._id = "";
-        request.status = 'draft';
-
-        defineFreeRequest(request);
-    };
-
     const openCollectModal = (item: LiteRequest) => {
         const newItem = { ...item };
         newItem.name = `${item.name}-copy`;
@@ -224,24 +156,6 @@ export function StoredColumn() {
         }
     }
 
-    const exportAll = () => {
-        const name = `requests_${Date.now()}.json`;
-        downloadFile(name, stored);
-    }
-
-    const exportRequest = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        let name = request.name.toLowerCase().replace(/\s+/g, "_");
-        name = `request_${name}_${Date.now()}.json`;
-        downloadFile(name, request);
-    }
-
-    const makeKey = (item: LiteRequest): string => {
-        return `${item.timestamp}-${item.method}-${item.uri}`;
-    }
-
     const isRequestSelected = (item: LiteRequest) => {
         return item._id == request._id;
     }
@@ -275,15 +189,6 @@ export function StoredColumn() {
         await updateStoredOrder(ordered);
         await fetchStored();
     };
-
-    const showCurl = async (item: LiteRequest, raw?: boolean) => {
-        const curl = await formatCurl(item._id, undefined, raw);
-        const { width, height } = calculateWindowSize(curl, {
-            minWidth: 550,
-            minHeight: 200
-        });
-        loadThemeWindow(width, height, <CodeArea code={curl} />);
-    }
 
     const openImportModal = () => {
         setModalRequestData({
@@ -377,6 +282,106 @@ export function StoredColumn() {
         });
     };
 
+    const deleteRequest = async (item: LiteRequest) => {
+        try {
+            await deleteAction(item);
+            discardRequest(item);
+            await fetchStored();
+            if (request._id == item._id) {
+                cleanRequest();
+            }
+        } catch (error) {
+            console.error("Error deleting request:", error);
+        }
+    }
+
+    const actionExportAll = async () => {
+        const requests = await exportAllRequests();
+        const name = `requests_${Date.now()}.json`;
+        downloadFile(name, requests);
+    }
+
+    const actionExportOne = async (item: LiteRequest) => {
+        const requests = await exportManyRequests(item._id);
+        if (requests.length == 0) {
+            push({
+                category: EAlertCategory.ERRO,
+                content: `Request '${item.name}' not found`
+            });
+            return;
+        }
+
+        const request = requests[0];
+
+        let name = request.name.toLowerCase().replace(/\s+/g, "_");
+        name = `request_${name}_${Date.now()}.json`;
+        downloadFile(name, request);
+    }
+
+    const actionDuplicate = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        request._id = "";
+        request.name = `${request.name}-copy`;
+        request.status = 'draft';
+
+        await insertRequest(request);
+        await fetchStored();
+    };
+
+    const actionRename = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        const name = prompt("Insert a name: ", request.name);
+        if (name == null && name != request.name) {
+            return;
+        }
+
+        request.name = name;
+        await updateAction(request);
+        await fetchStored();
+    };
+
+    const actionDelete = async (item: LiteRequest) => {
+        const content = `The request '${item.name}' will be deleted, are you sure?`;
+        const buttons: ModalButton[] = [
+            {
+                title: "Yes",
+                type: "submit",
+                callback: {
+                    func: async () => { deleteRequest(item); }
+                }
+            },
+            {
+                title: "No",
+                callback: VoidCallback
+            }
+        ];
+
+        ask({ content, buttons });
+    };
+
+    const actionClone = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        request._id = "";
+        request.status = 'draft';
+
+        defineFreeRequest(request);
+    };
+
+    const actionShowCurl = async (item: LiteRequest, raw?: boolean) => {
+        const curl = await formatCurl(item._id, undefined, raw);
+        const { width, height } = calculateWindowSize(curl, {
+            minWidth: 550,
+            minHeight: 200
+        });
+        loadThemeWindow(width, height, <CodeArea code={curl} />);
+    }
+
     return (
         <>
             <div className="column-option options border-bottom">
@@ -386,8 +391,9 @@ export function StoredColumn() {
                 <button type="button" className="button-anchor" onClick={() => insertNewRequest()}>New</button>
                 <div id="right-options show">
                     <Combo options={storedGroupOptions({
-                        exportAll, openImportModal, openCurlModal,
-                        fetchStored
+                        exportAll: actionExportAll,
+                        fetch: fetchStored,
+                        openImportModal, openCurlModal,
                     })} />
                 </div>
             </div>
@@ -415,10 +421,16 @@ export function StoredColumn() {
                             </div>
                         </button>
                         <Combo options={storedOptions(cursor, {
-                            deleteStored, renameStored, cloneStored,
-                            duplicateStored, openCollectModal, openMoveModal,
-                            exportRequest, isCached, discardRequest,
-                            showCurl,
+                            export: actionExportOne,
+                            remove: actionDelete,
+                            rename: actionRename,
+                            clone: actionClone,
+                            duplicate: actionDuplicate,
+                            showCollect: openCollectModal,
+                            showMove: openMoveModal,
+                            discard: discardRequest,
+                            showCurl: actionShowCurl,
+                            isCached,
                         })} />
                     </div>
                 )}
@@ -455,4 +467,8 @@ export function StoredColumn() {
             />
         </>
     );
+}
+
+const makeKey = (item: LiteRequest): string => {
+    return `${item.timestamp}-${item.method}-${item.uri}`;
 }
