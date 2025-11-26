@@ -350,7 +350,7 @@ export const importContext = async (target: Context, source: Context): Promise<I
   }
 };
 
-export const formatCurl = async (request: string, context?: string, raw?: boolean, inline?: boolean): Promise<string> => {
+export const requestToCurl = async (request: string, context?: string, raw?: boolean, inline?: boolean): Promise<string> => {
   try {
     const query = queryHelper(
       ["id_context", context],
@@ -358,6 +358,19 @@ export const formatCurl = async (request: string, context?: string, raw?: boolea
       ["inline", inline]);
 
     const apiResponse = await authApiManager.get(`curl/request/${request}${query}`);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
+export const endPointToCurl = async (endPoint: string, inline?: boolean): Promise<string> => {
+  try {
+    const query = queryHelper(
+      ["inline", inline]);
+
+    const apiResponse = await authApiManager.get(`curl/endpoint/${endPoint}${query}`);
     return apiResponse.data;
   } catch (error) {
     //TODO: Handle error.

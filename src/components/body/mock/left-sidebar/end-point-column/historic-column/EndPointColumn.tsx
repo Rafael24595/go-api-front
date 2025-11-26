@@ -1,19 +1,22 @@
 import { useState } from 'react';
-import { LiteEndPoint } from '../../../../../../interfaces/mock/EndPoint';
+import { EndPoint, LiteEndPoint } from '../../../../../../interfaces/mock/EndPoint';
 import { millisecondsToDate } from '../../../../../../services/Tools';
 import { useStoreEndPoint } from '../../../../../../store/mock/StoreProviderEndPoint';
 import { useStoreMock } from '../../../../../../store/mock/StoreProviderMock';
 import { Combo } from '../../../../../utils/combo/Combo';
 import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../../../../utils/drag/VerticalDragDrop';
 import { emptyFilter, FilterBar, PayloadFilter } from '../../../../../utils/filter-bar/FilterBar';
-import { endPointGroupOptions, endPointOptions, searchOptions } from './Constants';
+import { endPointGroupOptions, endPointOptions, importModalDefinition, searchOptions } from './Constants';
 import { Optional } from '../../../../../../types/Optional';
 import { RequestNode } from '../../../../../../services/api/Requests';
-import { exportAllEndPoints, exportManyEndPoints, findEndPoint, insertEndPoint, removeEndPoint, sortEndPoints } from '../../../../../../services/api/ServiceStorage';
+import { endPointToCurl, exportAllEndPoints, exportManyEndPoints, findEndPoint, importEndPoints, insertEndPoint, removeEndPoint, sortEndPoints } from '../../../../../../services/api/ServiceStorage';
 import { ModalButton } from '../../../../../../interfaces/ModalButton';
 import { useAlert } from '../../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../../interfaces/AlertData';
-import { downloadFile } from '../../../../../../services/Utils';
+import { calculateWindowSize, downloadFile } from '../../../../../../services/Utils';
+import { ImportModal, SubmitArgs } from '../../../../../form/import-modal/ImportModal';
+import { CodeArea } from '../../../../../utils/code-area/CodeArea';
+import { useStoreTheme } from '../../../../../../store/theme/StoreProviderTheme';
 
 import '../../../../../style/NodeRequest.css'
 import './EndPointColumn.css';
@@ -31,14 +34,15 @@ interface EndPointColumnProps {
 }
 
 export function EndPointColumn({ setCursor }: EndPointColumnProps) {
+    const { loadThemeWindow } = useStoreTheme();
     const { ask, push } = useAlert();
 
     const { endPoints, fetchEndPoints } = useStoreMock();
     const { endPoint, newEndPoint, fetchEndPoint, discardEndPoint, injectEndPoint, renameEndPoint, isFocused, isCached } = useStoreEndPoint();
 
     const [dragData, setDragData] = useState<Optional<LiteEndPoint>>(undefined);
-
     const [filterData, setFilterData] = useState<PayloadFilter>(emptyFilter(FILTER_DEFAULT));
+    const [modalStatus, setModalStatus] = useState<boolean>(false);
 
     const applyFilter = (item: LiteEndPoint): FilterResult<LiteEndPoint> => {
         let field = item[filterData.target as keyof LiteEndPoint]
@@ -190,6 +194,49 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
         downloadFile(name, endPoint);
     }
 
+    const actionShowCurl = async (item: LiteEndPoint) => {
+        const curl = await endPointToCurl(item._id, true);
+        const { width, height } = calculateWindowSize(curl, {
+            minWidth: 550,
+            minHeight: 200
+        });
+        loadThemeWindow(width, height, <CodeArea code={curl} />);
+    }
+
+    const showModal = () => {
+        setModalStatus(true);
+    };
+
+    const hideModal = () => {
+        setModalStatus(true);
+    };
+
+    const onSubmitModal = async ({ items }: SubmitArgs<EndPoint>) => {
+        await importEndPoints(items);
+        await fetchEndPoints();
+        hideModal();
+    }
+
+    const onCloseModal = () => {
+        setModalStatus(false);
+    };
+
+    const parseBlob = <EndPoint,>(blob: string): { items: EndPoint[], warning?: string } => {
+        let endPoints: EndPoint[] = [];
+        try {
+            const json = JSON.parse(blob);
+            if (!Array.isArray(json)) {
+                endPoints = [json];
+            } else {
+                endPoints = json;
+            }
+        } catch (e) {
+            return { items: [], warning: `Invalid format: ${e}` };
+        }
+
+        return { items: endPoints, warning: undefined };
+    }
+
     return (
         <>
             <div className="column-option options border-bottom">
@@ -200,6 +247,7 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
                 <div id="right-options show">
                     <Combo options={endPointGroupOptions({
                         export: actionExportAll,
+                        import: showModal,
                         fetch: fetchEndPoints
                     })} />
                 </div>
@@ -244,7 +292,8 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
                             duplicate: actionDuplicate,
                             isCached: isCached,
                             discard: discardEndPoint,
-                            export: actionExportOne
+                            export: actionExportOne,
+                            curl: actionShowCurl
                         })} />
                     </div>
                 )}
@@ -258,6 +307,14 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
                 options={searchOptions()}
                 cache={FILTER_CACHE}
                 onFilterChange={onFilterChange}
+            />
+            <ImportModal<EndPoint>
+                isOpen={modalStatus}
+                onClose={onCloseModal}
+                onSubmit={onSubmitModal}
+                modal={importModalDefinition({
+                    parseBlob
+                })}
             />
         </>
     );

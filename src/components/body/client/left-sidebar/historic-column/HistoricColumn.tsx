@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
-import { deleteHistoric as fetchDeleteHistoric, findAction, formatCurl, requestCollect } from '../../../../../services/api/ServiceStorage';
+import { deleteHistoric as fetchDeleteHistoric, findAction, requestToCurl, requestCollect } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
 import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
@@ -126,7 +126,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     }
 
     const showCurl = async (item: LiteRequest, raw?: boolean) => {
-        const curl = await formatCurl(item._id, undefined, raw);
+        const curl = await requestToCurl(item._id, undefined, raw);
         const { width, height } = calculateWindowSize(curl, {
             minWidth: 550,
             minHeight: 200

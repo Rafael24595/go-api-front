@@ -1,8 +1,12 @@
 import { ComboForm } from "../../../../../../interfaces/ComboOption";
 import { LiteEndPoint } from "../../../../../../interfaces/mock/EndPoint";
+import { ImportModalDataProps, ImportModalInput } from "../../../../../form/import-modal/ImportModal";
+
+export const CACHE_KEY_IMPORT_MODAL = "ImportModalEndPointInputType";
 
 export const endPointGroupOptions = (actions: {
     export: () => void;
+    import: () => void;
     fetch: () => void;
 }) => {
     return [
@@ -11,6 +15,12 @@ export const endPointGroupOptions = (actions: {
             label: "Export",
             title: "Export all end-point",
             action: () => actions.export()
+        },
+        {
+            icon: "💽",
+            label: "Import",
+            title: "Import end-points",
+            action: () => actions.import()
         },
         {
             icon: "🔄",
@@ -29,6 +39,7 @@ export const endPointOptions = (endPoint: LiteEndPoint, actions: {
     isCached: (endPoint: LiteEndPoint) => boolean;
     discard: (endPoint: LiteEndPoint) => void;
     export: (endPoint: LiteEndPoint) => void;
+    curl: (endPoint: LiteEndPoint) => void;
 }) => {
     return [
         {
@@ -67,6 +78,12 @@ export const endPointOptions = (endPoint: LiteEndPoint, actions: {
             label: "Export",
             title: "Export end-point",
             action: () => actions.export(endPoint)
+        },
+        {
+            icon: "⌨️",
+            label: "Import",
+            title: "Import cURL",
+            action: () => actions.curl(endPoint)
         }
     ]
 }
@@ -99,4 +116,22 @@ export const searchOptions = (): ComboForm[] => {
             title: "Filter by safe status",
         },
     ]
+}
+
+export const importModalDefinition = (actions: {
+    parseBlob: <EndPoint, >(fileBlob: string) => { items: EndPoint[], warning?: string }
+}): ImportModalDataProps => {
+    return {
+        title: <span>Import End-Points </span>,
+        cacheKey: CACHE_KEY_IMPORT_MODAL,
+        dimension: {
+            width: "50%",
+            height: "45%",
+            maxWidth: "800px",
+            maxHeight: "450px"
+        },
+        placeholder: "",
+        cursors: [ImportModalInput.CURSOR_LOCAL, ImportModalInput.CURSOR_TEXT],
+        parseBlob: actions.parseBlob,
+    }
 }

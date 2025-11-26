@@ -1,4 +1,4 @@
-import { deleteAction, exportAllRequests, exportManyRequests, findAction, formatCurl, importCurl, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
+import { deleteAction, exportAllRequests, exportManyRequests, findAction, requestToCurl, importCurl, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
@@ -374,7 +374,7 @@ export function StoredColumn() {
     };
 
     const actionShowCurl = async (item: LiteRequest, raw?: boolean) => {
-        const curl = await formatCurl(item._id, undefined, raw);
+        const curl = await requestToCurl(item._id, undefined, raw);
         const { width, height } = calculateWindowSize(curl, {
             minWidth: 550,
             minHeight: 200
