@@ -175,7 +175,7 @@ export function ImportOpenApiModal({ isOpen, onSubmit, onClose }: ImportOpenApiM
             }}
             isOpen={isOpen} 
             onClose={localClose}>
-                <div id="openapi-selector-container">
+                <div id="modal-selector-container">
                     <div>
                         <h3 className="selector-title">Selector:</h3>
                         <div id="selector-container">

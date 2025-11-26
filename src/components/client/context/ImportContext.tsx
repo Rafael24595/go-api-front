@@ -138,7 +138,7 @@ export function ImportContext({ onSubmit }: ImportContextProps) {
     }
 
     return (
-        <div id="openapi-selector-container">
+        <div id="modal-selector-container">
             <div>
                 <p className="selector-title paragraph">Selector:</p>
                 <div id="selector-container">

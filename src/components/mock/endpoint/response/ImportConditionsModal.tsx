@@ -96,7 +96,7 @@ export function ImportConditionsModal({ isOpen, onSubmit, onClose }: ImportCondi
             }}
             isOpen={isOpen}
             onClose={close}>
-            <div id="openapi-selector-container">
+            <div id="modal-selector-container">
                 <div id="steps-input-loader-container">
                     <div className="steps-loader-title">
                         <h3>Conditions: </h3>
