@@ -1,5 +1,4 @@
 import { LiteItemCollection, LiteItemNodeRequest } from "../../../../../interfaces/client/collection/Collection"
-import { Context } from "../../../../../interfaces/client/context/Context";
 import { LiteRequest } from "../../../../../interfaces/client/request/Request";
 
 export const collectionGroupOptions = (actions: {
