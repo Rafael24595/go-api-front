@@ -14,7 +14,7 @@ export interface Response {
     condition: string;
     name: string;
     description: string;
-    headers: StatusKeyValue[];
+    arguments: StatusKeyValue[];
     body: Body;
 }
 
@@ -31,7 +31,7 @@ export interface ItemResponse {
     condition: ConditionStep[];
     name: string;
     description: string;
-    headers: ItemStatusKeyValue[];
+    arguments: ItemStatusKeyValue[];
     body: Body;
 }
 
@@ -44,7 +44,7 @@ export const emptyItemResponse = (): ItemResponse => {
         condition: [],
         name: "",
         description: "",
-        headers: [],
+        arguments: [],
         body: {
             content_type: "plain/text",
             payload: ""
@@ -61,7 +61,7 @@ export const defaultItemResponse = (): ItemResponse => {
         condition: [],
         name: DEFAULT_RESPONSE,
         description: "Default response",
-        headers: [],
+        arguments: [],
         body: {
             content_type: "plain/text",
             payload: "Default response"

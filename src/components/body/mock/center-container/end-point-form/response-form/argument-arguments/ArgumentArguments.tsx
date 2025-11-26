@@ -6,10 +6,10 @@ import { ItemResponse } from '../../../../../../../interfaces/mock/Response';
 import { useEffect, useState } from 'react';
 import { useStoreEndPoint } from '../../../../../../../store/mock/StoreProviderEndPoint';
 
-import './HeaderArguments.css';
+import './ArgumentArguments.css';
 
 const ROW_DEFINITION: StatusKeyValueDefinition = {
-    key: "Header",
+    key: "Argument",
     value: "Value",
     disabled: true
 }
@@ -19,21 +19,21 @@ const DATA_LIST: DataListPayload = {
     items: HttpHeader
 }
 
-export function HeaderArguments() {
+export function ArgumentArguments() {
     const { response, defineResponse } = useStoreEndPoint();
 
-    const [data, setData] = useState<ItemStatusKeyValue[]>([...response.headers]);
+    const [data, setData] = useState<ItemStatusKeyValue[]>([...response.arguments]);
 
     useEffect(() => {
-        setData([...response.headers]);
-    }, [response.headers]);
+        setData([...response.arguments]);
+    }, [response.arguments]);
 
     const updateItems = async (items: ItemStatusKeyValue[]) => {
         setData(items);
 
         const newResponse: ItemResponse = {
             ...response,
-            headers: items
+            arguments: items
         };
 
         defineResponse(newResponse);

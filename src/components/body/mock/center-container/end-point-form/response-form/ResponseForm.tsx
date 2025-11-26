@@ -2,7 +2,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { KeyValue } from '../../../../../../interfaces/KeyValue';
 import { useStoreStatus } from '../../../../../../store/StoreProviderStatus';
-import { HeaderArguments } from './header-arguments/HeaderArguments';
+import { ArgumentArguments } from './argument-arguments/ArgumentArguments';
 import { DEFAULT_RESPONSE, ItemResponse } from '../../../../../../interfaces/mock/Response';
 import { ConditionArguments } from './condition-arguments/ConditionArguments';
 import { ImportConditionsModal } from '../../../../../mock/endpoint/response/ImportConditionsModal';
@@ -21,7 +21,7 @@ import './ResponseForm.css';
 
 const VIEW_CONDITION = "condition";
 const VIEW_DATA = "data";
-const VIEW_HEADER = "header";
+const VIEW_ARGUMENT = "argument";
 const VIEW_BODY = "body";
 
 const cursors: KeyValue[] = [
@@ -34,8 +34,8 @@ const cursors: KeyValue[] = [
         value: "Data",
     },
     {
-        key: VIEW_HEADER,
-        value: "Headers",
+        key: VIEW_ARGUMENT,
+        value: "Arguments",
     },
     {
         key: VIEW_BODY,
@@ -191,8 +191,8 @@ export function ResponseForm() {
                 <div className={`client-argument-content-items ${cursorData.cursor === VIEW_DATA ? "show" : ""}`}>
                     <DataArguments />
                 </div>
-                <div className={`client-argument-content-items ${cursorData.cursor === VIEW_HEADER ? "show" : ""}`}>
-                    <HeaderArguments />
+                <div className={`client-argument-content-items ${cursorData.cursor === VIEW_ARGUMENT ? "show" : ""}`}>
+                    <ArgumentArguments />
                 </div>
                 <div className={`client-argument-content-items ${cursorData.cursor === VIEW_BODY ? "show" : ""}`}>
                     <BodyArguments />
