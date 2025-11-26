@@ -42,7 +42,7 @@ export function CollectionRequests({ collection, showDuplicateModal, showMoveMod
     });
 
     const defineCollectionRequest = async (itemRequest: LiteRequest) => {
-        fetchGroupRequest(collection._id, collection.context._id, itemRequest);
+        fetchGroupRequest(collection._id, collection.context, itemRequest);
     }
 
     const isRequestSelected = (item: LiteItemNodeRequest) => {
@@ -140,7 +140,7 @@ export function CollectionRequests({ collection, showDuplicateModal, showMoveMod
     }
 
     const showCurl = async (itemRequest: LiteRequest, raw?: boolean) => {
-        const curl = await formatCurl(itemRequest._id, collection.context._id, raw);
+        const curl = await formatCurl(itemRequest._id, collection.context, raw);
         const { width, height } = calculateWindowSize(curl, {
             minWidth: 550,
             minHeight: 200

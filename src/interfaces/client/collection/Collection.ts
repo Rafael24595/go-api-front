@@ -40,7 +40,7 @@ export interface LiteItemCollection {
     _id: string;
     name: string;
     timestamp: number;
-    context: Context;
+    context: string;
     nodes: LiteItemNodeRequest[];
     owner: string;
     modified: number;
@@ -86,7 +86,7 @@ export const toCollection = (collection: LiteItemCollection): Collection => {
     _id: collection._id,
     name: collection.name,
     timestamp: collection.timestamp,
-    context: collection.context._id,
+    context: collection.context,
     nodes: nodes,
     modified: collection.modified,
     owner: collection.owner

@@ -47,7 +47,7 @@ export const collectionOptions = (collection: LiteItemCollection, actions: {
     discard: (collection: LiteItemCollection) => void;
     isParentCached: (id: string) => boolean;
     isContextCached: (id: string) => boolean;
-    discardContext: (context?: Context | undefined) => void;
+    discardContext: (context?: string) => void;
     showCurlModal: (collection: LiteItemCollection) => void;
 }) => {
     return [

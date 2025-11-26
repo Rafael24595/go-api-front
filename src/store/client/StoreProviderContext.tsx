@@ -16,7 +16,7 @@ interface StoreProviderContextType {
   backup: ItemContext;
   context: ItemContext;
   getContext: () => Context;
-  discardContext: (context?: Context) => void;
+  discardContext: (context?: string) => void;
   defineContext: (context: Context, parent?: string) => void;
   defineItemContext: (context: ItemContext, parent?: string) => void;
   updateContext: (context: ItemContext) => void;
@@ -100,12 +100,12 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     excise(CACHE_KEY);
   }
 
-  const discardContext = (context?: Context) => {
-    if(!context || context._id == data.backup._id) {
+  const discardContext = (context?: string) => {
+    if(!context || context == data.backup._id) {
       return defineContextData(data.backup, data.backup, data.parent);
     }
 
-    remove(CACHE_KEY, context._id);
+    remove(CACHE_KEY, context);
 
     setData(prevData => {
       return { ...prevData };
