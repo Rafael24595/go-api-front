@@ -131,6 +131,10 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       remove(CACHE_CATEGORY_STORE, request._id);
     }
 
+    if (data.backup._id != "") {
+      remove(CACHE_CATEGORY_STORE, "");
+    }
+
     insert(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS, {
       request: request._id,
       parent: data.parent,
@@ -204,7 +208,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     response = !response ? newItemResponse(userData.username) : response;
 
-    evalueCancelRequest(request); 
+    evalueCancelRequest(request);
 
     if (oldRequest && oldRequest._id != request._id) {
       remove(CACHE_CATEGORY_STORE, oldRequest._id);
@@ -430,7 +434,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     await findActionById(request)
       .then(apiResponse => {
-        if(apiResponse.request == undefined) {
+        if (apiResponse.request == undefined) {
           return;
         }
 

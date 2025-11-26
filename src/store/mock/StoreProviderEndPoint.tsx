@@ -25,7 +25,7 @@ interface StoreProviderEndPointType {
     discardEndPoint: (endPoint?: ItemEndPoint | LiteEndPoint) => void;
     fetchMetrics: () => Promise<void>;
 
-    renameEndPoint: (endPoint?: ItemEndPoint) => {endPoint: ItemEndPoint, ok: boolean};
+    renameEndPoint: (endPoint?: ItemEndPoint) => { endPoint: ItemEndPoint, ok: boolean };
     updateStatus: (status: boolean) => void;
     switchSafe: () => void;
     updateMethod: (method: string) => void;
@@ -105,6 +105,10 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             remove<CacheEndPointStore>(CACHE_CATEGORY_STORE, endPoint._id);
         }
 
+        if (data.backup._id != "") {
+            remove<CacheEndPointStore>(CACHE_CATEGORY_STORE, "");
+        }
+
         insert<CacheEndPointFocus>(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS, {
             endPoint: endPoint._id
         })
@@ -117,11 +121,15 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     }
 
     const updateMetricsStatus = async (endPoint: ItemEndPoint) => {
-        if (metrics.end_point == "" || metrics.end_point == endPoint._id) {
+        if (endPoint._id == "") {
+            setMetrics(emptyMetrics(data.endPoint));
             return;
         }
 
-        setMetrics(emptyMetrics(data.endPoint));
+        fetchMetricsByEndPoint(endPoint)
+            .catch(() => {
+                setMetrics(emptyMetrics(data.endPoint));
+            })
     }
 
     const pushEvent = (reason: string, source: string, target: string) => {
@@ -197,8 +205,6 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         }
 
         restoreEndPoint(endPoint);
-
-        fetchMetricsByEndPoint(endPoint);
     }
 
     const fetchMetrics = async () => {
@@ -233,7 +239,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
         const oldEndPoint = { ...endPoint };
         const newEndPoint = { ...endPoint };
-        
+
         if (newEndPoint.name == "" && !renameEndPoint(newEndPoint).ok) {
             return;
         }
@@ -270,7 +276,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         setData(clearEndPointData(endPoint, backup));
     }
 
-    const renameEndPoint = (endPoint?: ItemEndPoint): {endPoint: ItemEndPoint, ok: boolean} => {
+    const renameEndPoint = (endPoint?: ItemEndPoint): { endPoint: ItemEndPoint, ok: boolean } => {
         endPoint = endPoint || data.endPoint;
 
         const name = prompt("Insert a name: ", endPoint.name);
@@ -411,11 +417,11 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     }
 
     const cacheLenght = () => {
-        return length(CACHE_CATEGORY_FOCUS);
+        return length(CACHE_CATEGORY_STORE);
     }
 
     const cacheComments = () => {
-        const requests: CacheEndPointStore[] = gather(CACHE_CATEGORY_FOCUS);
+        const requests: CacheEndPointStore[] = gather(CACHE_CATEGORY_STORE);
         return requests.map(cacheComment);
     }
 
