@@ -7,7 +7,6 @@ import { EAlertCategory } from '../../../interfaces/AlertData';
 import { useAlert } from '../../utils/alert/Alert';
 import { useStoreTheme } from '../../../store/theme/StoreProviderTheme';
 import { VoidCallback } from '../../../interfaces/Callback';
-import { TokenModal } from '../token/TokenModal';
 import { hasAnyRole, hasRole, Role } from '../../../interfaces/system/UserData';
 
 import './SessionModal.css';
@@ -31,7 +30,7 @@ interface PayloadToken {
 }
 
 export function SessionModal({ isOpen, onClose }: SessionModalProps) {
-    const { userData, login, logout, authenticate, signin, remove, fetchTokens } = useStoreSession();
+    const { userData, login, logout, authenticate, signin, remove } = useStoreSession();
     const { isDark, openModal, toggleDefaultThemes } = useStoreTheme();
 
     const { push, ask } = useAlert();
@@ -43,10 +42,6 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
         newPassword1: "",
         newPassword2: "",
         isAdmin: false,
-    });
-
-    const [dataToken, setTokenData] = useState<PayloadToken>({
-        status: false
     });
 
     const onLogin = async () => {
@@ -125,20 +120,6 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     const openThemesModal = () => {
         openModal();
         onClose();
-    };
-
-    const showTokenModal = () => {
-        fetchTokens();
-        setTokenData({
-            status: true,
-        });
-        onClose();
-    };
-
-    const closeTokenModal = () => {
-        setTokenData({
-            status: false,
-        });
     };
 
     const viewLogin = () => {
@@ -335,9 +316,6 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
                 {hasAnyRole(userData, Role.ROLE_ANONYMOUS, Role.ROLE_ADMIN) && (
                     <div className="session-button-separator"></div>
                 )}
-                {!hasRole(userData, Role.ROLE_ANONYMOUS) && (
-                    <button className="button-anchor small margin" onClick={showTokenModal}>Tokens</button>
-                )}
                 {hasRole(userData, Role.ROLE_ADMIN) && (
                     <button type="button" className="button-anchor small" onClick={viewSignin}>Sign in</button>
                 )}
@@ -413,9 +391,6 @@ export function SessionModal({ isOpen, onClose }: SessionModalProps) {
                 onClose={onLocalClose}>
                 {loadView()}
             </Modal>
-            <TokenModal
-                isOpen={dataToken.status}
-                onClose={closeTokenModal} />
         </>
     )
 }
