@@ -33,7 +33,7 @@ export interface ItemNodeRequest {
 
 export interface ItemNodeCollection {
   order: number;
-  collection: ItemCollection;
+  collection: LiteItemCollection;
 }
 
 export interface LiteItemCollection {
