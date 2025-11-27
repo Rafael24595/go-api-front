@@ -40,6 +40,7 @@ export const endPointOptions = (endPoint: LiteEndPoint, actions: {
     discard: (endPoint: LiteEndPoint) => void;
     export: (endPoint: LiteEndPoint) => void;
     curl: (endPoint: LiteEndPoint) => void;
+    request: (endPoint: LiteEndPoint) => void;
 }) => {
     return [
         {
@@ -81,9 +82,15 @@ export const endPointOptions = (endPoint: LiteEndPoint, actions: {
         },
         {
             icon: "⌨️",
-            label: "Import",
-            title: "Import cURL",
+            label: "cURL",
+            title: "Export cURL",
             action: () => actions.curl(endPoint)
+        },
+        {
+            icon: "🌐",
+            label: "Request",
+            title: "View request",
+            action: () => actions.request(endPoint)
         }
     ]
 }

@@ -5,7 +5,7 @@ import { useStoreStatus } from "./StoreProviderStatus";
 
 const CACHE_PROVIDER_KEY = "StoreProviderCacheTarget";
 
-interface StoreProviderCacheType {
+export interface StoreProviderCacheType {
   gather: <T>(category: string) => T[];
   search: <T>(category: string, key: string) => Optional<T>;
   locate: <T>(category: string, predicate: (key: string, item: T) => boolean) => Optional<T>;

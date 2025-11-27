@@ -22,8 +22,8 @@ import { CACHE_CATEGORY_FOCUS } from "../Constants";
 const TRIGGER_KEY_VIEW = "StoreProviderRequestViewTrigger";
 const TRIGGER_KEY_CACHE = "StoreProviderRequestCacheTrigger";
 
-const CACHE_CATEGORY_STORE = "StoreRequest";
-const CACHE_KEY_FOCUS = "FocusRequest";
+export const CACHE_CATEGORY_STORE = "StoreRequest";
+export const CACHE_KEY_FOCUS = "FocusRequest";
 
 const VOID_FUNCTION = () => { };
 
@@ -106,6 +106,8 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   useEffect(() => {
     pushTrigger(TRIGGER_KEY_VIEW, focusOrClean);
     pushTrigger(TRIGGER_KEY_CACHE, cleanCache);
+    
+    focusLastRequest();
   }, []);
 
   useEffect(() => {

@@ -9,7 +9,7 @@ import { emptyFilter, FilterBar, PayloadFilter } from '../../../../../utils/filt
 import { endPointGroupOptions, endPointOptions, importModalDefinition, searchOptions } from './Constants';
 import { Optional } from '../../../../../../types/Optional';
 import { RequestNode } from '../../../../../../services/api/Requests';
-import { endPointToCurl, exportAllEndPoints, exportManyEndPoints, findEndPoint, importEndPoints, insertEndPoint, removeEndPoint, sortEndPoints } from '../../../../../../services/api/ServiceStorage';
+import { bridgeEndPointToRequest, endPointToCurl, exportAllEndPoints, exportManyEndPoints, findEndPoint, importEndPoints, insertEndPoint, removeEndPoint, sortEndPoints } from '../../../../../../services/api/ServiceStorage';
 import { ModalButton } from '../../../../../../interfaces/ModalButton';
 import { useAlert } from '../../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../../interfaces/AlertData';
@@ -17,9 +17,14 @@ import { calculateWindowSize, downloadFile } from '../../../../../../services/Ut
 import { ImportModal, SubmitArgs } from '../../../../../form/import-modal/ImportModal';
 import { CodeArea } from '../../../../../utils/code-area/CodeArea';
 import { useStoreTheme } from '../../../../../../store/theme/StoreProviderTheme';
+import { useStoreCache } from '../../../../../../store/StoreProviderCache';
+import { cacheAndFocus } from '../../../../../../store/client/Helper';
+import { fromRequest } from '../../../../../../interfaces/client/request/Request';
+import { useNavigate } from 'react-router-dom';
 
 import '../../../../../style/NodeRequest.css'
 import './EndPointColumn.css';
+import { Time } from '../../../../../../constants/Time';
 
 const FILTER_TARGETS = searchOptions().map(o => o.name);
 const FILTER_DEFAULT = FILTER_TARGETS[0] || "name";
@@ -34,11 +39,14 @@ interface EndPointColumnProps {
 }
 
 export function EndPointColumn({ setCursor }: EndPointColumnProps) {
+    const navigate = useNavigate();
+
+    const cache = useStoreCache();
     const { loadThemeWindow } = useStoreTheme();
     const { ask, push } = useAlert();
 
     const { endPoints, fetchEndPoints } = useStoreMock();
-    const { endPoint, newEndPoint, fetchEndPoint, discardEndPoint, injectEndPoint, renameEndPoint, isFocused, isCached } = useStoreEndPoint();
+    const { endPoint, newEndPoint, fetchEndPoint, discardEndPoint, injectEndPoint, renameEndPoint, isFocused, isCached, cacheComments } = useStoreEndPoint();
 
     const [dragData, setDragData] = useState<Optional<LiteEndPoint>>(undefined);
     const [filterData, setFilterData] = useState<PayloadFilter>(emptyFilter(FILTER_DEFAULT));
@@ -203,6 +211,40 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
         loadThemeWindow(width, height, <CodeArea code={curl} />);
     }
 
+    const actionViewRequest = async (item: LiteEndPoint) => {
+        const messages = cacheComments();
+        if (messages.length == 0) {
+            return viewRequest(item);
+        }
+
+        push({
+            category: EAlertCategory.WARN,
+            content: `You have unsaved content. Are you sure you want to leave the page?`,
+            buttons: [
+                {
+                    title: "Yes",
+                    type: "button",
+                    callback: {
+                        func: viewRequest,
+                        args: [item]
+                    }
+                },
+                {
+                    title: "No",
+                    type: "button",
+                }
+            ],
+            time:  Time.Minute * 5
+        });
+    }
+
+    const viewRequest = async (item: LiteEndPoint) => {
+        const request = await bridgeEndPointToRequest(item);
+        const itemRequest = fromRequest(request);
+        cacheAndFocus(itemRequest, cache);
+        navigate("/client");
+    }
+
     const showModal = () => {
         setModalStatus(true);
     };
@@ -270,7 +312,7 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
                                         <span className="button-modified-status small visible"></span>
                                     )}
                                     <span className={`node-request-status colored-circle ${cursor.status ? "active" : "inactive"}`}
-                                        title={cursor.status ? "Active" : "Inactive"}></span>
+                                        title={cursor.status ? "Online" : "Offline"}></span>
                                     <span className={`node-request-sign-method ${cursor.method}`} title={cursor.method}>{cursor.method}</span>
                                     <span className="node-request-sign-name" title={cursor.name}>{cursor.name}</span>
                                 </div>
@@ -293,7 +335,8 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
                             isCached: isCached,
                             discard: discardEndPoint,
                             export: actionExportOne,
-                            curl: actionShowCurl
+                            curl: actionShowCurl,
+                            request: actionViewRequest,
                         })} />
                     </div>
                 )}

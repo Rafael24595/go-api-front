@@ -511,6 +511,16 @@ export const translateEndPointSteps = async (steps: ConditionStep[]): Promise<st
   }
 };
 
+export const bridgeEndPointToRequest = async (endPoint: ItemEndPoint | LiteEndPoint): Promise<Request> => {
+  try {
+    const apiResponse = await authApiManager.get(`/bridge/mock/endpoint/${endPoint._id}/to/request`);
+    return apiResponse.data;
+  } catch (error) {
+    //TODO: Handle error.
+    throw error;
+  }
+};
+
 export const queryHelper = (...query: [string, any][]): string => {
   const result = query.filter(([_k, v]) => v != undefined)
     .map(([k, v]) => `${k}=${v}`)
