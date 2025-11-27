@@ -149,7 +149,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     const focusCached = () => {
         const focus: Optional<CacheEndPointFocus> = search(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
-        if (focus != undefined) {
+        if (focus != undefined && focus.endPoint != "") {
             fetchEndPointById(focus.endPoint);
             return true;
         }
