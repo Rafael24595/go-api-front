@@ -186,11 +186,11 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
               </>
             )}
             <div id="system-metadata-footer">
-              <button className="button-anchor" onClick={clean} title="View system logs">Clear Storage</button>
+              <button className="button-anchor" onClick={clean} title="Clear storage">Clear Storage</button>
               {hasRole(userData, Role.ROLE_ADMIN) && (
                 <>
                   <button className="button-anchor" onClick={showLogs} title="View system logs">Logs</button>
-                  <button className="button-anchor" onClick={showTerminal} title="View system logs">Cmd</button>
+                  <button className="button-anchor" onClick={showTerminal} title="Open CMD">Cmd</button>
                 </>
               )}
             </div>
