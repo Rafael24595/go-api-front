@@ -53,7 +53,7 @@ interface Payload {
 const StoreTheme = createContext<StoreProviderThemeType | undefined>(undefined);
 
 export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, pushTrigger } = useStoreSession();
+  const { userData, pushTrigger, trimTrigger } = useStoreSession();
   const { find, findAll, store, remove } = useStoreStatus();
   const { push } = useAlert();
 
@@ -85,6 +85,10 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     pushTrigger(TRIGGER_KEY, findSessionTheme);
     preloadCustomThemes();
     preloadCursorTheme();
+
+    return () => {
+      trimTrigger(TRIGGER_KEY);
+    };
   }, []);
 
   useEffect(() => {

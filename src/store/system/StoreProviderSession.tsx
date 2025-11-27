@@ -21,6 +21,7 @@ interface StoreProviderSessionType {
   authenticate: (oldPassword: string, newPassword1: string, newPassword2: string) => Promise<void>
   checkSession: () => Promise<void>
   pushTrigger: (key: string, trigger: Trigger) => Promise<void>
+  trimTrigger: (key: string) => Promise<void>
 }
 
 type Trigger = (newUser: UserData, oldUser: UserData) => void
@@ -208,7 +209,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     }
   };
 
-    const defineScopes = async (scopes: Scopes[]) => {
+  const defineScopes = async (scopes: Scopes[]) => {
     scopes = scopes.sort((a, b) => b.code > a.code ? -1 : 1);
 
     const newHash = await generateHash(scopes);
@@ -253,6 +254,16 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     }));
   };
 
+  const trimTrigger = async (key: string) => {
+    setData(prevData => {
+      const { [key]: removed, ...rest } = prevData.triggers;
+      return {
+        ...prevData,
+        triggers: rest,
+      };
+    });
+  };
+
   return (
     <StoreSession.Provider value={{
       ...data,
@@ -261,7 +272,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       login, logout, signin,
       remove, fetchUser, fetchTokens,
       insertToken, deleteToken, authenticate,
-      checkSession, pushTrigger
+      checkSession, pushTrigger, trimTrigger
     }}>
       {data.loaded ? children :
         <>

@@ -35,7 +35,7 @@ const TRIGGER_KEY = "StoreRequestsTrigger";
 const StoreCollection = createContext<StoreProviderCollectionsType | undefined>(undefined);
 
 export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, fetchUser, pushTrigger } = useStoreSession();
+  const { userData, fetchUser, pushTrigger, trimTrigger } = useStoreSession();
 
   const [historic, setHistoric] = useState<PayloadRequest>({
     items: [],
@@ -61,7 +61,10 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
 
     pushTrigger(TRIGGER_KEY, cleanFetchAll);
 
-    return () => clearInterval(interval);
+    return () => {
+      trimTrigger(TRIGGER_KEY);
+      clearInterval(interval);
+    };
   }, []);
 
   const cleanFetchAll = async () => {

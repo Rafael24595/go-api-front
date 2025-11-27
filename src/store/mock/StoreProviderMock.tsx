@@ -27,7 +27,7 @@ const cleanEndPoints = (): PayloadEndPoint => {
 }
 
 export const StoreProviderMock: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { userData, fetchUser, pushTrigger } = useStoreSession();
+    const { userData, fetchUser, pushTrigger, trimTrigger } = useStoreSession();
 
     const [endPoints, setEndPoints] = useState<PayloadEndPoint>(cleanEndPoints());
 
@@ -40,7 +40,10 @@ export const StoreProviderMock: React.FC<{ children: ReactNode }> = ({ children 
 
         pushTrigger(TRIGGER_SESSION_CHANGE, refreshAll);
 
-        return () => clearInterval(interval);
+        return () => {
+            trimTrigger(TRIGGER_SESSION_CHANGE);
+            clearInterval(interval);
+        };
     }, []);
 
     const fetchAll = async () => {

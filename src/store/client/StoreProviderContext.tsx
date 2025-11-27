@@ -38,7 +38,7 @@ interface Payload {
 const StoreContext = createContext<StoreProviderContextType | undefined>(undefined);
 
 export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, pushTrigger } = useStoreSession();
+  const { userData, pushTrigger, trimTrigger } = useStoreSession();
   const { gather, search, exists, insert, excise, remove, length } = useStoreCache();
 
   const [data, setData] = useState<Payload>({
@@ -53,6 +53,10 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   useEffect(() => {
     pushTrigger(TRIGGER_KEY, cleanCache);
     fetchContext();
+
+    return () => {
+      trimTrigger(TRIGGER_KEY);
+    };
   }, []);
 
   useEffect(() => {

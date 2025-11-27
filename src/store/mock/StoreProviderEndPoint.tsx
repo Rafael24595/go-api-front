@@ -65,7 +65,7 @@ const StoreEndPoint = createContext<StoreProviderEndPointType | undefined>(undef
 
 export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { search, gather, insert, excise, remove, length } = useStoreCache();
-    const { userData, fetchUser, pushTrigger } = useStoreSession();
+    const { userData, fetchUser, pushTrigger, trimTrigger } = useStoreSession();
 
     const { fetchEndPoints } = useStoreMock();
 
@@ -81,6 +81,10 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     useEffect(() => {
         pushTrigger(TRIGGER_SESSION_CHANGE, onSessionChange);
+        
+        return () => {
+            trimTrigger(TRIGGER_SESSION_CHANGE);
+        };
     }, []);
 
     useEffect(() => {

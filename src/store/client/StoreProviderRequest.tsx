@@ -79,7 +79,7 @@ interface PayloadFectch {
 const StoreRequest = createContext<StoreProviderRequestType | undefined>(undefined);
 
 export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, fetchUser, pushTrigger } = useStoreSession();
+  const { userData, fetchUser, pushTrigger, trimTrigger } = useStoreSession();
   const { fetchContext } = useStoreContext();
   const { getContext } = useStoreContext();
   const { fetchAll } = useStoreCollections();
@@ -106,8 +106,13 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   useEffect(() => {
     pushTrigger(TRIGGER_KEY_VIEW, focusOrClean);
     pushTrigger(TRIGGER_KEY_CACHE, cleanCache);
-    
+
     focusLastRequest();
+
+    return () => {
+      trimTrigger(TRIGGER_KEY_VIEW);
+      trimTrigger(TRIGGER_KEY_CACHE);
+    };
   }, []);
 
   useEffect(() => {
@@ -162,7 +167,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   const focusLastRequest = () => {
     const focus: Optional<CacheRequestFocus> = search(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
-    if (focus != undefined) {
+    if (focus != undefined && focus.request != "") {
       fetchRequestById(focus.request, focus.parent, focus.context);
       return true;
     }
