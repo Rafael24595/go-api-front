@@ -68,3 +68,11 @@ export function formatBytes(bytes: number): string {
 
     return `${bytes.toFixed(2)} Bytes`;
 }
+
+export const statusCodeToCss = (code: any) => {
+    const toString = typeof code == 'string' ? code : `${code}`;
+    if (toString.length == 0) {
+        return ""
+    }
+    return `c${toString[0]}xx`;
+}

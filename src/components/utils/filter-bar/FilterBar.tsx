@@ -110,8 +110,8 @@ export function FilterBar({ filterDefault: defaultTarget, filterTargets: validTa
                     custom={(
                         <span>🔎</span>
                     )}
-                    asSelect={true}
-                    selected={filterData.target}
+                    mode="select"
+                    focus={filterData.target}
                     options={searchOptions()} />
             </div>
         </div>

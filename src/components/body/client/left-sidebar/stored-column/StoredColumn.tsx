@@ -1,4 +1,4 @@
-import { deleteAction, exportAllRequests, exportManyRequests, findAction, requestToCurl, importCurl, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
+import { deleteAction, exportAllRequests, exportManyRequests, findAction, exportCurl, importCurl, importRequests, updateAction } from '../../../../../services/api/ServiceStorage';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
@@ -21,6 +21,7 @@ import { CodeArea } from '../../../../utils/code-area/CodeArea';
 import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
 import { ImportCurlModal } from '../../../../client/collection/ImportCurlModal';
+import { requestCollect } from '../../../../../services/api/ServiceCollection';
 
 import './StoredColumn.css';
 
@@ -374,7 +375,7 @@ export function StoredColumn() {
     };
 
     const actionShowCurl = async (item: LiteRequest, raw?: boolean) => {
-        const curl = await requestToCurl(item._id, undefined, raw);
+        const curl = await exportCurl(item._id, undefined, raw);
         const { width, height } = calculateWindowSize(curl, {
             minWidth: 550,
             minHeight: 200
@@ -446,8 +447,8 @@ export function StoredColumn() {
                         custom={(
                             <span>🔎</span>
                         )}
-                        asSelect={true}
-                        selected={filterData.target}
+                        mode="select"
+                        focus={filterData.target}
                         options={searchOptions({ onFilterTargetChange })} />
                 </div>
             </div>

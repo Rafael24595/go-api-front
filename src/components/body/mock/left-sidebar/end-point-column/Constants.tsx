@@ -1,6 +1,6 @@
-import { ComboForm } from "../../../../../../interfaces/ComboOption";
-import { LiteEndPoint } from "../../../../../../interfaces/mock/EndPoint";
-import { ImportModalDataProps, ImportModalInput } from "../../../../../form/import-modal/ImportModal";
+import { ComboForm } from "../../../../../interfaces/ComboOption";
+import { LiteEndPoint } from "../../../../../interfaces/mock/EndPoint";
+import { ImportModalDataProps, ImportModalInput } from "../../../../form/import-modal/ImportModal";
 
 export const CACHE_KEY_IMPORT_MODAL = "ImportModalEndPointInputType";
 
@@ -26,7 +26,7 @@ export const endPointGroupOptions = (actions: {
             icon: "🔄",
             label: "Refresh",
             title: "Refresh",
-            action: () => actions.fetch
+            action: () => actions.fetch()
         }
     ]
 }

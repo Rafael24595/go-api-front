@@ -25,10 +25,6 @@ interface Payload {
     isAdmin: boolean;
 }
 
-interface PayloadToken {
-    status: boolean
-}
-
 export function SessionModal({ isOpen, onClose }: SessionModalProps) {
     const { userData, login, logout, authenticate, signin, remove } = useStoreSession();
     const { isDark, openModal, toggleDefaultThemes } = useStoreTheme();

@@ -4,9 +4,10 @@ import { SessionModal } from './session/SessionModal';
 import { ProfileImage } from './session/ProfileImage';
 import { useStoreSystem } from '../../store/system/StoreProviderSystem';
 import { Combo } from '../utils/combo/Combo';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { TokenModal } from './token/TokenModal';
-import { hasRole, Role } from '../../interfaces/system/UserData';
+import { ViewMenuIcon, viewOptions } from './Constants';
+import { useStoreTheme } from '../../store/theme/StoreProviderTheme';
 
 import './Header.css';
 
@@ -20,37 +21,25 @@ interface HeaderProps {
     unsaved: UnsavedProps
 }
 
-
-interface Payload {
-    modalSession: boolean;
-}
-
 export function Header({ unsaved }: HeaderProps) {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const { userData, fetchUser, fetchTokens } = useStoreSession();
-    const { openModal } = useStoreSystem();
+    const theme = useStoreTheme();
+    const system = useStoreSystem();
 
 
-    const [data, setData] = useState<Payload>({
-        modalSession: false,
-    });
-
+    const [sessionModal, setSessionModal] = useState<boolean>(false);
     const [tokenModal, setTokenModal] = useState<boolean>(false);
 
-    const openSessionModal = () => {
+    const showSessionModal = () => {
         fetchUser();
-        setData((prevData) => ({
-            ...prevData,
-            modalSession: true
-        }));
+        setSessionModal(true);
     };
 
-    const closeSessionModal = () => {
-        setData((prevData) => ({
-            ...prevData,
-            modalSession: false
-        }));
+    const hideSessionModal = () => {
+        setSessionModal(false);
     };
 
     const showTokenModal = () => {
@@ -58,21 +47,32 @@ export function Header({ unsaved }: HeaderProps) {
         setTokenModal(true);
     };
 
-    const closeTokenModal = () => {
+    const hideTokenModal = () => {
         setTokenModal(false);
     };
 
-    const goToClient = () => {
+    const actionGoToClient = () => {
         navigate("/client");
     }
 
-    const goToMock = () => {
+    const actionGoToMock = () => {
         navigate("/mock");
+    }
+
+    const locationName = () => {
+        switch (location.pathname) {
+            case "/client":
+                return "client";
+            case "/mock":
+                return "mock";
+            default:
+                return undefined;
+        }
     }
 
     return (
         <div id="header-container">
-            <button id="logo-container" onClick={openModal} title="View system metadata">
+            <button id="logo-container" onClick={system.openModal} title="View system metadata">
                 &lt;API&gt;
             </button>
             <div id="user-container">
@@ -82,55 +82,29 @@ export function Header({ unsaved }: HeaderProps) {
                     </div>
                 )}
                 <Combo
-                    custom={
-
-                        <div id="apps-button-menu">
-                            <div className="apps-menu-row">
-                                <span className="cube" />
-                                <span className="cube" />
-                                <span className="cube" />
-                            </div>
-                            <div className="apps-menu-row">
-                                <span className="cube" />
-                                <span className="cube" />
-                                <span className="cube" />
-                            </div>
-                            <div className="apps-menu-row">
-                                <span className="cube" />
-                                <span className="cube" />
-                                <span className="cube" />
-                            </div>
-                        </div>
-                    }
-                    options={[
-                        {
-                            label: "Client View",
-                            title: "Go to client view",
-                            action: goToClient
-                        },
-                        {
-                            label: "Mock View",
-                            title: "Go to mock view",
-                            action: goToMock
-                        },
-                        {
-                            label: "Tokens View",
-                            title: "Go to tokens view",
-                            disable: hasRole(userData, Role.ROLE_ANONYMOUS),
-                            action: showTokenModal
-                        }
-                    ]} />
-                <button id="session-preview" className="button-div" type="button" title={userData.username} onClick={openSessionModal}>
+                    custom={ViewMenuIcon}
+                    focus={locationName()}
+                    options={viewOptions(userData, {
+                        goToClient: actionGoToClient,
+                        goToMock: actionGoToMock,
+                        tokenModal: showTokenModal,
+                        themeModal: theme.openModal
+                    })}
+                    optionStyle={{
+                        width: "max-content",
+                        minWidth: "150px"
+                    }} />
+                <button id="session-preview" className="button-div" type="button" title={userData.username} onClick={showSessionModal}>
                     <ProfileImage size="small" />
                 </button>
             </div>
             <SessionModal
-                isOpen={data.modalSession || userData.first_time}
-                onClose={closeSessionModal}
+                isOpen={sessionModal || userData.first_time}
+                onClose={hideSessionModal}
             />
             <TokenModal
                 isOpen={tokenModal}
-                onClose={closeTokenModal} />
+                onClose={hideTokenModal} />
         </div>
     )
 }

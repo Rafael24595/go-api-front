@@ -1,8 +1,8 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { LiteEndPoint } from "../../interfaces/mock/EndPoint";
-import { findAllEndPoint } from "../../services/api/ServiceStorage";
 import { generateHash } from "../../services/Utils";
 import { useStoreSession } from "../system/StoreProviderSession";
+import { findAllEndPoint } from "../../services/api/ServiceEndPoint";
 
 interface StoreProviderMockType {
     endPoints: LiteEndPoint[];

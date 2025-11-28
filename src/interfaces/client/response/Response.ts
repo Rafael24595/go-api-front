@@ -3,11 +3,6 @@ import { Dict } from "../../../types/Dict";
 import { Headers } from "../request/Request"
 import { StatusKeyValue } from "../../StatusKeyValue";
 
-export interface SignedPayload<T> {
-  owner: string;
-  payload: T
-}
-
 export interface Response {
   _id: string;
   timestamp: number;

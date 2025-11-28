@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react';
-import { formatBytes, millisecondsToDate, millisecondsToTime } from '../../../../services/Tools';
+import { formatBytes, millisecondsToDate, millisecondsToTime, statusCodeToCss } from '../../../../services/Tools';
 import { PayloadColumn } from './payload-column/PayloadColumn';
 import { HeaderColumn } from './header-column/HeaderColumn';
 import { CookieColumn } from './cookie-column/CookieColumn';
@@ -60,13 +60,6 @@ export function RightSidebar() {
         setCursor(cursor);
     };
 
-    const statusToCss = (status: string) => {
-        if(status.length == 0) {
-            return ""
-        }
-        return `c${status[0]}xx`;
-      }
-
     return (
         <div id="right-sidebar-client">
             <div id="response-metadata">
@@ -74,7 +67,7 @@ export function RightSidebar() {
                     <span 
                         className="response-title select-none">Status:</span>
                     <span 
-                        className={`response-code ${statusToCss(response.status)}`} 
+                        className={`response-code ${statusCodeToCss(response.status)}`} 
                         title={httpStatusDescriptions.get(Number(response.status))}>{ response.status }</span>
                 </span>
                 <span className="section-header-element response-data"><span className="response-title select-none" title={ response.timestamp ? millisecondsToDate(response.timestamp) : "" }>Time:</span> { millisecondsToTime(response.time) }</span>

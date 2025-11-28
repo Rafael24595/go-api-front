@@ -7,10 +7,10 @@ import { emptyItemResponse, ItemResponse, resolveResponses, removeResponse as re
 import { deepClone, generateHash } from "../../services/Utils";
 import { UserData } from "../../interfaces/system/UserData";
 import { Optional } from "../../types/Optional";
-import { findEndPoint, findMetrics, insertEndPoint } from "../../services/api/ServiceStorage";
 import { CACHE_CATEGORY_FOCUS } from "../Constants";
 import { useStoreMock } from "./StoreProviderMock";
 import { emptyMetrics, Metrics } from "../../interfaces/mock/Metrics";
+import { findEndPoint, findMetrics, insertEndPoint } from "../../services/api/ServiceEndPoint";
 
 interface StoreProviderEndPointType {
     endPoint: ItemEndPoint;
@@ -19,7 +19,7 @@ interface StoreProviderEndPointType {
     event: EventAction;
 
     newEndPoint: () => void;
-    fetchEndPoint: (endPoint: LiteEndPoint) => Promise<void>;
+    fetchEndPoint: (endPoint: LiteEndPoint) => Promise<boolean>;
     injectEndPoint: (endPoint: ItemEndPoint) => void;
     releaseEndPoint: (endPoint?: ItemEndPoint) => Promise<void>;
     discardEndPoint: (endPoint?: ItemEndPoint | LiteEndPoint) => void;
@@ -81,7 +81,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     useEffect(() => {
         pushTrigger(TRIGGER_SESSION_CHANGE, onSessionChange);
-        
+
         return () => {
             trimTrigger(TRIGGER_SESSION_CHANGE);
         };
@@ -89,7 +89,6 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     useEffect(() => {
         updateDataStatus(data.endPoint);
-        updateMetricsStatus(data.endPoint);
     }, [data.endPoint]);
 
     const updateDataStatus = async (endPoint: ItemEndPoint) => {
@@ -124,7 +123,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         }));
     }
 
-    const updateMetricsStatus = async (endPoint: ItemEndPoint) => {
+    const updateMetricsStatus = async (endPoint: ItemEndPoint | LiteEndPoint) => {
         if (endPoint._id == "") {
             setMetrics(emptyMetrics(data.endPoint));
             return;
@@ -142,20 +141,19 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     const onSessionChange = (newUser: UserData, oldUser: UserData) => {
         tryFocusCached(newUser, oldUser);
-        cleanCache();
     }
 
     const tryFocusCached = (newUser: UserData, oldUser: UserData) => {
         if (newUser.username != oldUser.username || !focusCached()) {
             clearAll();
+            cleanCache();
         }
     }
 
     const focusCached = () => {
         const focus: Optional<CacheEndPointFocus> = search(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
-        if (focus != undefined && focus.endPoint != "") {
-            fetchEndPointById(focus.endPoint);
-            return true;
+        if (focus != undefined) {
+            return fetchEndPointById(focus.endPoint);
         }
         return false;
     }
@@ -171,8 +169,10 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     }
 
     const clearAll = () => {
-        setData(newEndPointData(userData));
+        const newData = newEndPointData(userData);
+        setData(newData);
         setResponse(emptyItemResponse());
+        setMetrics(emptyMetrics(newData.endPoint));
     }
 
     const fetchEndPoint = async (endPoint: LiteEndPoint) => {
@@ -187,8 +187,16 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
         const cached: Optional<CacheEndPointStore> = search(CACHE_CATEGORY_STORE, id);
         if (cached != undefined) {
+            if (cached.endPoint.owner != userData.username) {
+                return false;
+            }
+
             restoreEndPoint(cached.endPoint, cached.backup);
-            return;
+            return true;
+        }
+
+        if (id == "") {
+            return false;
         }
 
         const endPoint = await findEndPoint(id)
@@ -201,21 +209,24 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             });
 
         if (!endPoint) {
-            return;
+            return false;
         }
 
         if (endPoint.owner != userData.username) {
             fetchUser();
+            return false;
         }
 
         restoreEndPoint(endPoint);
+
+        return true;
     }
 
     const fetchMetrics = async () => {
         return fetchMetricsByEndPoint(data.endPoint)
     }
 
-    const fetchMetricsByEndPoint = async (endPoint: ItemEndPoint) => {
+    const fetchMetricsByEndPoint = async (endPoint: ItemEndPoint | LiteEndPoint) => {
         const metrics = await findMetrics(endPoint)
             .catch(err => {
                 if (err.statusCode == 404) {
@@ -234,7 +245,8 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
     const injectEndPoint = (endPoint: ItemEndPoint) => {
         clearAll();
-        setData(clearEndPointData(endPoint));
+
+        restoreEndPoint(endPoint);
         pushEvent("define", data.endPoint._id, "");
     }
 
@@ -257,7 +269,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             remove(CACHE_CATEGORY_STORE, oldEndPoint._id);
         }
 
-        setData(clearEndPointData(newEndPoint));
+        restoreEndPoint(newEndPoint);
 
         fetchEndPoints();
     }
@@ -271,13 +283,17 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
 
         remove(CACHE_CATEGORY_STORE, endPoint._id);
 
-        setData(prevData => {
-            return deepClone(prevData);
-        });
+        refreshEndPoint();
     }
 
     const restoreEndPoint = (endPoint: ItemEndPoint, backup?: ItemEndPoint) => {
         setData(clearEndPointData(endPoint, backup));
+        updateMetricsStatus(endPoint);
+    }
+
+    const refreshEndPoint = () => {
+        setData((prevData) => deepClone(prevData));
+        updateMetricsStatus(data.backup);
     }
 
     const renameEndPoint = (endPoint?: ItemEndPoint): { endPoint: ItemEndPoint, ok: boolean } => {
@@ -373,21 +389,6 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         return true;
     }
 
-    const resolveName = (response: ItemResponse) => {
-        let message = "Insert a name: ";
-
-        while (true) {
-            const name = prompt(message, response.name);
-
-            const exists = data.endPoint.responses.find(r => r.name === name);
-            if (!exists) {
-                return name
-            }
-
-            message = `There is already an answer with the name ${name}`;
-        }
-    }
-
     const removeResponse = (response: ItemResponse) => {
         setData(prevData => ({
             ...prevData,
@@ -406,6 +407,21 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
                 responses: fixResponses(responses)
             }
         }));
+    }
+
+    const resolveName = (response: ItemResponse) => {
+        let message = "Insert a name: ";
+
+        while (true) {
+            const name = prompt(message, response.name);
+
+            const exists = data.endPoint.responses.find(r => r.name === name);
+            if (!exists) {
+                return name
+            }
+
+            message = `There is already an answer with the name ${name}`;
+        }
     }
 
     const isFocused = (endPoint: LiteEndPoint) => {

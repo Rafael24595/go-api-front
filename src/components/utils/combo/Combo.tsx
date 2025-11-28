@@ -3,14 +3,17 @@ import { ComboOption } from "../../../interfaces/ComboOption";
 
 import './Combo.css';
 
+export type DisplayMode = "default" | "select"
+
 interface OptionsMenuProps {
   custom?: React.ReactNode;
-  asSelect?: boolean;
-  selected?: string;
+  mode?: DisplayMode,
+  focus?: string;
   options: ComboOption[];
+  optionStyle?: React.CSSProperties,
 }
 
-export const Combo = ({ custom, asSelect, selected, options }: OptionsMenuProps) => {
+export const Combo = ({ custom, mode, focus, options, optionStyle }: OptionsMenuProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [yAxis, setYAxis] = useState<"bottom" | "top">("bottom");
   const [xAxis, setXAxis] = useState<"left" | "right">("left");
@@ -65,42 +68,42 @@ export const Combo = ({ custom, asSelect, selected, options }: OptionsMenuProps)
   }
 
   const calculateBottom = () => {
-    if(asSelect) {
+    if(mode == "select") {
       return yAxis === "top" ? "100%" : "auto"
     }
     return yAxis === "top" ? "80%" : "auto";
   }
 
   const calculateTop = () => {
-    if(asSelect) {
+    if(mode == "select") {
       return yAxis === "bottom" ? "100%" : "auto"
     }
     return yAxis === "bottom" ? "80%" : "auto";
   }
 
   const calculateLeft = () => {
-    if(asSelect) {
+    if(mode == "select") {
       return xAxis === "right" ? "0%" : "auto";
     }
     return xAxis === "right" ? "75%" : "auto";
   }
 
   const calculateRight = () => {
-    if(asSelect) {
+    if(mode == "select") {
       return xAxis === "left" ? "0%" : "auto";
     }
     return xAxis === "left" ? "75%" : "auto";
   }
 
   const calculateMarginTop = () => {
-    if(asSelect) {
+    if(mode == "select") {
       return "2px"
     }
     return yAxis === "top" ? "5px" : "0";
   }
 
   const calculateMarginBottom = () => {
-    if(asSelect) {
+    if(mode == "select") {
       return "2px"
     }
     return yAxis === "bottom" ? "5px" : "0";
@@ -130,6 +133,7 @@ export const Combo = ({ custom, asSelect, selected, options }: OptionsMenuProps)
           ref={boxRef}
           className="options-menu"
           style={{
+            ...optionStyle,
             bottom: calculateBottom(),
             top: calculateTop(),
             left: calculateLeft(),
@@ -142,7 +146,7 @@ export const Combo = ({ custom, asSelect, selected, options }: OptionsMenuProps)
             !option.disable && (
               <button 
                 key={ index } 
-                className={`${ selected && option.name == selected ? "selected-combo-option" : "" }`}
+                className={`${ focus && option.name == focus ? "selected-combo-option" : "" }`}
                 onClick={ () => execute(option) } title={ option.title && option.title }>
                 {option.icon && (
                   <span className="option-icon">{ option.icon }</span>

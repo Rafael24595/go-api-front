@@ -4,7 +4,7 @@ import { Auths, fromRequest, ItemBody, ItemRequest, LiteRequest, newItemRequest,
 import { cleanCopy, ItemStatusKeyValue } from "../../interfaces/StatusKeyValue";
 import { fixOrder } from "../../interfaces/StatusKeyValue";
 import { fromResponse, ItemResponse, newItemResponse, Response, toResponse } from "../../interfaces/client/response/Response";
-import { findActionById, insertAction, pushHistoric } from "../../services/api/ServiceStorage";
+import { findActionById, insertAction } from "../../services/api/ServiceStorage";
 import { ResponseExecuteAction, ResponseFetch } from "../../services/api/Responses";
 import { useStoreCache } from "../StoreProviderCache";
 import { Optional } from "../../types/Optional";
@@ -18,9 +18,9 @@ import { EAlertCategory } from "../../interfaces/AlertData";
 import { CacheRequestFocus } from "../../interfaces/client/Cache";
 import { UserData } from "../../interfaces/system/UserData";
 import { CACHE_CATEGORY_FOCUS } from "../Constants";
+import { pushHistoric } from "../../services/api/ServiceHistory";
 
 const TRIGGER_KEY_VIEW = "StoreProviderRequestViewTrigger";
-const TRIGGER_KEY_CACHE = "StoreProviderRequestCacheTrigger";
 
 export const CACHE_CATEGORY_STORE = "StoreRequest";
 export const CACHE_KEY_FOCUS = "FocusRequest";
@@ -105,13 +105,11 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   useEffect(() => {
     pushTrigger(TRIGGER_KEY_VIEW, focusOrClean);
-    pushTrigger(TRIGGER_KEY_CACHE, cleanCache);
 
     focusLastRequest();
 
     return () => {
       trimTrigger(TRIGGER_KEY_VIEW);
-      trimTrigger(TRIGGER_KEY_CACHE);
     };
   }, []);
 
@@ -162,14 +160,14 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const focusOrClean = (newUser: UserData, oldUser: UserData) => {
     if (newUser.username != oldUser.username || !focusLastRequest()) {
       cleanRequest();
+      cleanCache();
     }
   }
 
   const focusLastRequest = () => {
     const focus: Optional<CacheRequestFocus> = search(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
-    if (focus != undefined && focus.request != "") {
-      fetchRequestById(focus.request, focus.parent, focus.context);
-      return true;
+    if (focus != undefined) {
+      return fetchRequestById(focus.request, focus.parent, focus.context);
     }
     return false;
   }
@@ -435,22 +433,19 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const fetchRequestById = async (request: string, parent?: string, context?: string) => {
     const cached: Optional<CacheActionData> = search(CACHE_CATEGORY_STORE, request);
     if (cached != undefined) {
+      if (cached.request.owner != userData.username) {
+        return false;
+      }
+
       defineItemRequest(cached.backup, cached.request, cached.response, undefined, cached.parent, context);
       return;
     }
 
-    await findActionById(request)
-      .then(apiResponse => {
-        if (apiResponse.request == undefined) {
-          return;
-        }
+    if (request == "") {
+      return false;
+    }
 
-        if (apiResponse.request.owner != userData.username) {
-          fetchUser();
-        }
-
-        defineRequest(apiResponse.request, apiResponse.response, undefined, parent, context);
-      })
+    const action = await findActionById(request)
       .catch(err => {
         if (err.statusCode == 404) {
           fetchUser();
@@ -458,6 +453,19 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
         }
         throw err;
       });
+
+    if (action?.request == undefined) {
+      return false;
+    }
+
+    if (action.request.owner != userData.username) {
+      fetchUser();
+      return false;
+    }
+
+    defineRequest(action.request, action.response, undefined, parent, context);
+
+    return true;
   }
 
   const executeAction = async () => {

@@ -10,12 +10,13 @@ export const cacheAndFocus = async (request: ItemRequest, cache: StoreProviderCa
         parent: "",
         backup: request,
         request: request,
-        response: newItemResponse(request.owner)
+        response: newItemResponse(request.owner),
     });
 
     cache.insert<CacheRequestFocus>(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS, {
         request: request._id,
         parent: "",
-        context: ""
+        context: "",
+        reason: "event"
     })
 }

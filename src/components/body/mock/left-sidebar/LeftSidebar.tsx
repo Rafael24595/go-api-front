@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { EndPointColumn } from './end-point-column/historic-column/EndPointColumn';
+import { EndPointColumn } from './end-point-column/EndPointColumn';
 import { useStoreMock } from '../../../../store/mock/StoreProviderMock';
 import { MOCK_CURSORS, VIEW_END_POINTS } from '../MockBody';
 
@@ -50,7 +50,7 @@ export function LeftSidebar({ cursor, cursorChange }: LeftSidebarProps) {
                 ))}
             </div>
             <div className={`mock-selector-preview-option ${cursor === VIEW_END_POINTS ? "show" : ""}`}>
-                <EndPointColumn setCursor={onCursorChange} />
+                <EndPointColumn />
             </div>
         </div>
     )

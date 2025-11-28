@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ItemCollection, LiteItemCollection, LiteItemNodeRequest, newCollection, toCollection } from '../../../../../interfaces/client/collection/Collection';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
-import { cloneCollection, deleteCollection, exportAllCollections, exportManyCollections, findAction, findCollection, imporOpenApi, importCollections, importCurl, importToCollection, insertCollection, requestCollect } from '../../../../../services/api/ServiceStorage';
+import { findAction, importCurl } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
 import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
@@ -25,6 +25,7 @@ import { ModalButton } from '../../../../../interfaces/ModalButton';
 import { CollectionRequests } from './CollectionRequests';
 import { CollectModal } from '../../../../client/collection/CollectModal';
 import { ImportCurlModal } from '../../../../client/collection/ImportCurlModal';
+import { cloneCollection, deleteCollection, exportAllCollections, exportManyCollections, findCollection, imporOpenApi, importCollections, importToCollection, insertCollection, requestCollect } from '../../../../../services/api/ServiceCollection';
 
 import './CollectionColumn.css';
 
@@ -584,8 +585,8 @@ export function CollectionColumn() {
                         custom={(
                             <span>🔎</span>
                         )}
-                        asSelect={true}
-                        selected={filterData.target}
+                        mode="select"
+                        focus={filterData.target}
                         options={searchOptions({ onFilterTargetChange })} />
                 </div>
             </div>

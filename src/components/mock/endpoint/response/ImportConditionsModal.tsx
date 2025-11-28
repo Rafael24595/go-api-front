@@ -1,9 +1,9 @@
 import { JSX, useState } from 'react';
 import { ConditionStep, isLogicalOperator } from '../../../../services/mock/ConditionStep';
 import { Modal } from '../../../utils/modal/Modal';
-import { translateEndPointConditions } from '../../../../services/api/ServiceStorage';
 import { StepType } from '../../../../services/mock/Constants';
 import { useStoreEndPoint } from '../../../../store/mock/StoreProviderEndPoint';
+import { bridgeConditionToStep } from '../../../../services/api/ServiceEndPoint';
 
 import './ImportConditionsModal.css';
 
@@ -25,7 +25,7 @@ export function ImportConditionsModal({ isOpen, onSubmit, onClose }: ImportCondi
     }
 
     const load = async () => {
-        await translateEndPointConditions(raw)
+        await bridgeConditionToStep(raw)
             .then(steps => {
                 setSteps(steps);
                 setWarning("");

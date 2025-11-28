@@ -12,4 +12,16 @@ export async function fetchFile(uri: string) {
 function fileNameFromURI(uri: string) {
     const pathname = new URL(uri).pathname;
     return decodeURIComponent(pathname.substring(pathname.lastIndexOf('/') + 1));
+}
+
+export const queryHelper = (...query: [string, any][]): string => {
+  const result = query.filter(([_k, v]) => v != undefined)
+    .map(([k, v]) => `${k}=${v}`)
+    .join("&");
+
+  if (result == "") {
+    return result
   }
+
+  return `?${result}`
+};

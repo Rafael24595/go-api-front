@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { LiteItemCollection, LiteItemNodeRequest } from '../../../../../interfaces/client/collection/Collection';
 import { LiteRequest } from '../../../../../interfaces/client/request/Request';
-import { deleteFromCollection, findAction, requestToCurl, takeFromCollection, updateAction } from '../../../../../services/api/ServiceStorage';
+import { findAction, exportCurl, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
 import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
@@ -16,6 +16,7 @@ import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
 import { CodeArea } from '../../../../utils/code-area/CodeArea';
 import { requestOptions } from './Constants';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
+import { deleteFromCollection, takeFromCollection } from '../../../../../services/api/ServiceCollection';
 
 import './CollectionColumn.css';
 
@@ -140,7 +141,7 @@ export function CollectionRequests({ collection, showDuplicateModal, showMoveMod
     }
 
     const showCurl = async (itemRequest: LiteRequest, raw?: boolean) => {
-        const curl = await requestToCurl(itemRequest._id, collection.context, raw);
+        const curl = await exportCurl(itemRequest._id, collection.context, raw);
         const { width, height } = calculateWindowSize(curl, {
             minWidth: 550,
             minHeight: 200

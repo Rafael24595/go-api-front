@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { findAllAction, findAllCollection, findAllHistoric, findCollectionLite, sortCollectionRequests, sortCollections, sortRequests } from "../../services/api/ServiceStorage";
+import { findAllAction, sortRequests } from "../../services/api/ServiceStorage";
 import { LiteRequest } from "../../interfaces/client/request/Request";
-import { LiteItemCollection, newCollection } from "../../interfaces/client/collection/Collection";
+import { ItemNodeCollection, ItemNodeRequest, LiteItemCollection, newCollection } from "../../interfaces/client/collection/Collection";
 import { useStoreSession } from "../system/StoreProviderSession";
 import { RequestNode } from "../../services/api/Requests";
 import { generateHash } from "../../services/Utils";
+import { findAllCollection, findCollectionLite, sortCollectionRequests, sortCollections } from "../../services/api/ServiceCollection";
+import { findAllHistoric } from "../../services/api/ServiceHistory";
+import { SignedPayload } from "../../interfaces/SignedPayload";
 
 interface StoreProviderCollectionsType {
   historic: LiteRequest[];
@@ -107,30 +110,34 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
   };
 
   const fetchHistoricWithoutValidation = async (): Promise<string> => {
-    try {
-      const response = await findAllHistoric();
-      const data = response.payload
-        .sort((a, b) => b.order - a.order)
-        .map(n => n.request);
-
-      const newHash = await generateHash(data);
-
-      setHistoric((prevData) => {
-        if (prevData.hash == newHash) {
-          return prevData;
-        }
-
-        return {
-          items: data,
-          hash: newHash
-        };
+    const response: SignedPayload<ItemNodeRequest[]> = await findAllHistoric()
+      .catch((e) => {
+        console.error("Error fetching history:", e);
+        return { owner: "", payload: [] };
       });
 
+    if (response.owner == "" || response.owner != userData.username) {
       return response.owner;
-    } catch (error) {
-      console.error("Error fetching history:", error);
-      return "";
     }
+
+    const data = response.payload
+      .sort((a, b) => b.order - a.order)
+      .map(n => n.request);
+
+    const newHash = await generateHash(data);
+
+    setHistoric((prevData) => {
+      if (prevData.hash == newHash) {
+        return prevData;
+      }
+
+      return {
+        items: data,
+        hash: newHash
+      };
+    });
+
+    return response.owner;
   };
 
   const fetchStored = async () => {
@@ -141,30 +148,34 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
   };
 
   const fetchStoredWithoutValidation = async (): Promise<string> => {
-    try {
-      const response = await findAllAction();
-      const data = response.payload
-        .sort((a, b) => a.order - b.order)
-        .map(n => n.request);
-
-      const newHash = await generateHash(data);
-
-      setStored((prevData) => {
-        if (prevData.hash == newHash) {
-          return prevData;
-        }
-
-        return {
-          items: data,
-          hash: newHash
-        };
+    const response: SignedPayload<ItemNodeRequest[]> = await findAllAction()
+      .catch((e) => {
+        console.error("Error fetching stored:", e);
+        return { owner: "", payload: [] };
       });
 
+    if (response.owner == "" || response.owner != userData.username) {
       return response.owner;
-    } catch (error) {
-      console.error("Error fetching stored:", error);
-      return "";
     }
+
+    const data = response.payload
+      .sort((a, b) => a.order - b.order)
+      .map(n => n.request);
+
+    const newHash = await generateHash(data);
+
+    setStored((prevData) => {
+      if (prevData.hash == newHash) {
+        return prevData;
+      }
+
+      return {
+        items: data,
+        hash: newHash
+      };
+    });
+
+    return response.owner;
   };
 
   const fetchCollection = async () => {
@@ -175,30 +186,34 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
   };
 
   const fetchCollectionWithoutValidation = async (): Promise<string> => {
-    try {
-      const request = await findAllCollection();
-      const data = request.payload
-        .sort((a, b) => a.order - b.order)
-        .map(n => n.collection);
-
-      const newHash = await generateHash(data);
-
-      setCollection((prevData) => {
-        if (prevData.hash == newHash) {
-          return prevData;
-        }
-
-        return {
-          items: data,
-          hash: newHash
-        };
+    const response: SignedPayload<ItemNodeCollection[]> = await findAllCollection()
+      .catch((e) => {
+        console.error("Error fetching collection:", e);
+        return { owner: "", payload: [] };
       });
 
-      return request.owner;
-    } catch (error) {
-      console.error("Error fetching collection:", error);
-      return "";
+    if (response.owner == "" || response.owner != userData.username) {
+      return response.owner;
     }
+
+    const data = response.payload
+      .sort((a, b) => a.order - b.order)
+      .map(n => n.collection);
+
+    const newHash = await generateHash(data);
+
+    setCollection((prevData) => {
+      if (prevData.hash == newHash) {
+        return prevData;
+      }
+
+      return {
+        items: data,
+        hash: newHash
+      };
+    });
+
+    return response.owner;
   };
 
   const fetchCollectionItem = async (item: LiteItemCollection) => {

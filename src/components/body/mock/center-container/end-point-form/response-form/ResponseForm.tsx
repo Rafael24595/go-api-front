@@ -15,7 +15,7 @@ import { responseConditionOptions } from './Constants';
 import { calculateWindowSize } from '../../../../../../services/Utils';
 import { useStoreTheme } from '../../../../../../store/theme/StoreProviderTheme';
 import { CodeArea } from '../../../../../utils/code-area/CodeArea';
-import { translateEndPointSteps } from '../../../../../../services/api/ServiceStorage';
+import { bridgeStepToCondition } from '../../../../../../services/api/ServiceEndPoint';
 
 import './ResponseForm.css';
 
@@ -115,7 +115,7 @@ export function ResponseForm() {
     };
 
     const exportSteps = async (item?: ItemResponse) => {
-        const curl = await translateEndPointSteps((item || response).condition);
+        const curl = await bridgeStepToCondition((item || response).condition);
         const { width, height } = calculateWindowSize(curl, {
             minWidth: 550,
             minHeight: 200

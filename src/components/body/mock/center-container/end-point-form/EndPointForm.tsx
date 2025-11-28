@@ -3,7 +3,7 @@ import { HTTP_METHODS, httpStatusDescriptions } from '../../../../../constants/H
 import { useStoreEndPoint } from '../../../../../store/mock/StoreProviderEndPoint';
 import { ResponseForm } from './response-form/ResponseForm';
 import { DEFAULT_RESPONSE, emptyItemResponse, ItemResponse } from '../../../../../interfaces/mock/Response';
-import { millisecondsToDate } from '../../../../../services/Tools';
+import { millisecondsToDate, statusCodeToCss } from '../../../../../services/Tools';
 import { Combo } from '../../../../utils/combo/Combo';
 import { responseOptions, statusOptions } from './Constants';
 import { PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
@@ -115,6 +115,30 @@ export function EndPointForm() {
         setResponseForm(true);
     }
 
+    const isRequestDrag = (item: ItemResponse) => {
+        if (!dragData) {
+            return false
+        }
+        return item.name == dragData.name;
+    }
+
+    const onRequestDrag = async (item: PositionWrapper<ItemResponse>) => {
+        setDragData(item.item);
+    };
+
+    const onRequestDrop = async () => {
+        setDragData(undefined);
+    };
+
+    const updateOrder = async (items: PositionWrapper<ItemResponse>[]) => {
+        const ordered = items.map((p) => {
+            p.item.order = p.index;
+            return p.item
+        });
+
+        orderResponses(ordered);
+    };
+
     const actionDelete = (response: ItemResponse) => {
         removeResponse(response);
     }
@@ -132,14 +156,6 @@ export function EndPointForm() {
         releaseEndPoint();
     }
 
-    const codeToCss = (code: number) => {
-        const toString = `${code}`;
-        if (toString.length == 0) {
-            return ""
-        }
-        return `c${toString[0]}xx`;
-    }
-
     const makeEndPointTitle = (): string => {
         if (endPoint._id == "") {
             return "New End Point";
@@ -147,27 +163,6 @@ export function EndPointForm() {
 
         return `End Point «${endPoint.name}»`;
     }
-
-    const makeResponseKey = (item: ItemResponse): string => {
-        return `${item.timestamp}-${item.name}-${item.code}`;
-    }
-
-    const onRequestDrag = async (item: PositionWrapper<ItemResponse>) => {
-        setDragData(item.item);
-    };
-
-    const onRequestDrop = async () => {
-        setDragData(undefined);
-    };
-
-    const updateOrder = async (items: PositionWrapper<ItemResponse>[]) => {
-        const ordered = items.map((p) => { 
-            p.item.order = p.index; 
-            return p.item 
-        });
-
-        orderResponses(ordered);
-    };
 
     return (
         <>
@@ -242,7 +237,7 @@ export function EndPointForm() {
                             onItemDrop={onRequestDrop}
                             onItemsChange={updateOrder}
                             renderItem={(cursor) => (
-                                <div key={makeResponseKey(cursor)} className="end-point-response">
+                                <div key={makeResponseKey(cursor)} className={`end-point-response ${isRequestDrag(cursor) && "node-request-drag"}`}>
                                     <div className="end-point-sign-status">
                                         <input id={`end-point-status-${cursor.order}`} name="status" type="checkbox"
                                             className={`end-point-response-status ${cursor.name == DEFAULT_RESPONSE ? "hide" : ""}`}
@@ -251,7 +246,7 @@ export function EndPointForm() {
                                             checked={cursor.status} />
                                         <button className="request-link border-bottom" type="button" onClick={() => showResponseForm(cursor)}>
                                             <div className="response-sign">
-                                                <span className={`response-sign-code ${codeToCss(cursor.code)}`}
+                                                <span className={`response-sign-code ${statusCodeToCss(cursor.code)}`}
                                                     title={httpStatusDescriptions.get(cursor.code) || ""}>{cursor.code}</span>
                                                 <span className="response-sign-name">{cursor.name}</span>
                                             </div>
@@ -289,4 +284,8 @@ export function EndPointForm() {
             </div>
         </>
     );
+}
+
+const makeResponseKey = (item: ItemResponse): string => {
+    return `${item.timestamp}-${item.name}-${item.code}`;
 }

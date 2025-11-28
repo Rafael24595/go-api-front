@@ -1,30 +1,30 @@
 import { useState } from 'react';
-import { EndPoint, LiteEndPoint } from '../../../../../../interfaces/mock/EndPoint';
-import { millisecondsToDate } from '../../../../../../services/Tools';
-import { useStoreEndPoint } from '../../../../../../store/mock/StoreProviderEndPoint';
-import { useStoreMock } from '../../../../../../store/mock/StoreProviderMock';
-import { Combo } from '../../../../../utils/combo/Combo';
-import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../../../../utils/drag/VerticalDragDrop';
-import { emptyFilter, FilterBar, PayloadFilter } from '../../../../../utils/filter-bar/FilterBar';
+import { EndPoint, LiteEndPoint } from '../../../../../interfaces/mock/EndPoint';
+import { millisecondsToDate } from '../../../../../services/Tools';
+import { useStoreEndPoint } from '../../../../../store/mock/StoreProviderEndPoint';
+import { useStoreMock } from '../../../../../store/mock/StoreProviderMock';
+import { Combo } from '../../../../utils/combo/Combo';
+import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
+import { emptyFilter, FilterBar, PayloadFilter } from '../../../../utils/filter-bar/FilterBar';
 import { endPointGroupOptions, endPointOptions, importModalDefinition, searchOptions } from './Constants';
-import { Optional } from '../../../../../../types/Optional';
-import { RequestNode } from '../../../../../../services/api/Requests';
-import { bridgeEndPointToRequest, endPointToCurl, exportAllEndPoints, exportManyEndPoints, findEndPoint, importEndPoints, insertEndPoint, removeEndPoint, sortEndPoints } from '../../../../../../services/api/ServiceStorage';
-import { ModalButton } from '../../../../../../interfaces/ModalButton';
-import { useAlert } from '../../../../../utils/alert/Alert';
-import { EAlertCategory } from '../../../../../../interfaces/AlertData';
-import { calculateWindowSize, downloadFile } from '../../../../../../services/Utils';
-import { ImportModal, SubmitArgs } from '../../../../../form/import-modal/ImportModal';
-import { CodeArea } from '../../../../../utils/code-area/CodeArea';
-import { useStoreTheme } from '../../../../../../store/theme/StoreProviderTheme';
-import { useStoreCache } from '../../../../../../store/StoreProviderCache';
-import { cacheAndFocus } from '../../../../../../store/client/Helper';
-import { fromRequest } from '../../../../../../interfaces/client/request/Request';
+import { Optional } from '../../../../../types/Optional';
+import { RequestNode } from '../../../../../services/api/Requests';
+import { ModalButton } from '../../../../../interfaces/ModalButton';
+import { useAlert } from '../../../../utils/alert/Alert';
+import { EAlertCategory } from '../../../../../interfaces/AlertData';
+import { calculateWindowSize, downloadFile } from '../../../../../services/Utils';
+import { ImportModal, SubmitArgs } from '../../../../form/import-modal/ImportModal';
+import { CodeArea } from '../../../../utils/code-area/CodeArea';
+import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
+import { useStoreCache } from '../../../../../store/StoreProviderCache';
+import { cacheAndFocus } from '../../../../../store/client/Helper';
+import { fromRequest } from '../../../../../interfaces/client/request/Request';
 import { useNavigate } from 'react-router-dom';
+import { Time } from '../../../../../constants/Time';
+import { bridgeEndPointToRequest, exportCurl, exportAllEndPoints, exportManyEndPoints, findEndPoint, importEndPoints, insertEndPoint, removeEndPoint, sortEndPoints } from '../../../../../services/api/ServiceEndPoint';
 
-import '../../../../../style/NodeRequest.css'
+import '../../../../style/NodeRequest.css'
 import './EndPointColumn.css';
-import { Time } from '../../../../../../constants/Time';
 
 const FILTER_TARGETS = searchOptions().map(o => o.name);
 const FILTER_DEFAULT = FILTER_TARGETS[0] || "name";
@@ -34,11 +34,7 @@ const FILTER_CACHE = {
     keyValue: "FilterValueEndPoint"
 }
 
-interface EndPointColumnProps {
-    setCursor: (cursor: string) => void;
-}
-
-export function EndPointColumn({ setCursor }: EndPointColumnProps) {
+export function EndPointColumn() {
     const navigate = useNavigate();
 
     const cache = useStoreCache();
@@ -203,7 +199,7 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
     }
 
     const actionShowCurl = async (item: LiteEndPoint) => {
-        const curl = await endPointToCurl(item._id, true);
+        const curl = await exportCurl(item._id, true);
         const { width, height } = calculateWindowSize(curl, {
             minWidth: 550,
             minHeight: 200
@@ -241,6 +237,7 @@ export function EndPointColumn({ setCursor }: EndPointColumnProps) {
     const viewRequest = async (item: LiteEndPoint) => {
         const request = await bridgeEndPointToRequest(item);
         const itemRequest = fromRequest(request);
+        
         cacheAndFocus(itemRequest, cache);
         navigate("/client");
     }

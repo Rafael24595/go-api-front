@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../../interfaces/client/context/Context";
-import { findContext, findUserContext, insertContext } from "../../services/api/ServiceStorage";
+import { findContext, findUserContext, insertContext } from "../../services/api/ServiceContext";
 import { generateHash } from "../../services/Utils";
 import { CacheContext } from "../../interfaces/client/Cache";
 import { useStoreCache } from "../StoreProviderCache";

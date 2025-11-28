@@ -31,6 +31,7 @@ export function MockBody() {
         }));
 
     const cursorChange = (cursor: string) => {
+        setCursor(cursor);
         store(CURSOR_KEY, cursor);
     };
 

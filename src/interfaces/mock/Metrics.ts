@@ -1,5 +1,5 @@
 import { Dict } from "../../types/Dict";
-import { ItemEndPoint } from "./EndPoint";
+import { ItemEndPoint, LiteEndPoint } from "./EndPoint";
 
 export interface Metrics {
     end_point: string;
@@ -14,7 +14,7 @@ export interface Metrics {
     avg_latency: number;
 }
 
-export const emptyMetrics = (endPoint: ItemEndPoint): Metrics => {
+export const emptyMetrics = (endPoint: ItemEndPoint | LiteEndPoint): Metrics => {
     return {
         end_point: endPoint._id,
         timestamp: 0,
