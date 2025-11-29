@@ -230,14 +230,14 @@ export function EndPointColumn() {
                     type: "button",
                 }
             ],
-            time:  Time.Minute * 5
+            time: Time.Minute * 5
         });
     }
 
     const viewRequest = async (item: LiteEndPoint) => {
         const request = await bridgeEndPointToRequest(item);
         const itemRequest = fromRequest(request);
-        
+
         cacheAndFocus(itemRequest, cache);
         navigate("/client");
     }
@@ -257,7 +257,7 @@ export function EndPointColumn() {
     }
 
     const onCloseModal = () => {
-        setModalStatus(false);
+        hideModal();
     };
 
     const parseBlob = <EndPoint,>(blob: string): { items: EndPoint[], warning?: string } => {

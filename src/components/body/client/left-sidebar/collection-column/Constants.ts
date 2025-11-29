@@ -1,5 +1,6 @@
 import { LiteItemCollection, LiteItemNodeRequest } from "../../../../../interfaces/client/collection/Collection"
 import { LiteRequest } from "../../../../../interfaces/client/request/Request";
+import { ComboForm } from "../../../../../interfaces/ComboOption";
 
 export const collectionGroupOptions = (actions: {
     openOpenaApiModal: () => void;
@@ -185,45 +186,37 @@ export const requestOptions = (collection: LiteItemCollection, node: LiteItemNod
     ]
 }
 
-export const searchOptions = (actions: {
-    onFilterTargetChange: (value: string) => void;
-}) => {
+export const searchOptions = (): ComboForm[] => {
     return [
         {
             label: "Name",
             name: "name",
             title: "Filter by name",
-            action: () => actions.onFilterTargetChange("name")
         },
         {
             label: "Date",
             name: "timestamp",
             title: "Filter by date",
-            action: () => actions.onFilterTargetChange("timestamp")
         },
         {
             label: "Request Name",
             name: "req-name",
             title: "Filter by request name",
-            action: () => actions.onFilterTargetChange("req-name")
         },
         {
             label: "Request Date",
             name: "req-timestamp",
             title: "Filter by request date",
-            action: () => actions.onFilterTargetChange("req-timestamp")
         },
         {
             label: "Method",
             name: "method",
             title: "Filter by method",
-            action: () => actions.onFilterTargetChange("method")
         },
         {
             label: "Uri",
             name: "uri",
             title: "Filter by Uri",
-            action: () => actions.onFilterTargetChange("uri")
         },
     ]
 }

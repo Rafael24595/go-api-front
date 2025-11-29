@@ -10,7 +10,6 @@ import { calculateWindowSize, downloadFile } from '../../../../../services/Utils
 import { ImportRequestModal } from '../../../../client/collection/ImportRequestModal';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { useAlert } from '../../../../utils/alert/Alert';
-import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useStoreSession } from '../../../../../store/system/StoreProviderSession';
 import { VerticalDragDrop, PositionWrapper, FilterResult } from '../../../../utils/drag/VerticalDragDrop';
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
@@ -22,27 +21,16 @@ import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
 import { ImportCurlModal } from '../../../../client/collection/ImportCurlModal';
 import { requestCollect } from '../../../../../services/api/ServiceCollection';
+import { emptyFilter, FilterBar, PayloadFilter } from '../../../../utils/filter-bar/FilterBar';
 
 import './StoredColumn.css';
 
-const FILTER_TARGET_KEY = "StoredColumnDetailsFilterTarget";
-const FILTER_VALUE_KEY = "StoredColumnnDetailsFilterValue";
+const FILTER_TARGETS = searchOptions().map(o => o.name);
+const FILTER_DEFAULT = FILTER_TARGETS[0] || "name";
 
-const DEFAULT_CURSOR = "name";
-const VALID_CURSORS = Object.keys(newRequest("anonymous"))
-    .map(k => k as keyof LiteRequest)
-
-interface PayloadDrag {
-    request: Optional<LiteRequest>;
-}
-
-interface PayloadFilter {
-    target: keyof LiteRequest;
-    value: string;
-}
-
-interface PayloadModalRequest {
-    status: boolean;
+const FILTER_CACHE = {
+    keyTarget: "FilterTargetStored",
+    keyValue: "FilterValueStored"
 }
 
 interface PayloadModalCollect {
@@ -51,46 +39,23 @@ interface PayloadModalCollect {
     move: boolean;
 }
 
-interface PayloadModalCurl {
-    status: boolean;
-}
-
 export function StoredColumn() {
     const { userData } = useStoreSession();
-    const { find, store } = useStoreStatus();
-
+    const { push, ask } = useAlert();
     const { loadThemeWindow } = useStoreTheme();
 
     const { request, cleanRequest, discardRequest, defineFreeRequest, fetchFreeRequest, insertRequest, isCached } = useStoreRequest();
     const { stored, fetchStored, fetchCollection, updateStoredOrder } = useStoreCollections();
 
-    const { push, ask } = useAlert();
+    const [dragData, setDragData] = useState<Optional<LiteRequest>>(undefined);
+    const [filterData, setFilterData] = useState<PayloadFilter>(emptyFilter(FILTER_DEFAULT));
 
-    const [dragData, setDragData] = useState<PayloadDrag>({
-        request: undefined,
-    });
-
-    const [filterData, setFilterData] = useState<PayloadFilter>({
-        target: find(FILTER_TARGET_KEY, {
-            def: DEFAULT_CURSOR,
-            range: VALID_CURSORS,
-        }),
-        value: find(FILTER_VALUE_KEY, {
-            def: ""
-        })
-    });
-
-    const [modalRequestData, setModalRequestData] = useState<PayloadModalRequest>({
-        status: false,
-    });
+    const [modalImportRequest, setModalImportRequest] = useState<boolean>(false);
+    const [modalImportCurl, setModalImportCurl] = useState<boolean>(false);
 
     const [modalCollectData, setModalCollectData] = useState<PayloadModalCollect>({
         request: newRequest(userData.username),
         move: false,
-        status: false,
-    });
-
-    const [modalCurlData, setModalCurlData] = useState<PayloadModalCurl>({
         status: false,
     });
 
@@ -105,45 +70,14 @@ export function StoredColumn() {
         await fetchFreeRequest(result.request);
     }
 
-    const openCollectModal = (item: LiteRequest) => {
-        const newItem = { ...item };
-        newItem.name = `${item.name}-copy`;
-        setModalCollectData({
-            status: true,
-            request: newItem,
-            move: false,
+    const onFilterChange = (target: string, value: string) => {
+        setFilterData({
+            target, value
         });
-    };
-
-    const onFilterTargetChange = (value: string) => {
-        const target = VALID_CURSORS.find(c => c == value)
-            ? value as keyof LiteRequest
-            : DEFAULT_CURSOR;
-        store(FILTER_TARGET_KEY, target);
-        setFilterData((prevData) => ({
-            ...prevData,
-            target: target,
-        }));
-    }
-
-    const onFilterValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        store(FILTER_VALUE_KEY, event.target.value);
-        setFilterData((prevData) => ({
-            ...prevData,
-            value: event.target.value,
-        }));
-    }
-
-    const onFilterValueClean = () => {
-        store(FILTER_VALUE_KEY, "");
-        setFilterData((prevData) => ({
-            ...prevData,
-            value: "",
-        }));
     }
 
     const applyFilter = (item: LiteRequest): FilterResult<LiteRequest> => {
-        let field = item[filterData.target]
+        let field = item[filterData.target as keyof LiteRequest];
         if (filterData.value == "" || field == undefined) {
             return { matches: true };
         }
@@ -162,24 +96,18 @@ export function StoredColumn() {
     }
 
     const isRequestDrag = (item: LiteRequest) => {
-        if (!dragData.request) {
+        if (!dragData) {
             return false
         }
-        return item._id == dragData.request._id;
+        return item._id == dragData._id;
     }
 
     const onRequestDrag = async (item: PositionWrapper<LiteRequest>) => {
-        setDragData((prevData) => ({
-            ...prevData,
-            request: item.item,
-        }));
+        setDragData(item.item);
     };
 
     const onRequestDrop = async () => {
-        setDragData((prevData) => ({
-            ...prevData,
-            request: undefined,
-        }));
+        setDragData(undefined);
     };
 
     const updateOrder = async (items: PositionWrapper<LiteRequest>[]) => {
@@ -191,13 +119,15 @@ export function StoredColumn() {
         await fetchStored();
     };
 
-    const openImportModal = () => {
-        setModalRequestData({
-            status: true
-        });
+    const showModalImportRequest = () => {
+        setModalImportRequest(true);
     };
 
-    const submitImportModal = async (requests: ItemRequest[]) => {
+    const hideModalImportRequest = () => {
+        setModalImportRequest(false);
+    };
+
+    const onSubmitModalImportRequest = async (requests: ItemRequest[]) => {
         const collection = await importRequests(requests).catch(e =>
             push({
                 title: `[${e.statusCode}] ${e.statusText}`,
@@ -208,17 +138,54 @@ export function StoredColumn() {
             return;
         }
 
-        closeImportModal();
+        hideModalImportRequest();
         await fetchStored();
     }
 
-    const closeImportModal = () => {
-        setModalRequestData({
-            status: false
+    const onCloseModalImportRequest = () => {
+        hideModalImportRequest();
+    };
+
+    const openCurlModal = () => {
+        setModalImportCurl(true);
+    };
+
+    const hideCurlModal = () => {
+        setModalImportCurl(false);
+    };
+
+    const onSubmitModalImportCurl = async (curls: string[]) => {
+        const collection = await importCurl(curls)
+            .catch(e =>
+                push({
+                    title: `[${e.statusCode}] ${e.statusText}`,
+                    category: EAlertCategory.ERRO,
+                    content: e.message,
+                }));
+        if (!collection) {
+            return;
+        }
+
+        hideCurlModal();
+        await fetchStored();
+    }
+
+    const onClosetModalImportCurl = () => {
+        hideCurlModal();
+    };
+
+    const showModalCollect = (item: LiteRequest) => {
+        const newItem = { ...item };
+        newItem.name = `${item.name}-copy`;
+
+        setModalCollectData({
+            status: true,
+            request: newItem,
+            move: false,
         });
     };
 
-    const openMoveModal = (item: LiteRequest) => {
+    const showModalMove = (item: LiteRequest) => {
         setModalCollectData({
             status: true,
             request: item,
@@ -226,7 +193,14 @@ export function StoredColumn() {
         });
     };
 
-    const submitMoveModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
+    const hideModalCollect = () => {
+        setModalCollectData((prevData) => ({
+            ...prevData,
+            status: false
+        }));
+    };
+
+    const onSubmitModalCollect = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
         const action = await findAction(item);
         const request = action.request;
 
@@ -248,53 +222,9 @@ export function StoredColumn() {
         }
     }
 
-    const closeMoveModal = () => {
-        setModalCollectData((prevData) => ({
-            ...prevData,
-            status: false
-        }));
+    const onCloseModalCollect = () => {
+        hideModalCollect();
     };
-
-    const openCurlModal = () => {
-        setModalCurlData({
-            status: true
-        });
-    };
-
-    const submitCurlModal = async (curls: string[]) => {
-        const collection = await importCurl(curls)
-            .catch(e =>
-                push({
-                    title: `[${e.statusCode}] ${e.statusText}`,
-                    category: EAlertCategory.ERRO,
-                    content: e.message,
-                }));
-        if (!collection) {
-            return;
-        }
-
-        closeCurlModal();
-        await fetchStored();
-    }
-
-    const closeCurlModal = () => {
-        setModalCurlData({
-            status: false
-        });
-    };
-
-    const deleteRequest = async (item: LiteRequest) => {
-        try {
-            await deleteAction(item);
-            discardRequest(item);
-            await fetchStored();
-            if (request._id == item._id) {
-                cleanRequest();
-            }
-        } catch (error) {
-            console.error("Error deleting request:", error);
-        }
-    }
 
     const actionExportAll = async () => {
         const requests = await exportAllRequests();
@@ -383,6 +313,19 @@ export function StoredColumn() {
         loadThemeWindow(width, height, <CodeArea code={curl} />);
     }
 
+    const deleteRequest = async (item: LiteRequest) => {
+        try {
+            await deleteAction(item);
+            discardRequest(item);
+            await fetchStored();
+            if (request._id == item._id) {
+                cleanRequest();
+            }
+        } catch (error) {
+            console.error("Error deleting request:", error);
+        }
+    }
+
     return (
         <>
             <div className="column-option options border-bottom">
@@ -392,9 +335,10 @@ export function StoredColumn() {
                 <button type="button" className="button-anchor" onClick={() => insertNewRequest()}>New</button>
                 <div id="right-options show">
                     <Combo options={storedGroupOptions({
-                        exportAll: actionExportAll,
+                        export: actionExportAll,
                         fetch: fetchStored,
-                        openImportModal, openCurlModal,
+                        request: showModalImportRequest,
+                        curl: openCurlModal,
                     })} />
                 </div>
             </div>
@@ -427,8 +371,8 @@ export function StoredColumn() {
                             rename: actionRename,
                             clone: actionClone,
                             duplicate: actionDuplicate,
-                            showCollect: openCollectModal,
-                            showMove: openMoveModal,
+                            showCollect: showModalCollect,
+                            showMove: showModalMove,
                             discard: discardRequest,
                             showCurl: actionShowCurl,
                             isCached,
@@ -439,33 +383,25 @@ export function StoredColumn() {
                     <p className="no-data"> - No requests found - </p>
                 )}
             />
-            <div id="search-box">
-                <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
-                <input className="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target} />
-                <div className="search-combo-container">
-                    <Combo
-                        custom={(
-                            <span>🔎</span>
-                        )}
-                        mode="select"
-                        focus={filterData.target}
-                        options={searchOptions({ onFilterTargetChange })} />
-                </div>
-            </div>
+            <FilterBar
+                filterDefault={FILTER_DEFAULT}
+                filterTargets={FILTER_TARGETS}
+                options={searchOptions()}
+                cache={FILTER_CACHE}
+                onFilterChange={onFilterChange} />
             <ImportRequestModal
-                isOpen={modalRequestData.status}
-                onSubmit={submitImportModal}
-                onClose={closeImportModal} />
+                isOpen={modalImportRequest}
+                onSubmit={onSubmitModalImportRequest}
+                onClose={onCloseModalImportRequest} />
+            <ImportCurlModal
+                isOpen={modalImportCurl}
+                onSubmit={onSubmitModalImportCurl}
+                onClose={onClosetModalImportCurl} />
             <CollectModal
                 isOpen={modalCollectData.status}
                 request={modalCollectData.request}
-                onSubmit={submitMoveModal}
-                onClose={closeMoveModal} />
-            <ImportCurlModal
-                isOpen={modalCurlData.status}
-                onSubmit={submitCurlModal}
-                onClose={closeCurlModal}
-            />
+                onSubmit={onSubmitModalCollect}
+                onClose={onCloseModalCollect} />
         </>
     );
 }

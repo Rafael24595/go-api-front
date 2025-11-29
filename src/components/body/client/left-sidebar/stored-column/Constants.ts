@@ -1,9 +1,10 @@
 import { LiteRequest } from "../../../../../interfaces/client/request/Request";
+import { ComboForm } from "../../../../../interfaces/ComboOption";
 
 export const storedGroupOptions = (actions: {
-    exportAll: () => void;
-    openImportModal: () => void;
-    openCurlModal: () => void;
+    export: () => void;
+    request: () => void;
+    curl: () => void;
     fetch: () => void;
 
 }) => {
@@ -12,19 +13,19 @@ export const storedGroupOptions = (actions: {
             icon: "💾",
             label: "Export",
             title: "Export all",
-            action: actions.exportAll
+            action: actions.export
         },
         {
             icon: "💽",
             label: "Import",
             title: "Import collections",
-            action: actions.openImportModal
+            action: actions.request
         },
         {
             icon: "⌨️",
             label: "Import",
             title: "Import cURL",
-            action: actions.openCurlModal
+            action: actions.curl
         },
         {
             icon: "🔄",
@@ -112,33 +113,27 @@ export const storedOptions = (request: LiteRequest, actions: {
     ];
 }
 
-export const searchOptions = (actions: {
-    onFilterTargetChange: (value: string) => void;
-}) => {
+export const searchOptions = (): ComboForm[] => {
     return [
         {
             label: "Name",
             name: "name",
             title: "Filter by name",
-            action: () => actions.onFilterTargetChange("name")
         },
         {
             label: "Date",
             name: "timestamp",
             title: "Filter by date",
-            action: () => actions.onFilterTargetChange("timestamp")
         },
         {
             label: "Method",
             name: "method",
             title: "Filter by method",
-            action: () => actions.onFilterTargetChange("method")
         },
         {
             label: "Uri",
             name: "uri",
             title: "Filter by Uri",
-            action: () => actions.onFilterTargetChange("uri")
         },
     ]
 }

@@ -13,7 +13,6 @@ import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { downloadFile } from '../../../../../services/Utils';
 import { ImportCollectionModal } from '../../../../client/collection/ImportCollectionModal';
 import { ImportRequestModal } from '../../../../client/collection/ImportRequestModal';
-import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useStoreSession } from '../../../../../store/system/StoreProviderSession';
 import { useStoreContext } from '../../../../../store/client/StoreProviderContext';
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
@@ -26,14 +25,19 @@ import { CollectionRequests } from './CollectionRequests';
 import { CollectModal } from '../../../../client/collection/CollectModal';
 import { ImportCurlModal } from '../../../../client/collection/ImportCurlModal';
 import { cloneCollection, deleteCollection, exportAllCollections, exportManyCollections, findCollection, imporOpenApi, importCollections, importToCollection, insertCollection, requestCollect } from '../../../../../services/api/ServiceCollection';
+import { emptyFilter, FilterBar } from '../../../../utils/filter-bar/FilterBar';
 
 import './CollectionColumn.css';
 
-const FILTER_TARGET_KEY = "CollectionColumnDetailsFilterTarget";
-const FILTER_VALUE_KEY = "CollectionColumnDetailsFilterValue";
-const CURSOR_KEY = "CollectionColumnDetailsCursor";
+const FILTER_TARGETS = searchOptions().map(o => o.name);
+const FILTER_DEFAULT = FILTER_TARGETS[0] || "name";
 
-const DEFAULT_CURSOR = "name";
+const FILTER_CACHE = {
+    keyTarget: "FilterTargetCollection",
+    keyValue: "FilterValueCollection"
+}
+
+const CURSOR_KEY = "CollectionColumnDetailsCursor";
 
 interface PayloadFilter {
     target: string;
@@ -43,14 +47,6 @@ interface PayloadFilter {
 interface PayloadDrag {
     request: Optional<LiteItemNodeRequest>;
     collection: Optional<LiteItemCollection>;
-}
-
-interface PayloadModalCollection {
-    status: boolean;
-}
-
-interface PayloadModalOAPI {
-    status: boolean;
 }
 
 interface PayloadModalRequest {
@@ -72,35 +68,21 @@ interface PayloadModalCurl {
 
 export function CollectionColumn() {
     const { push, ask } = useAlert();
-    const { find, store } = useStoreStatus();
-
     const { userData } = useStoreSession();
 
     const context = useStoreContext();
     const { parent, cleanRequest, discardRequest, isParentCached } = useStoreRequest();
     const { collection, fetchCollection, fetchCollectionItem, updateCollectionsOrder } = useStoreCollections();
 
-    const [filterData, setFilterData] = useState<PayloadFilter>({
-        target: find(FILTER_TARGET_KEY, {
-            def: DEFAULT_CURSOR
-        }),
-        value: find(FILTER_VALUE_KEY, {
-            def: ""
-        })
-    });
+    const [filterData, setFilterData] = useState<PayloadFilter>(emptyFilter(FILTER_DEFAULT));
 
     const [dragData, setDragData] = useState<PayloadDrag>({
         request: undefined,
         collection: undefined,
     });
 
-    const [modalCollectionData, setModalCollectionData] = useState<PayloadModalCollection>({
-        status: false
-    });
-
-    const [modalOapiData, setModalOapiData] = useState<PayloadModalOAPI>({
-        status: false
-    });
+    const [modalImportCollection, setModalImportCollection] = useState<boolean>(false);
+    const [modalImportOpenApi, setModalImportOpenApi] = useState<boolean>(false);
 
     const [modalCollectData, setModalCollectData] = useState<PayloadModalCollect>({
         status: false,
@@ -203,28 +185,10 @@ export function CollectionColumn() {
         await fetchCollection();
     }
 
-    const onFilterTargetChange = (value: string) => {
-        store(FILTER_TARGET_KEY, value);
-        setFilterData((prevData) => ({
-            ...prevData,
-            target: value,
-        }));
-    }
-
-    function onFilterValueChange(event: React.ChangeEvent<HTMLInputElement>): void {
-        store(FILTER_VALUE_KEY, event.target.value);
-        setFilterData((prevData) => ({
-            ...prevData,
-            value: event.target.value,
-        }));
-    }
-
-    function onFilterValueClean(): void {
-        store(FILTER_VALUE_KEY, "");
-        setFilterData((prevData) => ({
-            ...prevData,
-            value: "",
-        }));
+    const onFilterChange = (target: string, value: string) => {
+        setFilterData({
+            target, value
+        });
     }
 
     function applyFilter(item: LiteItemCollection): FilterResult<LiteItemCollection> {
@@ -349,13 +313,15 @@ export function CollectionColumn() {
         await fetchCollection();
     };
 
-    const openImportModal = () => {
-        setModalCollectionData({
-            status: true
-        });
+    const showModalImportCollection = () => {
+        setModalImportCollection(true);
     };
 
-    const submitImportCollectionModal = async (collections: ItemCollection[]) => {
+    const hideModalImportCollection = () => {
+        setModalImportCollection(false);
+    };
+
+    const onSubmitModalImportCollection = async (collections: ItemCollection[]) => {
         const collection = await importCollections(collections).catch(e =>
             push({
                 title: `[${e.statusCode}] ${e.statusText}`,
@@ -366,23 +332,23 @@ export function CollectionColumn() {
             return;
         }
 
-        closeImportCollectionModal();
+        hideModalImportCollection();
         await fetchCollection();
     }
 
-    const closeImportCollectionModal = () => {
-        setModalCollectionData({
-            status: false
-        });
+    const onCloseModalImportCollection = () => {
+        hideModalImportCollection();
     };
 
-    const openOpenaApiModal = () => {
-        setModalOapiData({
-            status: true
-        });
+    const showModalImportOpenApi = () => {
+        setModalImportOpenApi(true);
     };
 
-    const submitImportOpenaApiModal = async (file: File) => {
+    const hideModalImportOpenApi = () => {
+        setModalImportOpenApi(false);
+    };
+
+    const onSubmitModalImportOpenApi = async (file: File) => {
         const form = new FormData();
         form.append('file', file);
 
@@ -396,26 +362,31 @@ export function CollectionColumn() {
             return;
         }
 
-        closeImportOpenaApiModal();
+        hideModalImportOpenApi();
         await fetchCollection();
     }
 
-    const closeImportOpenaApiModal = () => {
-        setModalOapiData({
-            status: false
-        });
+    const onCloseModalImportOpenApi = () => {
+        setModalImportOpenApi(false);
     };
 
-    const openImportRequestModal = (items: LiteItemCollection) => {
+    const showModalImportRequest = (items: LiteItemCollection) => {
         setModalRequestData({
             status: true,
             collection: items,
         });
     };
 
-    const submitImportRequestModal = async (items: ItemRequest[]) => {
+    const hideModalImportRequest = () => {
+        setModalRequestData({
+            status: false,
+            collection: undefined,
+        });
+    };
+
+    const onSubmitModalImportRequest = async (items: ItemRequest[]) => {
         if (!modalRequestData.collection) {
-            closeImportCollectionModal();
+            onCloseModalImportCollection();
             return;
         }
 
@@ -429,20 +400,52 @@ export function CollectionColumn() {
             return;
         }
 
-        closeImportRequestModal();
+        hideModalImportRequest();
         await fetchCollection();
     }
 
-    const closeImportRequestModal = () => {
-        setModalRequestData({
-            status: false,
-            collection: undefined,
+    const onCloseModalImportRequest = () => {
+        hideModalImportRequest();
+    };
+
+    const openCurlModal = (itemCollection: LiteItemCollection) => {
+        setModalCurlData({
+            status: true,
+            collection: itemCollection
         });
     };
 
-    const showDuplicateModal = (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
+    const hideCurlModal = () => {
+        setModalCurlData({
+            status: false,
+            collection: undefined
+        });
+    };
+
+    const onSubmitModalImportCurl = async (curls: string[]) => {
+        const collection = await importCurl(curls, modalCurlData.collection?._id)
+            .catch(e =>
+                push({
+                    title: `[${e.statusCode}] ${e.statusText}`,
+                    category: EAlertCategory.ERRO,
+                    content: e.message,
+                }));
+        if (!collection) {
+            return;
+        }
+
+        hideCurlModal();
+        await fetchCollection();
+    }
+
+    const onClosetModalImportCurl = () => {
+        hideCurlModal();
+    };
+
+    const showModalDuplicateRequest = (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
         const newRequest = { ...itemRequest };
-        newRequest.name = `${newRequest.name}-copy`
+        newRequest.name = `${newRequest.name}-copy`;
+
         setModalCollectData({
             status: true,
             move: false,
@@ -451,7 +454,7 @@ export function CollectionColumn() {
         });
     };
 
-    const showMoveModal = (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
+    const showModalMoveRequest = (itemCollection: LiteItemCollection, itemRequest: LiteRequest) => {
         setModalCollectData({
             status: true,
             move: true,
@@ -460,7 +463,14 @@ export function CollectionColumn() {
         });
     };
 
-    const submitCollectionModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
+    const hideModalCollect = () => {
+        setModalCollectData((prevData) => ({
+            ...prevData,
+            status: false
+        }));
+    };
+
+    const onSubmitModalCollect = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
         const action = await findAction(item);
         const request = action.request;
 
@@ -477,41 +487,8 @@ export function CollectionColumn() {
         await fetchCollection();
     }
 
-    const closeCollectionModal = () => {
-        setModalCollectData((prevData) => ({
-            ...prevData,
-            status: false
-        }));
-    };
-
-    const showCurlModal = (itemCollection: LiteItemCollection) => {
-        setModalCurlData({
-            status: true,
-            collection: itemCollection
-        });
-    };
-
-    const submitCurlModal = async (curls: string[]) => {
-        const collection = await importCurl(curls, modalCurlData.collection?._id)
-            .catch(e =>
-                push({
-                    title: `[${e.statusCode}] ${e.statusText}`,
-                    category: EAlertCategory.ERRO,
-                    content: e.message,
-                }));
-        if (!collection) {
-            return;
-        }
-
-        closeCurlModal();
-        await fetchCollection();
-    }
-
-    const closeCurlModal = () => {
-        setModalCurlData({
-            status: false,
-            collection: undefined
-        });
+    const onCloseModalCollect = () => {
+        hideModalCollect();
     };
 
     return (
@@ -523,7 +500,7 @@ export function CollectionColumn() {
                 <button type="button" className="button-anchor" onClick={insert}>New</button>
                 <div id="right-options show">
                     <Combo options={collectionGroupOptions({
-                        openOpenaApiModal, exportAll, openImportModal,
+                        openOpenaApiModal: showModalImportOpenApi, exportAll, openImportModal: showModalImportCollection,
                         fetchCollection,
                     })} />
                 </div>
@@ -552,10 +529,10 @@ export function CollectionColumn() {
                             <Combo options={collectionOptions(cursorCollection, {
                                 remove, rename, clone,
                                 newCollectionRequest, exportCollection, exportRequests,
-                                openImportRequestModal, discard, isParentCached,
+                                openImportRequestModal: showModalImportRequest, discard, isParentCached,
                                 discardContext: context.discardContext,
                                 isContextCached: context.isParentCached,
-                                showCurlModal
+                                showCurlModal: openCurlModal
                             })} />)}
                         subsummary={(
                             <div className="request-sign-date">
@@ -568,8 +545,8 @@ export function CollectionColumn() {
                         {!isCollectionDrag(cursorCollection) && (
                             <CollectionRequests
                                 collection={cursorCollection}
-                                showDuplicateModal={showDuplicateModal}
-                                showMoveModal={showMoveModal} />
+                                showDuplicateModal={showModalDuplicateRequest}
+                                showMoveModal={showModalMoveRequest} />
                         )}
                     </Details>
                 )}
@@ -577,41 +554,34 @@ export function CollectionColumn() {
                     <p className="no-data"> - No requests found - </p>
                 )}
             />
-            <div id="search-box">
-                <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
-                <input className="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target} />
-                <div className="search-combo-container">
-                    <Combo
-                        custom={(
-                            <span>🔎</span>
-                        )}
-                        mode="select"
-                        focus={filterData.target}
-                        options={searchOptions({ onFilterTargetChange })} />
-                </div>
-            </div>
+            <FilterBar
+                filterDefault={FILTER_DEFAULT}
+                filterTargets={FILTER_TARGETS}
+                options={searchOptions()}
+                cache={FILTER_CACHE}
+                onFilterChange={onFilterChange} />
             <ImportCollectionModal
-                isOpen={modalCollectionData.status}
-                onSubmit={submitImportCollectionModal}
-                onClose={closeImportCollectionModal} />
+                isOpen={modalImportCollection}
+                onSubmit={onSubmitModalImportCollection}
+                onClose={onCloseModalImportCollection} />
             <ImportOpenApiModal
-                isOpen={modalOapiData.status}
-                onSubmit={submitImportOpenaApiModal}
-                onClose={closeImportOpenaApiModal} />
+                isOpen={modalImportOpenApi}
+                onSubmit={onSubmitModalImportOpenApi}
+                onClose={onCloseModalImportOpenApi} />
             <ImportRequestModal
                 isOpen={modalRequestData.status}
-                onSubmit={submitImportRequestModal}
-                onClose={closeImportRequestModal} />
+                onSubmit={onSubmitModalImportRequest}
+                onClose={onCloseModalImportRequest} />
+            <ImportCurlModal
+                isOpen={modalCurlData.status}
+                onSubmit={onSubmitModalImportCurl}
+                onClose={onClosetModalImportCurl} />
             <CollectModal
                 isOpen={modalCollectData.status}
                 request={modalCollectData.request}
                 parent={modalCollectData.collection?._id}
-                onSubmit={submitCollectionModal}
-                onClose={closeCollectionModal} />
-            <ImportCurlModal
-                isOpen={modalCurlData.status}
-                onSubmit={submitCurlModal}
-                onClose={closeCurlModal} />
+                onSubmit={onSubmitModalCollect}
+                onClose={onCloseModalCollect} />
         </>
     )
 }
