@@ -5,7 +5,7 @@ import { deleteHistoric as fetchDeleteHistoric } from '../../../../../services/a
 import { millisecondsToDate } from '../../../../../services/Tools';
 import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
 import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
-import { CollectModal } from '../../../../client/collection/CollectModal';
+import { CollectRequestModal } from '../../../../client/collection/CollectRequestModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';
 import { useStoreSession } from '../../../../../store/system/StoreProviderSession';
@@ -177,7 +177,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                     <p className="no-data"> - No history found - </p>
                 )}
             </div>
-            <CollectModal
+            <CollectRequestModal
                 isOpen={modalData.status}
                 request={modalData.request}
                 onSubmit={submitModal}

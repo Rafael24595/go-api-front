@@ -1,6 +1,8 @@
 import { LiteItemCollection, LiteItemNodeRequest } from "../../../../../interfaces/client/collection/Collection"
 import { LiteRequest } from "../../../../../interfaces/client/request/Request";
 import { ComboForm } from "../../../../../interfaces/ComboOption";
+import { parseJsonBlob } from "../../../../../services/Utils";
+import { ImportModalDataProps, ImportModalInput } from "../../../../form/import-modal/ImportModal";
 
 export const collectionGroupOptions = (actions: {
     openOpenaApiModal: () => void;
@@ -219,4 +221,35 @@ export const searchOptions = (): ComboForm[] => {
             title: "Filter by Uri",
         },
     ]
+}
+
+export const importModalCollectionDefinition = <T,>(): ImportModalDataProps<T> => {
+    return {
+        title: <span>Import Collections</span>,
+        cacheKey: "ImportModalCollectionInputType",
+        dimension: {
+            width: "50%",
+            height: "45%",
+            maxWidth: "800px",
+            maxHeight: "450px"
+        },
+        placeholder: "",
+        cursors: [ImportModalInput.CURSOR_LOCAL, ImportModalInput.CURSOR_TEXT],
+        parseBlob: parseJsonBlob,
+    }
+}
+
+export const importModalOpenApiDefinition = <T,>(): ImportModalDataProps<T> => {
+    return {
+        title: <span>Upload an OpenAPI File</span>,
+        cacheKey: "ImportModalOpenApiInputType",
+        dimension: {
+            width: "50%",
+            height: "45%",
+            maxWidth: "800px",
+            maxHeight: "450px"
+        },
+        placeholder: "",
+        cursors: [ImportModalInput.CURSOR_LOCAL, ImportModalInput.CURSOR_REMOTE, ImportModalInput.CURSOR_TEXT],
+    }
 }

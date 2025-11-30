@@ -1,3 +1,4 @@
+import { PaseBlobPayload } from "../components/form/import-modal/ImportModal";
 import { ItemStatusCategoryKeyValue, StatusCategoryKeyValue } from "../interfaces/StatusCategoryKeyValue";
 import { StatusKeyValue } from "../interfaces/StatusKeyValue";
 import { ItemStatusValue, PrivateStatusValue, StatusValue } from "../interfaces/StatusValue";
@@ -275,3 +276,26 @@ export const joinMessages = (...messages: string[][]) => {
 
     return title;
 };
+
+export const parseJsonBlob = <T,>(blob: string): PaseBlobPayload<T> => {
+    let endPoints: T[] = [];
+    try {
+        const json = JSON.parse(blob);
+        if (!Array.isArray(json)) {
+            endPoints = [json];
+        } else {
+            endPoints = json;
+        }
+    } catch (e) {
+        return { items: [], warning: `Invalid format: ${e}` };
+    }
+
+    return { items: endPoints, warning: undefined };
+}
+
+export const parseCurlBlob = (blob: string): PaseBlobPayload<string> => {
+    const items = blob.split("\n\n")
+        .map(c => c.trim())
+        .filter(c => c.startsWith("curl"));
+    return { items };
+}

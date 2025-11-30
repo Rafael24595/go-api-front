@@ -12,7 +12,7 @@ import { RequestNode } from '../../../../../services/api/Requests';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
-import { calculateWindowSize, downloadFile } from '../../../../../services/Utils';
+import { calculateWindowSize, downloadFile, parseJsonBlob } from '../../../../../services/Utils';
 import { ImportModal, SubmitArgs } from '../../../../form/import-modal/ImportModal';
 import { CodeArea } from '../../../../utils/code-area/CodeArea';
 import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
@@ -260,22 +260,6 @@ export function EndPointColumn() {
         hideModal();
     };
 
-    const parseBlob = <EndPoint,>(blob: string): { items: EndPoint[], warning?: string } => {
-        let endPoints: EndPoint[] = [];
-        try {
-            const json = JSON.parse(blob);
-            if (!Array.isArray(json)) {
-                endPoints = [json];
-            } else {
-                endPoints = json;
-            }
-        } catch (e) {
-            return { items: [], warning: `Invalid format: ${e}` };
-        }
-
-        return { items: endPoints, warning: undefined };
-    }
-
     return (
         <>
             <div className="column-option options border-bottom">
@@ -352,9 +336,7 @@ export function EndPointColumn() {
                 isOpen={modalStatus}
                 onClose={onCloseModal}
                 onSubmit={onSubmitModal}
-                modal={importModalDefinition({
-                    parseBlob
-                })}
+                modal={importModalDefinition()}
             />
         </>
     );

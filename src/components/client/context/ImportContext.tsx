@@ -5,7 +5,7 @@ import { formatBytes, millisecondsToDate } from '../../../services/Tools';
 import { Context } from '../../../interfaces/client/context/Context';
 import { useStoreStatus } from '../../../store/StoreProviderStatus';
 
-import '../collection/ImportModal.css';
+import '../../form/import-modal/ImportModal.css';
 
 const FILE_TYPE_KEY = "ImportContextKey";
 

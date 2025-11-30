@@ -6,25 +6,29 @@ import { formatBytes, millisecondsToDate } from '../../../services/Tools';
 import { fetchFile } from '../../../services/api/HelperClient';
 import { useStoreStatus } from '../../../store/StoreProviderStatus';
 import { ModalButton } from '../../../interfaces/ModalButton';
+import { Dict } from '../../../types/Dict';
 
 import './ImportModal.css';
 
-export type SubmitArgs<T,> = { items: T[], file?: File }
+export type SubmitArgs<T> = { items: T[], file: File, args: Dict<any> };
+export type ParserBlob<T> = (blob: string) => PaseBlobPayload<T>;
+export type PaseBlobPayload<T> = { items: T[], warning?: string };
 
 interface ImportModalProps<T> {
-    modal: ImportModalDataProps,
+    modal: ImportModalDataProps<T>,
     isOpen: boolean,
+    args?: Dict<any>,
     onSubmit(payload: SubmitArgs<T>): Promise<void>,
     onClose: () => void,
 }
 
-export interface ImportModalDataProps {
+export interface ImportModalDataProps<T> {
     title: React.ReactNode,
     dimension: ImportModalDimension,
     cacheKey: string,
     cursors?: ImportModalInput[],
     placeholder?: string,
-    parseBlob: <T, >(fileBlob: string) => { items: T[], warning?: string }
+    parseBlob?: ParserBlob<T>
 }
 
 interface ImportModalDimension {
@@ -63,7 +67,7 @@ interface Payload<T> {
     fileType: string
 }
 
-export function ImportModal<T>({ modal, isOpen, onSubmit, onClose }: ImportModalProps<T>) {
+export function ImportModal<T>({ modal, isOpen, args, onSubmit, onClose }: ImportModalProps<T>) {
     const { find, store } = useStoreStatus();
     const { push } = useAlert();
 
@@ -90,7 +94,11 @@ export function ImportModal<T>({ modal, isOpen, onSubmit, onClose }: ImportModal
             return;
         }
 
-        await onSubmit({ items: data.items, file: data.file }).then(clear);
+        await onSubmit({
+            items: data.items,
+            file: data.file,
+            args: args || {}
+        }).then(clear);
     }
 
     const close = () => {
@@ -157,7 +165,7 @@ export function ImportModal<T>({ modal, isOpen, onSubmit, onClose }: ImportModal
     }
 
     const loadBlob = async (file: File) => {
-        const { items, warning } = modal.parseBlob<T>(await file.text());
+        const { items, warning } = await parseBlob(file);
         if (warning && warning != "") {
             setData((prevData) => ({
                 ...prevData,
@@ -168,13 +176,26 @@ export function ImportModal<T>({ modal, isOpen, onSubmit, onClose }: ImportModal
 
             return;
         }
-        
+
         setData((prevData) => ({
             ...prevData,
             items: items,
             warning: undefined,
             file: file,
-        }))
+        }));
+    }
+
+    const parseBlob = async (file: File): Promise<PaseBlobPayload<T>> => {
+        if (!modal.parseBlob) {
+            return { items: [], warning: "" };
+        }
+
+        const { items, warning } = modal.parseBlob(await file.text());
+        if (warning && warning != "") {
+            return { items: [], warning: warning };
+        }
+
+        return { items: items, warning: "" };
     }
 
     const buttons: ModalButton[] = [

@@ -7,25 +7,23 @@ import { useStoreRequest } from '../../../../../store/client/StoreProviderReques
 import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { Details } from '../../../../utils/details/Details';
-import { ImportOpenApiModal } from '../../../../client/collection/ImportOpenApiModal';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { downloadFile } from '../../../../../services/Utils';
-import { ImportCollectionModal } from '../../../../client/collection/ImportCollectionModal';
-import { ImportRequestModal } from '../../../../client/collection/ImportRequestModal';
 import { useStoreSession } from '../../../../../store/system/StoreProviderSession';
 import { useStoreContext } from '../../../../../store/client/StoreProviderContext';
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
 import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
 import { Optional } from '../../../../../types/Optional';
 import { VoidCallback } from '../../../../../interfaces/Callback';
-import { collectionOptions, collectionGroupOptions, searchOptions } from './Constants';
+import { collectionOptions, collectionGroupOptions, searchOptions, importModalCollectionDefinition, importModalOpenApiDefinition } from './Constants';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
 import { CollectionRequests } from './CollectionRequests';
-import { CollectModal } from '../../../../client/collection/CollectModal';
-import { ImportCurlModal } from '../../../../client/collection/ImportCurlModal';
+import { CollectRequestModal } from '../../../../client/collection/CollectRequestModal';
 import { cloneCollection, deleteCollection, exportAllCollections, exportManyCollections, findCollection, imporOpenApi, importCollections, importToCollection, insertCollection, requestCollect } from '../../../../../services/api/ServiceCollection';
 import { emptyFilter, FilterBar } from '../../../../utils/filter-bar/FilterBar';
+import { ImportModal, SubmitArgs } from '../../../../form/import-modal/ImportModal';
+import { importModalCurlDefinition, importModalRequestDefinition } from '../../Constants';
 
 import './CollectionColumn.css';
 
@@ -321,13 +319,14 @@ export function CollectionColumn() {
         setModalImportCollection(false);
     };
 
-    const onSubmitModalImportCollection = async (collections: ItemCollection[]) => {
-        const collection = await importCollections(collections).catch(e =>
-            push({
-                title: `[${e.statusCode}] ${e.statusText}`,
-                category: EAlertCategory.ERRO,
-                content: e.message,
-            }));
+    const onSubmitModalImportCollection = async ({ items }: SubmitArgs<ItemCollection>) => {
+        const collection = await importCollections(items)
+            .catch(e =>
+                push({
+                    title: `[${e.statusCode}] ${e.statusText}`,
+                    category: EAlertCategory.ERRO,
+                    content: e.message,
+                }));
         if (!collection) {
             return;
         }
@@ -348,7 +347,7 @@ export function CollectionColumn() {
         setModalImportOpenApi(false);
     };
 
-    const onSubmitModalImportOpenApi = async (file: File) => {
+    const onSubmitModalImportOpenApi = async ({ file }: SubmitArgs<any>) => {
         const form = new FormData();
         form.append('file', file);
 
@@ -384,7 +383,7 @@ export function CollectionColumn() {
         });
     };
 
-    const onSubmitModalImportRequest = async (items: ItemRequest[]) => {
+    const onSubmitModalImportRequest = async ({ items }: SubmitArgs<ItemRequest>) => {
         if (!modalRequestData.collection) {
             onCloseModalImportCollection();
             return;
@@ -422,8 +421,8 @@ export function CollectionColumn() {
         });
     };
 
-    const onSubmitModalImportCurl = async (curls: string[]) => {
-        const collection = await importCurl(curls, modalCurlData.collection?._id)
+    const onSubmitModalImportCurl = async ({ items }: SubmitArgs<string>) => {
+        const collection = await importCurl(items, modalCurlData.collection?._id)
             .catch(e =>
                 push({
                     title: `[${e.statusCode}] ${e.statusText}`,
@@ -560,23 +559,27 @@ export function CollectionColumn() {
                 options={searchOptions()}
                 cache={FILTER_CACHE}
                 onFilterChange={onFilterChange} />
-            <ImportCollectionModal
+            <ImportModal<ItemCollection>
                 isOpen={modalImportCollection}
+                onClose={onCloseModalImportCollection}
                 onSubmit={onSubmitModalImportCollection}
-                onClose={onCloseModalImportCollection} />
-            <ImportOpenApiModal
+                modal={importModalCollectionDefinition()} />
+            <ImportModal<void>
                 isOpen={modalImportOpenApi}
+                onClose={onCloseModalImportOpenApi}
                 onSubmit={onSubmitModalImportOpenApi}
-                onClose={onCloseModalImportOpenApi} />
-            <ImportRequestModal
+                modal={importModalOpenApiDefinition()} />
+            <ImportModal<ItemRequest>
                 isOpen={modalRequestData.status}
+                onClose={onCloseModalImportRequest}
                 onSubmit={onSubmitModalImportRequest}
-                onClose={onCloseModalImportRequest} />
-            <ImportCurlModal
+                modal={importModalRequestDefinition()} />
+            <ImportModal<string>
                 isOpen={modalCurlData.status}
+                onClose={onClosetModalImportCurl}
                 onSubmit={onSubmitModalImportCurl}
-                onClose={onClosetModalImportCurl} />
-            <CollectModal
+                modal={importModalCurlDefinition()} />
+            <CollectRequestModal
                 isOpen={modalCollectData.status}
                 request={modalCollectData.request}
                 parent={modalCollectData.collection?._id}

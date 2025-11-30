@@ -1,5 +1,6 @@
 import { ComboForm } from "../../../../../interfaces/ComboOption";
 import { LiteEndPoint } from "../../../../../interfaces/mock/EndPoint";
+import { parseJsonBlob } from "../../../../../services/Utils";
 import { ImportModalDataProps, ImportModalInput } from "../../../../form/import-modal/ImportModal";
 
 export const CACHE_KEY_IMPORT_MODAL = "ImportModalEndPointInputType";
@@ -125,9 +126,7 @@ export const searchOptions = (): ComboForm[] => {
     ]
 }
 
-export const importModalDefinition = (actions: {
-    parseBlob: <EndPoint, >(fileBlob: string) => { items: EndPoint[], warning?: string }
-}): ImportModalDataProps => {
+export const importModalDefinition =  <T,>(): ImportModalDataProps<T> => {
     return {
         title: <span>Import End-Points </span>,
         cacheKey: CACHE_KEY_IMPORT_MODAL,
@@ -139,6 +138,6 @@ export const importModalDefinition = (actions: {
         },
         placeholder: "",
         cursors: [ImportModalInput.CURSOR_LOCAL, ImportModalInput.CURSOR_TEXT],
-        parseBlob: actions.parseBlob,
+        parseBlob: parseJsonBlob,
     }
 }

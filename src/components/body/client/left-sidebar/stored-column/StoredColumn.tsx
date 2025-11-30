@@ -5,9 +5,8 @@ import { useStoreRequest } from '../../../../../store/client/StoreProviderReques
 import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useState } from 'react';
-import { CollectModal } from '../../../../client/collection/CollectModal';
+import { CollectRequestModal } from '../../../../client/collection/CollectRequestModal';
 import { calculateWindowSize, downloadFile } from '../../../../../services/Utils';
-import { ImportRequestModal } from '../../../../client/collection/ImportRequestModal';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { useStoreSession } from '../../../../../store/system/StoreProviderSession';
@@ -19,9 +18,10 @@ import { searchOptions, storedGroupOptions, storedOptions } from './Constants';
 import { CodeArea } from '../../../../utils/code-area/CodeArea';
 import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
-import { ImportCurlModal } from '../../../../client/collection/ImportCurlModal';
 import { requestCollect } from '../../../../../services/api/ServiceCollection';
 import { emptyFilter, FilterBar, PayloadFilter } from '../../../../utils/filter-bar/FilterBar';
+import { ImportModal, SubmitArgs } from '../../../../form/import-modal/ImportModal';
+import { importModalCurlDefinition, importModalRequestDefinition } from '../../Constants';
 
 import './StoredColumn.css';
 
@@ -127,8 +127,8 @@ export function StoredColumn() {
         setModalImportRequest(false);
     };
 
-    const onSubmitModalImportRequest = async (requests: ItemRequest[]) => {
-        const collection = await importRequests(requests).catch(e =>
+    const onSubmitModalImportRequest = async ({ items }: SubmitArgs<ItemRequest>) => {
+        const collection = await importRequests(items).catch(e =>
             push({
                 title: `[${e.statusCode}] ${e.statusText}`,
                 category: EAlertCategory.ERRO,
@@ -154,8 +154,8 @@ export function StoredColumn() {
         setModalImportCurl(false);
     };
 
-    const onSubmitModalImportCurl = async (curls: string[]) => {
-        const collection = await importCurl(curls)
+    const onSubmitModalImportCurl = async ({ items }: SubmitArgs<string>) => {
+        const collection = await importCurl(items)
             .catch(e =>
                 push({
                     title: `[${e.statusCode}] ${e.statusText}`,
@@ -389,15 +389,17 @@ export function StoredColumn() {
                 options={searchOptions()}
                 cache={FILTER_CACHE}
                 onFilterChange={onFilterChange} />
-            <ImportRequestModal
+            <ImportModal<ItemRequest>
                 isOpen={modalImportRequest}
+                onClose={onCloseModalImportRequest}
                 onSubmit={onSubmitModalImportRequest}
-                onClose={onCloseModalImportRequest} />
-            <ImportCurlModal
+                modal={importModalRequestDefinition()} />
+            <ImportModal<string>
                 isOpen={modalImportCurl}
+                onClose={onClosetModalImportCurl}
                 onSubmit={onSubmitModalImportCurl}
-                onClose={onClosetModalImportCurl} />
-            <CollectModal
+                modal={importModalCurlDefinition()} />
+            <CollectRequestModal
                 isOpen={modalCollectData.status}
                 request={modalCollectData.request}
                 onSubmit={onSubmitModalCollect}
