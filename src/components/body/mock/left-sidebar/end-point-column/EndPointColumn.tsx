@@ -12,7 +12,7 @@ import { RequestNode } from '../../../../../services/api/Requests';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
-import { calculateWindowSize, downloadFile, parseJsonBlob } from '../../../../../services/Utils';
+import { calculateWindowSize, downloadFile } from '../../../../../services/Utils';
 import { ImportModal, SubmitArgs } from '../../../../form/import-modal/ImportModal';
 import { CodeArea } from '../../../../utils/code-area/CodeArea';
 import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
