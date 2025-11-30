@@ -1,78 +1,110 @@
 import { useState } from 'react';
-import { useStoreContext } from '../../store/StoreProviderContext';
-import { useStoreRequest } from '../../store/StoreProviderRequest';
-import { useStoreSession } from '../../store/StoreProviderSession';
+import { useStoreSession } from '../../store/system/StoreProviderSession';
 import { SessionModal } from './session/SessionModal';
 import { ProfileImage } from './session/ProfileImage';
 import { useStoreSystem } from '../../store/system/StoreProviderSystem';
+import { Combo } from '../utils/combo/Combo';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { TokenModal } from './token/TokenModal';
+import { ViewMenuIcon, viewOptions } from './Constants';
+import { useStoreTheme } from '../../store/theme/StoreProviderTheme';
 
 import './Header.css';
 
-interface Payload {
-    modalSession: boolean;
+
+interface UnsavedProps {
+    messages: () => string;
+    isEmpty: () => boolean;
 }
 
-export function Header() {
-    const { userData, fetchUser } = useStoreSession();
-    const { openModal } = useStoreSystem();
-    const request = useStoreRequest();
-    const context = useStoreContext();
+interface HeaderProps {
+    unsaved: UnsavedProps
+}
 
-    const [data, setData] = useState<Payload>({
-        modalSession: false,
-    });
+export function Header({ unsaved }: HeaderProps) {
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    const makeUnsavedTitle = () => {
-        let title = "";
-        const requests = request.cacheComments();
-        if(requests.length > 0) {
-            title += requests.join("\n");
-        }
-        const contexts = context.cacheComments();
-        if(contexts.length > 0) {
-            if(title != "") {
-                title += "\n";
-            }
-            title += contexts.join("\n");
-        }
-        return title;
-    };
+    const { userData, fetchUser, fetchTokens } = useStoreSession();
+    const theme = useStoreTheme();
+    const system = useStoreSystem();
 
-    const openSessionModal = () => {
+
+    const [sessionModal, setSessionModal] = useState<boolean>(false);
+    const [tokenModal, setTokenModal] = useState<boolean>(false);
+
+    const showSessionModal = () => {
         fetchUser();
-        setData((prevData) => ({
-            ...prevData,
-            modalSession: true
-        }));
+        setSessionModal(true);
     };
 
-    const closeSessionModal = () => {
-        setData((prevData) => ({
-            ...prevData,
-            modalSession: false
-        }));
+    const hideSessionModal = () => {
+        setSessionModal(false);
     };
+
+    const showTokenModal = () => {
+        fetchTokens();
+        setTokenModal(true);
+    };
+
+    const hideTokenModal = () => {
+        setTokenModal(false);
+    };
+
+    const actionGoToClient = () => {
+        navigate("/client");
+    }
+
+    const actionGoToMock = () => {
+        navigate("/mock");
+    }
+
+    const locationName = () => {
+        switch (location.pathname) {
+            case "/client":
+                return "client";
+            case "/mock":
+                return "mock";
+            default:
+                return undefined;
+        }
+    }
 
     return (
         <div id="header-container">
-            <button id="logo-container" onClick={ openModal } title="View system metadata">
+            <button id="logo-container" onClick={system.openModal} title="View system metadata">
                 &lt;API&gt;
             </button>
             <div id="user-container">
-                {(request.cacheLenght() > 0 || context.cacheLenght() > 0) && (
+                {!unsaved.isEmpty() && (
                     <div id="unsave-container">
-                        <span className="button-modified-status visible" title={makeUnsavedTitle()}></span>
+                        <span className="button-modified-status visible" title={unsaved.messages()}></span>
                     </div>
                 )}
-                <button id="session-preview" className="button-div" type="button" onClick={openSessionModal}>
-                    <span id="username-preview">{userData.username}</span>
-                    <ProfileImage size="small"/>
+                <Combo
+                    custom={ViewMenuIcon}
+                    focus={locationName()}
+                    options={viewOptions(userData, {
+                        goToClient: actionGoToClient,
+                        goToMock: actionGoToMock,
+                        tokenModal: showTokenModal,
+                        themeModal: theme.openModal
+                    })}
+                    optionStyle={{
+                        width: "max-content",
+                        minWidth: "150px"
+                    }} />
+                <button id="session-preview" className="button-div" type="button" title={userData.username} onClick={showSessionModal}>
+                    <ProfileImage size="small" />
                 </button>
             </div>
             <SessionModal
-                isOpen={data.modalSession || userData.first_time}
-                onClose={closeSessionModal}
+                isOpen={sessionModal || userData.first_time}
+                onClose={hideSessionModal}
             />
+            <TokenModal
+                isOpen={tokenModal}
+                onClose={hideTokenModal} />
         </div>
     )
 }

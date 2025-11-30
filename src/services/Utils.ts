@@ -1,3 +1,4 @@
+import { PaseBlobPayload } from "../components/form/import-modal/ImportModal";
 import { ItemStatusCategoryKeyValue, StatusCategoryKeyValue } from "../interfaces/StatusCategoryKeyValue";
 import { StatusKeyValue } from "../interfaces/StatusKeyValue";
 import { ItemStatusValue, PrivateStatusValue, StatusValue } from "../interfaces/StatusValue";
@@ -137,6 +138,11 @@ export const mergeStatusCategoryKeyValueAsItem = (newValues: ItemStatusCategoryK
     return merge;
 }
 
+export const deepClone = <T>(object: T): T =>
+    typeof structuredClone === "function"
+        ? structuredClone(object)
+        : JSON.parse(JSON.stringify(object));
+
 export const generateHash = async (obj: any) => {
     const sortedObj = deepSort(obj);
 
@@ -251,4 +257,45 @@ export const calculateWindowSize = (text: string, options: WindowSizeOptions): {
     height = Math.min(height, maxHeight);
 
     return { width, height };
+}
+
+export const joinMessages = (...messages: string[][]) => {
+    let title = "";
+
+    for (const group of messages) {
+        if (group.length == 0) {
+            continue;
+        }
+
+        if (title != "") {
+            title += "\n";
+        }
+
+        title += group.join("\n");
+    }
+
+    return title;
+};
+
+export const parseJsonBlob = <T,>(blob: string): PaseBlobPayload<T> => {
+    let endPoints: T[] = [];
+    try {
+        const json = JSON.parse(blob);
+        if (!Array.isArray(json)) {
+            endPoints = [json];
+        } else {
+            endPoints = json;
+        }
+    } catch (e) {
+        return { items: [], warning: `Invalid format: ${e}` };
+    }
+
+    return { items: endPoints, warning: undefined };
+}
+
+export const parseCurlBlob = (blob: string): PaseBlobPayload<string> => {
+    const items = blob.split("\n\n")
+        .map(c => c.trim())
+        .filter(c => c.startsWith("curl"));
+    return { items };
 }

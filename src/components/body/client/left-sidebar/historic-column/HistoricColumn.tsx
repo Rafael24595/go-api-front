@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
-import { deleteHistoric as fetchDeleteHistoric, findAction, formatCurl, requestCollect } from '../../../../../services/api/ServiceStorage';
+import { LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
+import { findAction, exportCurl } from '../../../../../services/api/ServiceStorage';
+import { deleteHistoric as fetchDeleteHistoric } from '../../../../../services/api/ServiceHistory';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
-import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
-import { CollectionModal } from '../../../../collection/CollectionModal';
+import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
+import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
+import { CollectRequestModal } from '../../../../client/collection/CollectRequestModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';
-import { useStoreSession } from '../../../../../store/StoreProviderSession';
+import { useStoreSession } from '../../../../../store/system/StoreProviderSession';
 import { RequestRequestCollect } from '../../../../../services/api/Requests';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { VoidCallback } from '../../../../../interfaces/Callback';
@@ -16,6 +17,7 @@ import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
 import { CodeArea } from '../../../../utils/code-area/CodeArea';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
 import { calculateWindowSize } from '../../../../../services/Utils';
+import { requestCollect } from '../../../../../services/api/ServiceCollection';
 
 import './HistoricColumn.css';
 
@@ -24,8 +26,8 @@ interface HistoricColumnProps {
 }
 
 interface PayloadModal {
+    status: boolean;
     request: LiteRequest;
-    modal: boolean;
 }
 
 export function HistoricColumn({ setCursor }: HistoricColumnProps) {
@@ -35,69 +37,29 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const { loadThemeWindow } = useStoreTheme();
 
     const { request, cleanRequest, defineFreeRequest, fetchFreeRequest, insertRequest } = useStoreRequest();
-    const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreRequests();
+    const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreCollections();
 
     const [modalData, setModalData] = useState<PayloadModal>({
         request: newRequest(userData.username),
-        modal: false,
+        status: false,
     });
 
-    const defineHistoricRequest = async (item: LiteRequest) => {
+    const defineRequest = async (item: LiteRequest) => {
         await fetchFreeRequest(item);
     }
 
-    const insertHistoric = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        await insertRequest(request);
-        await fetchStored();
-        setCursor(VIEW_STORED);
-    };
-
-    const deleteHistoric = async (item: LiteRequest) => {
-        const content = `The request '${item.name}' will be deleted, are you sure?`;
-        const buttons: ModalButton[] = [
-            {
-                title: "Yes",
-                type: "button",
-                callback: {
-                    func: async () => {
-                        try {
-                            await fetchDeleteHistoric(item);
-                            await fetchHistoric();
-                        } catch (error) {
-                            console.error("Error deleting request:", error);
-                        }
-                    }
-                }
-            },
-            {
-                title: "No",
-                callback: VoidCallback
-            }
-        ];
-        ask({ content, buttons });
-    };
-
-    const cloneHistoric = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        request._id = "";
-        defineFreeRequest(request);
-    };
-
-    const makeKey = (item: LiteRequest): string => {
-        return `${item.timestamp}-${item.method}-${item.uri}`;
-    }
-
     const openModal = (item: LiteRequest) => {
-        setModalData({ request: item, modal: true });
+        setModalData({
+            status: true,
+            request: item,
+        });
     };
 
     const closeModal = () => {
-        setModalData({ ...modalData, modal: false });
+        setModalData((prevData) => ({
+            ...prevData,
+            status: false
+        }));
     };
 
     const submitModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
@@ -117,13 +79,57 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
         await fetchCollection();
     }
 
-    const showCurl = async (item: LiteRequest, raw?: boolean) => {
-        const curl = await formatCurl(item._id, undefined, raw);
+    const actionInsert = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        await insertRequest(request);
+        await fetchStored();
+        setCursor(VIEW_STORED);
+    };
+
+    const actionDelete = async (item: LiteRequest) => {
+        const content = `The request '${item.name}' will be deleted, are you sure?`;
+        const buttons: ModalButton[] = [
+            {
+                title: "Yes",
+                type: "button",
+                callback: {
+                    func: async () => { deleteRequest(item); }
+                }
+            },
+            {
+                title: "No",
+                callback: VoidCallback
+            }
+        ];
+        ask({ content, buttons });
+    };
+
+    const actionClone = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        request._id = "";
+        defineFreeRequest(request);
+    };
+
+    const actionShowCurl = async (item: LiteRequest, raw?: boolean) => {
+        const curl = await exportCurl(item._id, undefined, raw);
         const { width, height } = calculateWindowSize(curl, {
             minWidth: 550,
             minHeight: 200
         });
         loadThemeWindow(width, height, <CodeArea code={curl} />);
+    }
+
+    const deleteRequest = async (item: LiteRequest) => {
+        try {
+            await fetchDeleteHistoric(item);
+            await fetchHistoric();
+        } catch (error) {
+            console.error("Error deleting request:", error);
+        }
     }
 
     return (
@@ -149,7 +155,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                     historic.map((cursor) => (
                         <div key={makeKey(cursor)} className={`request-preview ${cursor._id == request._id && "request-selected"}`}>
                             <button className="request-link" title={cursor.uri}
-                                onClick={() => defineHistoricRequest(cursor)}>
+                                onClick={() => defineRequest(cursor)}>
                                 <div className="request-sign">
                                     <span className={`request-sign-method ${cursor.method}`}>{cursor.method}</span>
                                     <span className="request-sign-url">{cursor.uri}</span>
@@ -159,8 +165,11 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                                 </div>
                             </button>
                             <Combo options={historicOptions(cursor, {
-                                insertHistoric, deleteHistoric, cloneHistoric,
-                                openModal, showCurl
+                                insert: actionInsert,
+                                remove: actionDelete,
+                                clone: actionClone,
+                                collect: openModal,
+                                curl: actionShowCurl
                             })} />
                         </div>
                     ))
@@ -168,11 +177,15 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                     <p className="no-data"> - No history found - </p>
                 )}
             </div>
-            <CollectionModal
-                isOpen={modalData.modal}
+            <CollectRequestModal
+                isOpen={modalData.status}
                 request={modalData.request}
                 onSubmit={submitModal}
                 onClose={closeModal} />
         </>
     );
+}
+
+const makeKey = (item: LiteRequest): string => {
+    return `${item.timestamp}-${item.method}-${item.uri}`;
 }

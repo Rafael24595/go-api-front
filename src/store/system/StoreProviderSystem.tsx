@@ -1,14 +1,15 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { emptySystemMetadata, Record, SystemMetadata, ViewerSource } from "../../interfaces/Metadata";
-import { fetchSystemMetadata, fetchSystemRecords } from "../../services/api/ServiceManager";
+import { emptySystemMetadata, SystemMetadata, ViewerSource } from "../../interfaces/system/Metadata";
+import { fetchSystemMetadata } from "../../services/api/ServiceManager";
 import { Modal } from "../../components/utils/modal/Modal";
 import { millisecondsToDate } from "../../services/Tools";
-import { useStoreSession } from "../StoreProviderSession";
-import { useStoreTheme } from "../theme/StoreProviderTheme";
+import { useStoreSession } from "./StoreProviderSession";
 import useInactivityRefresh from "../../hook/InactivityRefresh";
 import { generateHash } from "../../services/Utils";
 import { hostURL } from "../../services/api/ApiManager";
 import { useStoreStatus } from "../StoreProviderStatus";
+import { hasRole, Role } from "../../interfaces/system/UserData";
+import { windowPreferences } from "../../utils/Window";
 
 import './StoreProviderSystem.css';
 
@@ -29,18 +30,12 @@ interface PayloadMetadata {
   metadata: SystemMetadata;
 }
 
-interface PayloadRecords {
-  hash: string;
-  records: Record[];
-}
-
 export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ children }) => {
   useInactivityRefresh(import.meta.env.VITE_INACTIVITY_REFRESH, import.meta.env.VITE_INACTIVITY_WARNING);
 
   const { clean } = useStoreStatus();
 
   const { userData } = useStoreSession();
-  const { loadThemeWindow } = useStoreTheme();
 
   const [modalData, setModalData] = useState<PayloadModal>({
     isOpen: false
@@ -51,18 +46,11 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
     metadata: emptySystemMetadata()
   });
 
-  const [recordsData, setRecordsData] = useState<PayloadRecords>({
-    hash: "",
-    records: []
-  });
-
   useEffect(() => {
     fetchMetadata();
-    fetchRecords();
 
     const interval = setInterval(() => {
       fetchMetadata();
-      fetchRecords();
     }, 60 * 60 * 1000);
 
     return () => {
@@ -85,32 +73,8 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
     });
   };
 
-  const fetchRecords = async () => {
-    try {
-      const records = await fetchSystemRecords();
-      const newHash = await generateHash(records);
-      setRecordsData((prevData) => {
-        if (prevData.hash == newHash) {
-          return prevData;
-        }
-
-        return {
-          hash: newHash,
-          records: records
-        };
-      });
-    } catch (error: any) {
-      if (error.statusCode == 403) {
-        console.error("The user does not have privileges to view the logs.")
-        return;
-      }
-      console.error(error);
-    }
-  };
-
   const openModal = async () => {
     fetchMetadata();
-    fetchRecords();
 
     setModalData({ isOpen: true });
   }
@@ -120,17 +84,11 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   const showLogs = () => {
-    let html = recordsData.records
-      .map(r => `<p class="log-row">${formatRecord(r)}</p>`)
-      .join('');
-
-    html = `<div id="record-row-container">${html}</div>`;
-
-    loadThemeWindow(850, 500, html);
+    window.open(`/log`, '_blank', windowPreferences(850, 500));
   }
 
-  const formatRecord = (record: Record) => {
-    return `${millisecondsToDate(record.timestamp)} - [${record.category}]: ${record.message}`;
+  const showTerminal = () => {
+    window.open(`/cmd`, '_blank', windowPreferences(850, 500));
   }
 
   const viewerUrl = (source: ViewerSource) => {
@@ -150,7 +108,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
           }
         ]}
         titleCustom={
-          <span title={ metadata.metadata.enable_secrets ? "Secrets enabled" : "" }>
+          <span title={metadata.metadata.enable_secrets ? "Secrets enabled" : ""}>
             System metadata
           </span>
         }
@@ -228,10 +186,11 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
               </>
             )}
             <div id="system-metadata-footer">
-              <button className="button-anchor" onClick={clean} title="View system logs">Clear Storage</button>
-              {userData.is_admin && (
+              <button className="button-anchor" onClick={clean} title="Clear storage">Clear Storage</button>
+              {hasRole(userData, Role.ROLE_ADMIN) && (
                 <>
                   <button className="button-anchor" onClick={showLogs} title="View system logs">Logs</button>
+                  <button className="button-anchor" onClick={showTerminal} title="Open CMD">Cmd</button>
                 </>
               )}
             </div>

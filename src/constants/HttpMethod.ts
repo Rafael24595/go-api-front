@@ -10,6 +10,19 @@ export enum HttpMethod {
     PATCH = "PATCH",
 }
 
+export const HTTP_METHODS = Object.values(HttpMethod);
+
+export const allowPayload = (method: string) => {
+    switch (method) {
+        case HttpMethod.GET:
+        case HttpMethod.PATCH:
+        case HttpMethod.CONNECT:
+            return false;
+        default:
+            return true;
+    }
+}
+
 export const httpStatusDescriptions: Map<number, string> = new Map([
     [100, "Continue"],
     [101, "Switching Protocols"],

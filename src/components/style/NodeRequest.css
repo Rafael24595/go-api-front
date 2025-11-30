@@ -1,0 +1,116 @@
+#node-request-container {
+    scrollbar-gutter: stable;
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 10px;
+}
+
+.node-request-preview {
+    display: flex;
+    border-bottom: 1px solid #b3b3b3;
+    padding: 10px;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--body-color);
+}
+
+.node-request-selected button {
+    font-weight: 500;
+}
+
+.node-request-drag {
+    border-bottom: none !important;
+}
+
+.node-request-link {
+    overflow: hidden;
+    width: 100%;
+    font-family: var(--default-font);
+    font-weight: normal;
+    font-size: medium;
+    padding: 0px;
+    border: none;
+    background-color: transparent;
+    color: var(--body-text-color);
+}
+
+.node-request-link:hover {
+    background-color: transparent;
+}
+
+.node-request-sign {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.node-request-sign.state {
+    display: flex;
+    justify-content: space-between;
+}
+
+.node-request-sign-method {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.node-request-sign-method.GET {
+    color: #0091e6;
+}
+
+.node-request-sign-method.POST {
+    color: #34b279;
+}
+
+.node-request-sign-method.PUT {
+    color: #fa9005;
+}
+
+.node-request-sign-method.PATCH {
+    color: #24dbb4;
+}
+
+.node-request-sign-method.DELETE {
+    color: #f82020;
+}
+
+.node-request-sign-method.HEAD {
+    color: #c624db;
+}
+
+.node-request-sign-method,
+.node-request-sign-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.node-request-date {
+    display: flex;
+    width: 100%;
+}
+
+.node-request-date-timestamp {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-style: italic;
+}
+
+.node-request-status-container {
+    display: flex;
+    align-items: stretch;
+}
+
+.node-request-status {
+    margin-right: 8px;
+}
+
+.node-request-state-sign {
+    display: flex;
+    align-items: baseline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

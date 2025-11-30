@@ -77,8 +77,8 @@
     font-weight: 600;
 }
 
-#signin-button {
-    margin-top: 15px !important;
+.session-button-separator {
+    margin-bottom: 15px !important;
 }
 
 #admin-fragment {

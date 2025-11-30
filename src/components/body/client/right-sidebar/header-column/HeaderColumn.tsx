@@ -1,6 +1,6 @@
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { copyTextToClipboard } from '../../../../../services/Utils';
-import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
+import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
 import { useAlert } from '../../../../utils/alert/Alert';
 
 import './HeaderColumn.css';

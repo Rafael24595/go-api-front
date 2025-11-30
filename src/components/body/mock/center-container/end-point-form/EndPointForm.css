@@ -1,0 +1,143 @@
+#end-point-form-title-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    justify-content: space-between;
+}
+
+#end-point-form-title {
+    margin-top: 0px;
+    font-size: 1.05em;
+    font-weight: bold;
+}
+
+#end-point-form-safe {
+    display: flex;
+    align-items: center;
+    height: 20px;
+}
+
+#end-point-form-title,
+#end-point-form-safe {
+    margin-bottom: 3px;
+}
+
+#end-point-status,
+.end-point-response-status.title {
+    margin-right: 10px;
+}
+
+#end-point-form-safe input {
+    display: none;
+}
+
+#end-point-responses-form {
+    overflow: hidden;
+}
+
+#end-point-data-form,
+#end-point-responses-form {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+}
+
+.end-point-sign-status {
+    display: flex;
+
+}
+
+.end-point-response-status {
+    margin-right: 15px;
+}
+
+.end-point-response-status.hide {
+    visibility: hidden;
+}
+
+#end-point-reponse-buttons {
+    display: flex;
+}
+
+#end-point-form-title-container button,
+#end-point-reponse-buttons button {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.end-point-form-fragment {
+    display: flex;
+    flex: 1 1 auto;
+    margin-left: 5px;
+    margin-right: 5px;
+    overflow: hidden;
+}
+
+.end-point-form-fragment.column {
+    flex-direction: column;
+}
+
+.end-point-form-field {
+    display: flex;
+    margin: 5px;
+}
+
+.end-point-form-field.column {
+    flex-direction: column;
+}
+
+.end-point-form-field.row span {
+    margin-right: 5px;
+}
+
+.end-point-form-field.row input,
+.end-point-form-field.row select,
+.end-point-form-field.row textarea {
+    flex: 1 1 auto;
+    resize: none;
+}
+
+.end-point-form-field.fix {
+    flex: 1 1 auto;
+}
+
+.end-point-form-field span {
+    font-weight: 600;
+}
+
+.end-point-form-input {
+    height: 22px;
+    box-sizing: border-box;
+}
+
+#end-point-responses {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    overflow: auto;
+    scrollbar-gutter: stable;
+}
+
+.end-point-response {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.response-sign {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.response-sign-code {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.response-sign-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

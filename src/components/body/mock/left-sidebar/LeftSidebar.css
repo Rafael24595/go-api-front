@@ -1,0 +1,21 @@
+#left-sidebar-mock {
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 150px;
+    max-width: 350px;
+    width: 20%;
+    border: 1px solid var(--border-color);
+}
+
+.mock-selector-preview-option {
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+.mock-selector-preview-option.show {
+    display: flex;
+}

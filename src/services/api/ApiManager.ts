@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 
 const url = "";
-const api = "/api/v1";
+export const api = "/api/v1";
 
 let isRefreshing = false;
 let failedQueue: any[] = [];
@@ -75,8 +75,8 @@ const cancelRequest = (error: any) => {
 
   return Promise.reject({
     statusCode: error.status,
-    statusText: error.response.statusText,
-    message: error.response.data || error.message
+    statusText: error.response?.statusText,
+    message: error.response?.data || error.message
   });
 }
 

@@ -30,6 +30,12 @@
     background: none;
     border: none;
     cursor: pointer;
+    color: var(--body-text-color);
+}
+
+.options-button.disabled {
+    cursor: auto;
+    opacity: 0.5;
 }
 
 .options-button:hover {
@@ -78,4 +84,3 @@
 .selected-combo-option::before {
     content: "► ";
 }
-

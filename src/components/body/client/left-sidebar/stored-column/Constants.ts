@@ -1,9 +1,11 @@
-import { LiteRequest } from "../../../../../interfaces/request/Request";
+import { LiteRequest } from "../../../../../interfaces/client/request/Request";
+import { ComboForm } from "../../../../../interfaces/ComboOption";
 
-export const storedGroupOptions = (action: {
-    exportAll: () => void;
-    openImportModal: () => void;
-    fetchStored: () => void;
+export const storedGroupOptions = (actions: {
+    export: () => void;
+    request: () => void;
+    curl: () => void;
+    fetch: () => void;
 
 }) => {
     return [
@@ -11,33 +13,39 @@ export const storedGroupOptions = (action: {
             icon: "💾",
             label: "Export",
             title: "Export all",
-            action: action.exportAll
+            action: actions.export
         },
         {
             icon: "💽",
             label: "Import",
             title: "Import collections",
-            action: action.openImportModal
+            action: actions.request
+        },
+        {
+            icon: "⌨️",
+            label: "Import",
+            title: "Import cURL",
+            action: actions.curl
         },
         {
             icon: "🔄",
             label: "Refresh",
             title: "Refresh",
-            action: () => action.fetchStored
+            action: () => actions.fetch
         }
     ]
 }
 
 export const storedOptions = (request: LiteRequest, actions: {
-    deleteStored: (request: LiteRequest) => void;
-    renameStored: (request: LiteRequest) => void;
-    cloneStored: (request: LiteRequest) => void;
-    duplicateStored: (request: LiteRequest) => void;
-    openCollectModal: (request: LiteRequest) => void;
-    openMoveModal: (request: LiteRequest) => void;
-    exportRequest: (request: LiteRequest) => void;
+    remove: (request: LiteRequest) => void;
+    rename: (request: LiteRequest) => void;
+    clone: (request: LiteRequest) => void;
+    duplicate: (request: LiteRequest) => void;
+    showCollect: (request: LiteRequest) => void;
+    showMove: (request: LiteRequest) => void;
+    export: (request: LiteRequest) => void;
     isCached: (request: LiteRequest) => boolean;
-    discardRequest: (request: LiteRequest) => void;
+    discard: (request: LiteRequest) => void;
     showCurl: (request: LiteRequest, raw?: boolean) => void;
 }) => {
     return [
@@ -45,50 +53,50 @@ export const storedOptions = (request: LiteRequest, actions: {
             icon: "🗑️",
             label: "Delete",
             title: "Delete request",
-            action: () => actions.deleteStored(request)
+            action: () => actions.remove(request)
         },
         {
             icon: "✏️",
             label: "Rename",
             title: "Rename request",
-            action: () => actions.renameStored(request)
+            action: () => actions.rename(request)
         },
         {
             icon: "🐑",
             label: "Clone",
             title: "Clone request",
-            action: () => actions.cloneStored(request)
+            action: () => actions.clone(request)
         },
         {
             icon: "🐏",
             label: "Duplicate",
             title: "Duplicate request",
-            action: () => actions.duplicateStored(request)
+            action: () => actions.duplicate(request)
         },
         {
             icon: "📚",
             label: "Collect",
             title: "Copy to collection",
-            action: () => actions.openCollectModal(request)
+            action: () => actions.showCollect(request)
         },
         {
             icon: "📦",
             label: "Move",
             title: "Move to collection",
-            action: () => actions.openMoveModal(request)
+            action: () => actions.showMove(request)
         },
         {
             icon: "💾",
             label: "Export",
             title: "Export request",
-            action: () => actions.exportRequest(request)
+            action: () => actions.export(request)
         },
         {
             icon: "🧹",
             label: "Discard",
             title: "Discard changes",
             disable: !actions.isCached(request),
-            action: () => actions.discardRequest(request)
+            action: () => actions.discard(request)
         },
         {
             icon: "⌨️",
@@ -105,33 +113,27 @@ export const storedOptions = (request: LiteRequest, actions: {
     ];
 }
 
-export const searchOptions = (actions: {
-    onFilterTargetChange: (value: string) => void;
-}) => {
+export const searchOptions = (): ComboForm[] => {
     return [
         {
             label: "Name",
             name: "name",
             title: "Filter by name",
-            action: () => actions.onFilterTargetChange("name")
         },
         {
             label: "Date",
             name: "timestamp",
             title: "Filter by date",
-            action: () => actions.onFilterTargetChange("timestamp")
         },
         {
             label: "Method",
             name: "method",
             title: "Filter by method",
-            action: () => actions.onFilterTargetChange("method")
         },
         {
             label: "Uri",
             name: "uri",
             title: "Filter by Uri",
-            action: () => actions.onFilterTargetChange("uri")
         },
     ]
 }

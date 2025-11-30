@@ -5,7 +5,7 @@ import { JsonView } from './json-view/JsonView';
 import { TextView } from './text-view/TextView';
 import { HtmlView } from './html-view/HtmlView';
 import { XmlView } from './xml-view/XmlView';
-import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
+import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useEffect, useState } from 'react';
 import { copyTextToClipboard } from '../../../../../services/Utils';
@@ -30,14 +30,14 @@ interface Payload {
 }
 
 export function PayloadColumn() {
-    const { findOrDefault, store } = useStoreStatus();
+    const { find, store } = useStoreStatus();
     
     const { push } = useAlert();
 
     const { response } = useStoreRequest();
 
     const [data, setData] = useState<Payload>(() => {
-        const autoFormat = findOrDefault(STATUS_KEY, {
+        const autoFormat = find(STATUS_KEY, {
             def: true,
             parser: (v) => v == "true"
         });
@@ -70,7 +70,7 @@ export function PayloadColumn() {
 
     const format = async (text: string) => {
         if(cusorIs(VIEW_TEXT)) {
-            return await formatHtml(text);
+            return text;
         }
         
         try {

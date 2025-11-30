@@ -1,5 +1,6 @@
 import React, { ReactNode, useEffect } from 'react';
 import { ModalButton } from '../../../interfaces/ModalButton';
+import { executeCallback } from '../../../interfaces/Callback';
 
 import './Modal.css';
 
@@ -69,7 +70,7 @@ export function Modal({ titleCustom, isOpen, onClose, children, buttons, ...rest
                 key={b.title}
                 title={b.description || ''}
                 type={b.type || 'button'}
-                onClick={() => b.callback.func(b.callback.args)}>
+                onClick={() => executeCallback(b.callback)}>
                 {b.title}
               </button>
             ))

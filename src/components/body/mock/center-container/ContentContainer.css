@@ -1,0 +1,20 @@
+#content-container {
+    display: flex;
+    justify-content: center;
+    flex: 1 1 auto;
+    min-width: 350px;
+    width: 40%;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.mock-selector-form-option {
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+.mock-selector-form-option.show {
+    display: flex;
+}

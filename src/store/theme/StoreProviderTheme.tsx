@@ -8,9 +8,10 @@ import { downloadFile } from "../../services/Utils";
 import { formatBytes, millisecondsToDate } from "../../services/Tools";
 import { Dict } from "../../types/Dict";
 import { Optional } from "../../types/Optional";
-import { useStoreSession } from "../StoreProviderSession";
-import { UserData } from "../../interfaces/UserData";
+import { useStoreSession } from "../system/StoreProviderSession";
+import { UserData } from "../../interfaces/system/UserData";
 import { createRoot } from "react-dom/client";
+import { windowPreferences } from "../../utils/Window";
 
 const STORAGE_THEME_KEY = "StoreProviderThemeCache";
 const TRIGGER_KEY = "StoreProviderThemeTrigger";
@@ -52,7 +53,7 @@ interface Payload {
 const StoreTheme = createContext<StoreProviderThemeType | undefined>(undefined);
 
 export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, pushTrigger } = useStoreSession();
+  const { userData, pushTrigger, trimTrigger } = useStoreSession();
   const { find, findAll, store, remove } = useStoreStatus();
   const { push } = useAlert();
 
@@ -84,13 +85,17 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     pushTrigger(TRIGGER_KEY, findSessionTheme);
     preloadCustomThemes();
     preloadCursorTheme();
+
+    return () => {
+      trimTrigger(TRIGGER_KEY);
+    };
   }, []);
 
   useEffect(() => {
-    if(userData.username == "") {
+    if (userData.username == "") {
       return;
     }
-    
+
     store(makeCacheKey(userData), theme);
     document.documentElement.setAttribute('data-theme', theme);
     setModalData((prevData) => ({
@@ -120,25 +125,26 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   }
 
   const preloadCursorTheme = async (cursorTheme?: string) => {
-    if(cursorTheme == undefined) {
+    if (cursorTheme == undefined) {
       cursorTheme = theme;
     }
 
-    if(DEFAULT_THEMES.includes(cursorTheme)) {
+    if (DEFAULT_THEMES.includes(cursorTheme)) {
       setTheme(cursorTheme);
       return;
     }
 
     const themePreload = Themes[cursorTheme];
-    if(themePreload) {
+    if (themePreload) {
       loadCustom(themePreload.code, themePreload.theme);
       return;
     }
 
     const themeCache = find(cursorTheme, {
+      def: ThemesDefault["light"],
       parser: parseCache
     });
-    if(themeCache && typeof themeCache === 'object') {
+    if (themeCache && typeof themeCache === 'object') {
       loadCustom(themeCache.code, themeCache.theme);
       return;
     }
@@ -146,17 +152,17 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
 
   const findTheme = (themeName: string): Optional<ITheme> => {
     const themeDefault = ThemesDefault[themeName];
-    if(themeDefault) {
+    if (themeDefault) {
       return themeDefault;
     }
 
     const themePreload = Themes[themeName];
-    if(themePreload) {
+    if (themePreload) {
       return themePreload;
     }
 
     const customTheme = customThemes[modalData.themeName];
-    if(customTheme) {
+    if (customTheme) {
       return customTheme;
     }
   }
@@ -185,7 +191,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
 
   const loadThemeWindow = (width: number, height: number, content: string | Blob | ReactNode) => {
     let url = "";
-    if(content instanceof Blob) {
+    if (content instanceof Blob) {
       url = URL.createObjectURL(content);
     }
 
@@ -193,8 +199,8 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     if (!newWindow) {
       return;
     }
-    
-    if(typeof content == 'string') {
+
+    if (typeof content == 'string') {
       newWindow.document.body.innerHTML = content;
     } else {
       const root = createRoot(newWindow.document.body);
@@ -205,15 +211,6 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
 
     document.querySelectorAll('link[rel="stylesheet"], style')
       .forEach(node => newWindow.document.head.appendChild(node.cloneNode(true)));
-  }
-
-  const windowPreferences = (width: number, height: number) => {
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
-    const left = (screenWidth / 2) - (width / 2);
-    const top = (screenHeight / 2) - (height / 2);
-
-    return `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`;
   }
 
   const openModal = async () => {
@@ -238,6 +235,8 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   const injectCustomTheme = (themeName: string, themeObj: IThemeData) => {
     const existingStyle = document.querySelector(`style[data-theme-name="${themeName}"]`);
     const cssContent = jsonToCSS(themeName, themeObj);
+
+    document.documentElement.setAttribute("data-theme", themeName);
 
     if (existingStyle) {
       existingStyle.textContent = cssContent;
@@ -363,24 +362,24 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   }
 
   const applyChanges = async () => {
-    if(DEFAULT_THEMES.includes(modalData.themeName)) {
+    if (DEFAULT_THEMES.includes(modalData.themeName)) {
       setTheme(modalData.themeName);
       return;
     }
 
     const theme = Themes[modalData.themeName];
-    if(theme) {
+    if (theme) {
       loadCustom(theme.code, theme.theme);
       return;
     }
 
     const customTheme = customThemes[modalData.themeName];
-    if(customTheme) {
+    if (customTheme) {
       loadCustom(customTheme.code, customTheme.theme);
       return;
     }
 
-    if(modalData.theme != null) {
+    if (modalData.theme != null) {
       applyCustomChanges(modalData.customName, modalData.theme);
       return;
     }
@@ -392,7 +391,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   }
 
   const applyCustomChanges = async (themeName: string, themeObj: IThemeData) => {
-    if(DEFAULT_THEMES.includes(modalData.customName)) {
+    if (DEFAULT_THEMES.includes(modalData.customName)) {
       push({
         category: EAlertCategory.ERRO,
         content: `Cannot use the specified name: ${modalData.customName}`
@@ -424,7 +423,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
 
   const downloadTheme = () => {
     const theme = findTheme(modalData.themeName);
-    if(theme) {
+    if (theme) {
       downloadFile(theme.code, theme.theme);
       return;
     }
@@ -438,7 +437,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   const deleteCustomTheme = () => {
     remove(modalData.themeName);
     const exists = customThemes[modalData.themeName];
-    if(exists) {
+    if (exists) {
       const newCustomThemes = { ...customThemes };
       delete newCustomThemes[modalData.themeName];
       setCustomThemes(newCustomThemes);
@@ -494,10 +493,10 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
               {Object.keys(customThemes).length > 0 && (
                 <>(
                   <option disabled>---- STORAGE ----</option>
-                    {Object.values(customThemes).map(v => (
-                      <option key={v.code} value={v.code}>{v.description}</option>
-                    ))}
-                )</>
+                  {Object.values(customThemes).map(v => (
+                    <option key={v.code} value={v.code}>{v.description}</option>
+                  ))}
+                  )</>
               )}
             </select>
           </div>

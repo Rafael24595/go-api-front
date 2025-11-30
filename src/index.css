@@ -32,6 +32,10 @@
   --scrollbar-color: #888888;
   --scrollbar-hover-color: #555555;
   --landing-area-color: #000000;
+  --terminal-color: #000000;
+  --terminal-text-color: #ffffff;
+  --step-group-color: #878787;
+  --step-group-block-color: #333333;
 }
 
 [data-theme='dark'] {
@@ -67,6 +71,10 @@
   --scrollbar-color: #aaaaaa;
   --scrollbar-hover-color: #d4d4d4;
   --landing-area-color: #ffffff;
+  --terminal-color: #000000;
+  --terminal-text-color: #ffffff;
+  --step-group-color: #000000;
+  --step-group-block-color: #818181;
 }
 
 ::-webkit-scrollbar {
@@ -85,7 +93,8 @@
   background-color: var(--scrollbar-hover-color)
 }
 
-html, body {
+html,
+body {
   margin: 0px;
   height: 100%;
   width: 100%;
@@ -94,7 +103,9 @@ html, body {
   background-color: var(--body-color);
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   color: var(--body-text-color);
   border: 1px solid var(--button-border-color);
   background-color: var(--input-color);
@@ -104,7 +115,9 @@ select {
   cursor: pointer;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   outline-width: 0px;
   border-color: var(--border-selected-color);
 }
@@ -144,7 +157,10 @@ button:hover {
   background-color: var(--button-border-color);
 }
 
-.select-none, select, button, img {
+.select-none,
+select,
+button,
+img {
   user-select: none;
 }
 
@@ -161,6 +177,24 @@ button:hover {
   background-color: var(--button-border-color);
 }
 
+.flat-button {
+  background-color: transparent;
+  border: none;
+}
+
+.flat-button:hover {
+  background-color: transparent;
+}
+
+.flat-emoji {
+  font-family: 'Segoe UI Symbol', sans-serif;
+  font-size: 1.1em;
+}
+
+.flat-emoji.small {
+  font-size: 1em;
+}
+
 /* Move to custom css file */
 
 .radio-button-group {
@@ -168,11 +202,15 @@ button:hover {
   width: 100%;
 }
 
+.radio-button-group.aux-group {
+  justify-content: flex-end;
+}
+
 .radio-button-group.cover {
   justify-content: space-around;
 }
 
-.radio-button-group.cover label, 
+.radio-button-group.cover label,
 .radio-button-group.cover .button-tag {
   flex: 1 1 auto;
   text-align: center;
@@ -191,7 +229,7 @@ button:hover {
   color: var(--body-text-color);
 }
 
-.radio-button-group label, 
+.radio-button-group label,
 .radio-button-group .button-tag {
   padding: 5px 15px;
   cursor: pointer;
@@ -206,13 +244,14 @@ button:hover {
   background-color: var(--border-color);
 }
 
-.radio-button-group input[type="radio"]:not(:checked) + label,
-.radio-button-group input[type="radio"]:not(:checked) + .button-tag, .button-tag {
+.radio-button-group input[type="radio"]:not(:checked)+label,
+.radio-button-group input[type="radio"]:not(:checked)+.button-tag,
+.button-tag {
   border-bottom: 1px solid transparent;
 }
 
-.radio-button-group input[type="radio"]:checked + label,
-.radio-button-group input[type="radio"]:checked + .button-tag {
+.radio-button-group input[type="radio"]:checked+label,
+.radio-button-group input[type="radio"]:checked+.button-tag {
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -238,11 +277,13 @@ button:hover {
   justify-content: space-between;
 }
 
-#left-options, #right-options {
+#left-options,
+#right-options {
   visibility: hidden;
 }
 
-#left-options.show, #right-options.show {
+#left-options.show,
+#right-options.show {
   visibility: visible;
 }
 
@@ -258,7 +299,9 @@ button:hover {
   border-collapse: collapse;
 }
 
-.table-styled table, .table-styled th, .table-styled td {
+.table-styled table,
+.table-styled th,
+.table-styled td {
   border: 1px solid #dddddd;
   text-align: left;
   padding: 8px;
@@ -271,11 +314,14 @@ button:hover {
 .table-styled tr:last-child td {
   border-bottom: 0;
 }
-.table-styled tr td:first-child, .table-styled tr th:first-child {
+
+.table-styled tr td:first-child,
+.table-styled tr th:first-child {
   border-left: 0;
 }
 
-.table-styled tr td:last-child, .table-styled tr th:last-child {
+.table-styled tr td:last-child,
+.table-styled tr th:last-child {
   border-right: 0;
 }
 
@@ -538,4 +584,45 @@ button:hover {
 .fade-out {
   opacity: 0;
   transition: opacity 0.5s ease-out;
+}
+
+.small-warning {
+  font-size: small;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.important-block::before {
+  font-weight: bold;
+  color: orangered;
+  margin-right: 2px;
+  content: '*';
+}
+
+.c1xx {
+  color: #007bff;
+}
+
+.c2xx {
+  color: #28a745;
+}
+
+.c3xx {
+  color: #17a2b8;
+}
+
+.c4xx {
+  color: #fd7e14;
+}
+
+.c5xx {
+  color: #dc3545;
+}
+
+.capitalize {
+  display: inline-block;
+}
+
+.capitalize::first-letter {
+  text-transform: capitalize;
 }

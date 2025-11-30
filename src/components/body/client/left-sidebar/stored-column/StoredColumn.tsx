@@ -1,17 +1,15 @@
-import { deleteAction, findAction, formatCurl, importRequests, requestCollect, updateAction } from '../../../../../services/api/ServiceStorage';
-import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/request/Request';
+import { deleteAction, exportAllRequests, exportManyRequests, findAction, exportCurl, importCurl, importRequests, updateAction } from '../../../../../services/api/ServiceStorage';
+import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreRequest } from '../../../../../store/StoreProviderRequest';
-import { useStoreRequests } from '../../../../../store/StoreProviderRequests';
+import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
+import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useState } from 'react';
-import { CollectionModal } from '../../../../collection/CollectionModal';
+import { CollectRequestModal } from '../../../../client/collection/CollectRequestModal';
 import { calculateWindowSize, downloadFile } from '../../../../../services/Utils';
-import { ImportRequestModal } from '../../../../collection/ImportRequestModal';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { useAlert } from '../../../../utils/alert/Alert';
-import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
-import { useStoreSession } from '../../../../../store/StoreProviderSession';
+import { useStoreSession } from '../../../../../store/system/StoreProviderSession';
 import { VerticalDragDrop, PositionWrapper, FilterResult } from '../../../../utils/drag/VerticalDragDrop';
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
 import { Optional } from '../../../../../types/Optional';
@@ -20,65 +18,48 @@ import { searchOptions, storedGroupOptions, storedOptions } from './Constants';
 import { CodeArea } from '../../../../utils/code-area/CodeArea';
 import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
 import { ModalButton } from '../../../../../interfaces/ModalButton';
+import { requestCollect } from '../../../../../services/api/ServiceCollection';
+import { emptyFilter, FilterBar, PayloadFilter } from '../../../../utils/filter-bar/FilterBar';
+import { ImportModal, SubmitArgs } from '../../../../form/import-modal/ImportModal';
+import { importModalCurlDefinition, importModalRequestDefinition } from '../../Constants';
 
 import './StoredColumn.css';
 
-const FILTER_TARGET_KEY = "StoredColumnDetailsFilterTarget";
-const FILTER_VALUE_KEY = "StoredColumnnDetailsFilterValue";
+const FILTER_TARGETS = searchOptions().map(o => o.name);
+const FILTER_DEFAULT = FILTER_TARGETS[0] || "name";
 
-const DEFAULT_CURSOR = "name";
-const VALID_CURSORS = Object.keys(newRequest("anonymous"))
-    .map(k => k as keyof LiteRequest)
+const FILTER_CACHE = {
+    keyTarget: "FilterTargetStored",
+    keyValue: "FilterValueStored"
+}
 
-interface PayloadModal {
+interface PayloadModalCollect {
+    status: boolean;
     request: LiteRequest;
     move: boolean;
-    openImport: boolean;
-    openMove: boolean;
-}
-
-interface PayloadDrag {
-    request: Optional<LiteRequest>;
-}
-
-interface PayloadFilter {
-    target: keyof LiteRequest;
-    value: string;
 }
 
 export function StoredColumn() {
     const { userData } = useStoreSession();
-    const { find, findOrDefault, store } = useStoreStatus();
-
+    const { push, ask } = useAlert();
     const { loadThemeWindow } = useStoreTheme();
 
     const { request, cleanRequest, discardRequest, defineFreeRequest, fetchFreeRequest, insertRequest, isCached } = useStoreRequest();
-    const { stored, fetchStored, fetchCollection, updateStoredOrder } = useStoreRequests();
+    const { stored, fetchStored, fetchCollection, updateStoredOrder } = useStoreCollections();
 
-    const { push, ask } = useAlert();
+    const [dragData, setDragData] = useState<Optional<LiteRequest>>(undefined);
+    const [filterData, setFilterData] = useState<PayloadFilter>(emptyFilter(FILTER_DEFAULT));
 
-    const [modalData, setModalData] = useState<PayloadModal>({
+    const [modalImportRequest, setModalImportRequest] = useState<boolean>(false);
+    const [modalImportCurl, setModalImportCurl] = useState<boolean>(false);
+
+    const [modalCollectData, setModalCollectData] = useState<PayloadModalCollect>({
         request: newRequest(userData.username),
         move: false,
-        openImport: false,
-        openMove: false,
+        status: false,
     });
 
-    const [dragData, setDragData] = useState<PayloadDrag>({
-        request: undefined,
-    });
-
-    const [filterData, setFilterData] = useState<PayloadFilter>({
-        target: findOrDefault(FILTER_TARGET_KEY, {
-            def: DEFAULT_CURSOR,
-            range: VALID_CURSORS,
-        }),
-        value: find(FILTER_VALUE_KEY, {
-            def: ""
-        })
-    });
-
-    const defineHistoricRequest = async (item: LiteRequest) => {
+    const defineRequest = async (item: LiteRequest) => {
         await fetchFreeRequest(item);
     }
 
@@ -89,150 +70,14 @@ export function StoredColumn() {
         await fetchFreeRequest(result.request);
     }
 
-    const duplicateStored = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        request._id = "";
-        request.name = `${request.name}-copy`;
-        request.status = 'draft';
-
-        await insertRequest(request);
-        await fetchStored();
-    };
-
-    const renameStored = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        const name = prompt("Insert a name: ", request.name);
-        if (name == null && name != request.name) {
-            return;
-        }
-
-        request.name = name;
-        await updateAction(request);
-        await fetchStored();
-    };
-
-    const deleteStored = async (item: LiteRequest) => {
-        const content = `The request '${item.name}' will be deleted, are you sure?`;
-        const buttons: ModalButton[] = [
-            {
-                title: "Yes",
-                type: "submit",
-                callback: {
-                    func: async () => {
-                        try {
-                            await deleteAction(item);
-                            discardRequest(item);
-                            await fetchStored();
-                            if (request._id == item._id) {
-                                cleanRequest();
-                            }
-                        } catch (error) {
-                            console.error("Error deleting request:", error);
-                        }
-                    }
-                }
-            },
-            {
-                title: "No",
-                callback: VoidCallback
-            }
-        ];
-
-        ask({ content, buttons });
-    };
-
-    const cloneStored = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        request._id = "";
-        request.status = 'draft';
-
-        defineFreeRequest(request);
-    };
-
-    const openCollectModal = (item: LiteRequest) => {
-        const newItem = { ...item };
-        newItem.name = `${item.name}-copy`;
-        setModalData((prevData) => ({
-            ...prevData,
-            request: newItem,
-            move: false,
-            openMove: true
-        }));
-    };
-
-    const openMoveModal = (item: LiteRequest) => {
-        setModalData((prevData) => ({
-            ...prevData,
-            request: item,
-            move: true,
-            openMove: true
-        }));
-    };
-
-    const closeMoveModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openMove: false
-        }));
-    };
-
-    const submitModal = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        const payload: RequestRequestCollect = {
-            source_id: "",
-            target_id: collectionId,
-            target_name: collectionName,
-            request: request,
-            request_name: requestName,
-            move: modalData.move ? "move" : "clone",
-        };
-
-        await requestCollect(payload);
-        await fetchStored();
-        await fetchCollection();
-
-        if (modalData.move) {
-            discardRequest(request);
-        }
-    }
-
-    const onFilterTargetChange = (value: string) => {
-        const target = VALID_CURSORS.find(c => c == value)
-            ? value as keyof LiteRequest
-            : DEFAULT_CURSOR;
-        store(FILTER_TARGET_KEY, target);
-        setFilterData((prevData) => ({
-            ...prevData,
-            target: target,
-        }));
-    }
-
-    const onFilterValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        store(FILTER_VALUE_KEY, event.target.value);
-        setFilterData((prevData) => ({
-            ...prevData,
-            value: event.target.value,
-        }));
-    }
-
-    const onFilterValueClean = () => {
-        store(FILTER_VALUE_KEY, "");
-        setFilterData((prevData) => ({
-            ...prevData,
-            value: "",
-        }));
+    const onFilterChange = (target: string, value: string) => {
+        setFilterData({
+            target, value
+        });
     }
 
     const applyFilter = (item: LiteRequest): FilterResult<LiteRequest> => {
-        let field = item[filterData.target]
+        let field = item[filterData.target as keyof LiteRequest];
         if (filterData.value == "" || field == undefined) {
             return { matches: true };
         }
@@ -246,76 +91,23 @@ export function StoredColumn() {
         }
     }
 
-    const openImportModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openImport: true
-        }));
-    };
-
-    const submitImportModal = async (requests: ItemRequest[]) => {
-        const collection = await importRequests(requests).catch(e =>
-            push({
-                title: `[${e.statusCode}] ${e.statusText}`,
-                category: EAlertCategory.ERRO,
-                content: e.message,
-            }));
-        if (!collection) {
-            return;
-        }
-
-        closeImportModal();
-        await fetchStored();
-    }
-
-    const closeImportModal = () => {
-        setModalData((prevData) => ({
-            ...prevData,
-            openImport: false
-        }));
-    };
-
-    const exportAll = () => {
-        const name = `requests_${Date.now()}.json`;
-        downloadFile(name, stored);
-    }
-
-    const exportRequest = async (item: LiteRequest) => {
-        const action = await findAction(item);
-        const request = action.request;
-
-        let name = request.name.toLowerCase().replace(/\s+/g, "_");
-        name = `request_${name}_${Date.now()}.json`;
-        downloadFile(name, request);
-    }
-
-    const makeKey = (item: LiteRequest): string => {
-        return `${item.timestamp}-${item.method}-${item.uri}`;
-    }
-
     const isRequestSelected = (item: LiteRequest) => {
         return item._id == request._id;
     }
 
     const isRequestDrag = (item: LiteRequest) => {
-        if (!dragData.request) {
+        if (!dragData) {
             return false
         }
-        return item._id == modalData.request._id;
+        return item._id == dragData._id;
     }
 
     const onRequestDrag = async (item: PositionWrapper<LiteRequest>) => {
-        setDragData((prevData) => ({
-            ...prevData,
-            request: item.item,
-        }));
+        setDragData(item.item);
     };
 
     const onRequestDrop = async () => {
-        setDragData((prevData) => ({
-            ...prevData,
-            request: undefined,
-        }));
+        setDragData(undefined);
     };
 
     const updateOrder = async (items: PositionWrapper<LiteRequest>[]) => {
@@ -327,13 +119,211 @@ export function StoredColumn() {
         await fetchStored();
     };
 
-    const showCurl = async (item: LiteRequest, raw?: boolean) => {
-        const curl = await formatCurl(item._id, undefined, raw);
+    const showModalImportRequest = () => {
+        setModalImportRequest(true);
+    };
+
+    const hideModalImportRequest = () => {
+        setModalImportRequest(false);
+    };
+
+    const onSubmitModalImportRequest = async ({ items }: SubmitArgs<ItemRequest>) => {
+        const collection = await importRequests(items).catch(e =>
+            push({
+                title: `[${e.statusCode}] ${e.statusText}`,
+                category: EAlertCategory.ERRO,
+                content: e.message,
+            }));
+        if (!collection) {
+            return;
+        }
+
+        hideModalImportRequest();
+        await fetchStored();
+    }
+
+    const onCloseModalImportRequest = () => {
+        hideModalImportRequest();
+    };
+
+    const openCurlModal = () => {
+        setModalImportCurl(true);
+    };
+
+    const hideCurlModal = () => {
+        setModalImportCurl(false);
+    };
+
+    const onSubmitModalImportCurl = async ({ items }: SubmitArgs<string>) => {
+        const collection = await importCurl(items)
+            .catch(e =>
+                push({
+                    title: `[${e.statusCode}] ${e.statusText}`,
+                    category: EAlertCategory.ERRO,
+                    content: e.message,
+                }));
+        if (!collection) {
+            return;
+        }
+
+        hideCurlModal();
+        await fetchStored();
+    }
+
+    const onClosetModalImportCurl = () => {
+        hideCurlModal();
+    };
+
+    const showModalCollect = (item: LiteRequest) => {
+        const newItem = { ...item };
+        newItem.name = `${item.name}-copy`;
+
+        setModalCollectData({
+            status: true,
+            request: newItem,
+            move: false,
+        });
+    };
+
+    const showModalMove = (item: LiteRequest) => {
+        setModalCollectData({
+            status: true,
+            request: item,
+            move: true,
+        });
+    };
+
+    const hideModalCollect = () => {
+        setModalCollectData((prevData) => ({
+            ...prevData,
+            status: false
+        }));
+    };
+
+    const onSubmitModalCollect = async (collectionId: string, collectionName: string, item: LiteRequest, requestName: string) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        const payload: RequestRequestCollect = {
+            source_id: "",
+            target_id: collectionId,
+            target_name: collectionName,
+            request: request,
+            request_name: requestName,
+            move: modalCollectData.move ? "move" : "clone",
+        };
+
+        await requestCollect(payload);
+        await fetchStored();
+        await fetchCollection();
+
+        if (modalCollectData.move) {
+            discardRequest(request);
+        }
+    }
+
+    const onCloseModalCollect = () => {
+        hideModalCollect();
+    };
+
+    const actionExportAll = async () => {
+        const requests = await exportAllRequests();
+        const name = `requests_${Date.now()}.json`;
+        downloadFile(name, requests);
+    }
+
+    const actionExportOne = async (item: LiteRequest) => {
+        const requests = await exportManyRequests(item._id);
+        if (requests.length == 0) {
+            push({
+                category: EAlertCategory.ERRO,
+                content: `Request '${item.name}' not found`
+            });
+            return;
+        }
+
+        const request = requests[0];
+
+        let name = request.name.toLowerCase().replace(/\s+/g, "_");
+        name = `request_${name}_${Date.now()}.json`;
+        downloadFile(name, request);
+    }
+
+    const actionDuplicate = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        request._id = "";
+        request.name = `${request.name}-copy`;
+        request.status = 'draft';
+
+        await insertRequest(request);
+        await fetchStored();
+    };
+
+    const actionRename = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        const name = prompt("Insert a name: ", request.name);
+        if (name == null && name != request.name) {
+            return;
+        }
+
+        request.name = name;
+        await updateAction(request);
+        await fetchStored();
+    };
+
+    const actionDelete = async (item: LiteRequest) => {
+        const content = `The request '${item.name}' will be deleted, are you sure?`;
+        const buttons: ModalButton[] = [
+            {
+                title: "Yes",
+                type: "submit",
+                callback: {
+                    func: async () => { deleteRequest(item); }
+                }
+            },
+            {
+                title: "No",
+                callback: VoidCallback
+            }
+        ];
+
+        ask({ content, buttons });
+    };
+
+    const actionClone = async (item: LiteRequest) => {
+        const action = await findAction(item);
+        const request = action.request;
+
+        request._id = "";
+        request.status = 'draft';
+
+        defineFreeRequest(request);
+    };
+
+    const actionShowCurl = async (item: LiteRequest, raw?: boolean) => {
+        const curl = await exportCurl(item._id, undefined, raw);
         const { width, height } = calculateWindowSize(curl, {
             minWidth: 550,
             minHeight: 200
         });
         loadThemeWindow(width, height, <CodeArea code={curl} />);
+    }
+
+    const deleteRequest = async (item: LiteRequest) => {
+        try {
+            await deleteAction(item);
+            discardRequest(item);
+            await fetchStored();
+            if (request._id == item._id) {
+                cleanRequest();
+            }
+        } catch (error) {
+            console.error("Error deleting request:", error);
+        }
     }
 
     return (
@@ -345,7 +335,10 @@ export function StoredColumn() {
                 <button type="button" className="button-anchor" onClick={() => insertNewRequest()}>New</button>
                 <div id="right-options show">
                     <Combo options={storedGroupOptions({
-                        exportAll, openImportModal, fetchStored
+                        export: actionExportAll,
+                        fetch: fetchStored,
+                        request: showModalImportRequest,
+                        curl: openCurlModal,
                     })} />
                 </div>
             </div>
@@ -360,7 +353,7 @@ export function StoredColumn() {
                 renderItem={(cursor) => (
                     <div key={makeKey(cursor)} className={`request-preview ${isRequestSelected(cursor) && "request-selected"} ${isRequestDrag(cursor) && "request-float"}`}>
                         <button className="request-link" title={cursor.uri}
-                            onClick={() => defineHistoricRequest(cursor)}>
+                            onClick={() => defineRequest(cursor)}>
                             <div className="request-sign">
                                 {isCached(cursor) && (
                                     <span className="button-modified-status small visible"></span>
@@ -373,10 +366,16 @@ export function StoredColumn() {
                             </div>
                         </button>
                         <Combo options={storedOptions(cursor, {
-                            deleteStored, renameStored, cloneStored,
-                            duplicateStored, openCollectModal, openMoveModal,
-                            exportRequest, isCached, discardRequest,
-                            showCurl,
+                            export: actionExportOne,
+                            remove: actionDelete,
+                            rename: actionRename,
+                            clone: actionClone,
+                            duplicate: actionDuplicate,
+                            showCollect: showModalCollect,
+                            showMove: showModalMove,
+                            discard: discardRequest,
+                            showCurl: actionShowCurl,
+                            isCached,
                         })} />
                     </div>
                 )}
@@ -384,28 +383,31 @@ export function StoredColumn() {
                     <p className="no-data"> - No requests found - </p>
                 )}
             />
-            <div id="search-box">
-                <button id="clean-filter" title="Clean filter" onClick={onFilterValueClean}></button>
-                <input className="search-input" type="text" value={filterData.value} onChange={onFilterValueChange} placeholder={filterData.target} />
-                <div className="search-combo-container">
-                    <Combo
-                        custom={(
-                            <span>🔎</span>
-                        )}
-                        asSelect={true}
-                        selected={filterData.target}
-                        options={searchOptions({ onFilterTargetChange })} />
-                </div>
-            </div>
-            <ImportRequestModal
-                isOpen={modalData.openImport}
-                onSubmit={submitImportModal}
-                onClose={closeImportModal} />
-            <CollectionModal
-                isOpen={modalData.openMove}
-                request={modalData.request}
-                onSubmit={submitModal}
-                onClose={closeMoveModal} />
+            <FilterBar
+                filterDefault={FILTER_DEFAULT}
+                filterTargets={FILTER_TARGETS}
+                options={searchOptions()}
+                cache={FILTER_CACHE}
+                onFilterChange={onFilterChange} />
+            <ImportModal<ItemRequest>
+                isOpen={modalImportRequest}
+                onClose={onCloseModalImportRequest}
+                onSubmit={onSubmitModalImportRequest}
+                modal={importModalRequestDefinition()} />
+            <ImportModal<string>
+                isOpen={modalImportCurl}
+                onClose={onClosetModalImportCurl}
+                onSubmit={onSubmitModalImportCurl}
+                modal={importModalCurlDefinition()} />
+            <CollectRequestModal
+                isOpen={modalCollectData.status}
+                request={modalCollectData.request}
+                onSubmit={onSubmitModalCollect}
+                onClose={onCloseModalCollect} />
         </>
     );
+}
+
+const makeKey = (item: LiteRequest): string => {
+    return `${item.timestamp}-${item.method}-${item.uri}`;
 }

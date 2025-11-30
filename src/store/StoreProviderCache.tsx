@@ -5,7 +5,7 @@ import { useStoreStatus } from "./StoreProviderStatus";
 
 const CACHE_PROVIDER_KEY = "StoreProviderCacheTarget";
 
-interface StoreProviderCacheType {
+export interface StoreProviderCacheType {
   gather: <T>(category: string) => T[];
   search: <T>(category: string, key: string) => Optional<T>;
   locate: <T>(category: string, predicate: (key: string, item: T) => boolean) => Optional<T>;
@@ -24,10 +24,10 @@ interface Payload {
 const StoreCache = createContext<StoreProviderCacheType | undefined>(undefined);
 
 export const StoreProviderCache: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { findOrDefault, store } = useStoreStatus();
+  const { find, store } = useStoreStatus();
 
   const [data, setData] = useState<Payload>({
-    cache: findOrDefault(CACHE_PROVIDER_KEY, {
+    cache: find(CACHE_PROVIDER_KEY, {
       def: {},
       parser: (v) => JSON.parse(v)
     })

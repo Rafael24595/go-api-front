@@ -1,0 +1,153 @@
+#user-tokens-title {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+#generated-token-container {
+    margin-bottom: 15px;
+}
+
+#generated-token-data {
+    padding: 5px;
+}
+
+#generated-token-title {
+    font-weight: 600;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.token-form-fragment {
+    display: flex;
+    flex-direction: column;
+}
+
+.raw-fragment {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.raw-fragment input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid var(--border-color);
+}
+
+.token-form-fragment:not(:first-child) {
+    margin-top: 10px;
+}
+
+.token-form-fragment>label,
+.token-form-fragment-label {
+    font-weight: 600;
+}
+
+#token-description {
+    resize: none;
+}
+
+#token-scopes-container {
+    padding: 7px;
+}
+
+#token-scopes-container > label:not(:first-child) {
+    margin-left: 10px;
+}
+
+.copy-raw-button::before {
+    content: '📋';
+}
+
+.copy-raw-button:hover {
+    background-color: transparent;
+}
+
+.copy-raw-button {
+    background-color: transparent;
+}
+
+.token-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    padding: 5px;
+    border-bottom: 1px outset var(--border-color);
+}
+
+.token-data-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.token-metadata {
+    flex: 1 1 auto;
+    flex-direction: column;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0px;
+    border: 0px;
+    background-color: transparent;
+    font-size: 0.95em;
+    font-weight: normal;
+}
+
+.token-metadata:hover {
+    background-color: transparent;
+}
+
+.token-name {
+    font-weight: 600;
+}
+
+.token-description {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+}
+
+.token-timestamp {
+    font-style: italic;
+}
+
+.token-data {
+    display: flex;
+    margin-bottom: 4px;
+}
+
+.token-dates {
+    font-style: italic;
+    font-size: 0.90em;
+}
+
+.token-status-active {
+    color: seagreen;
+}
+
+.token-status-expired {
+    color: crimson;
+}
+
+.token-buttons {
+    margin-left: 10px;
+}
+
+.token-scopes-enum {
+    padding-top: 5px;
+    padding-left: 7px;
+    padding-right: 7px;
+    margin-top: 7px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.95em;
+}
+
+.scope-enum {
+    margin-left: 2px;
+    margin-right: 2px;
+}

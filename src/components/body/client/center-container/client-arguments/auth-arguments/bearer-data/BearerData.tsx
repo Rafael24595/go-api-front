@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Auth } from '../../../../../../../interfaces/request/Request';
+import { Auth } from '../../../../../../../interfaces/client/request/Request';
 import { AuthScheme } from '../../../../../../../constants/AuthScheme';
 
+import '../../../../../../structure/status-key-value/StatusKeyValue.css';
 import './BearerData.css';
-import '../../status-key-value/StatusKeyValue.css';
 
 export const AUTH_CODE_BEARER = "BEARER";
 

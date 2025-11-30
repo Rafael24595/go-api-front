@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { FieldFormData } from './FieldFormData';
-import { CleanItemBodyParameter, cloneItemBodyParameter, ItemBodyParameter, orderItemBodyParameter } from '../../../../../../../interfaces/request/Request';
-import { useStoreRequest } from '../../../../../../../store/StoreProviderRequest';
+import { CleanItemBodyParameter, cloneItemBodyParameter, ItemBodyParameter, orderItemBodyParameter } from '../../../../../../../interfaces/client/request/Request';
+import { useStoreRequest } from '../../../../../../../store/client/StoreProviderRequest';
 import { FORM_DATA_PARAM } from '../BodyArguments';
 import { Dict } from '../../../../../../../types/Dict';
 import { PositionWrapper, VerticalDragDrop } from '../../../../../../utils/drag/VerticalDragDrop';
@@ -41,6 +41,7 @@ export function FormData({ onValueChange }: FormDataProps) {
 
     const rowTrim = (order: number) => {
         if(order < 0 || data.items.length < order ) {
+            onValueChange(CONTENT_TYPE, []);
             return;
         }
 

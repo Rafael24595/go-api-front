@@ -1,24 +1,38 @@
-export function millisecondsToTime(ms: number): string {
-    if(Number.isNaN(ms)) {
+export interface TimeUnit {
+    label: string,
+    time: number
+}
+
+export const MILLISECOND: TimeUnit = { label: "ms", time: 1 };
+export const SECOND: TimeUnit = { label: "s", time: 1000 };
+export const MINUTE: TimeUnit = { label: "m", time: SECOND.time * 60 };
+export const HOUR: TimeUnit = { label: "h", time: MINUTE.time * 60 };
+export const DAY: TimeUnit = { label: "d", time: HOUR.time * 24 };
+export const YEAR: TimeUnit = { label: "y", time: DAY.time * 365 };
+
+export const TIME_UNITS = [YEAR, DAY, HOUR, MINUTE, SECOND, MILLISECOND];
+
+
+export function millisecondsToTime(ms: number, limit?: TimeUnit): string {
+    if (Number.isNaN(ms)) {
         return "";
     }
 
-	const hours = Math.floor(ms / (1000 * 60 * 60));
-    const minutes = Math.floor(ms / (1000 * 60)) % 60;
-    const seconds = Math.floor(ms / 1000) % 60;
-    const milliseconds = ms % 1000;
+    const parts: string[] = [];
 
-    if (hours > 0) {
-        return `${hours}h ${minutes}m ${seconds}s`;
-    }
-    if (minutes > 0) {
-        return `${minutes}m ${seconds}s`;
-    }
-    if (seconds > 0) {
-        return `${seconds}s`;
+    for (const u of TIME_UNITS) {
+        if (limit && u.label === limit.label) {
+            break;
+        }
+
+        const amount = Math.floor(ms / u.time);
+        if (amount > 0 || parts.length > 0 || u.label === "ms") {
+            parts.push(`${amount}${u.label}`);
+        }
+        ms %= u.time;
     }
 
-    return `${milliseconds}ms`;
+    return parts.join(" ");
 }
 
 export function millisecondsToDate(milliseconds: number): string {
@@ -29,12 +43,12 @@ export function millisecondsToDate(milliseconds: number): string {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
 export function formatBytes(bytes: number): string {
-    if(bytes == null || Number.isNaN(bytes)) {
+    if (bytes == null || Number.isNaN(bytes)) {
         return "";
     }
 
@@ -53,4 +67,12 @@ export function formatBytes(bytes: number): string {
     }
 
     return `${bytes.toFixed(2)} Bytes`;
+}
+
+export const statusCodeToCss = (code: any) => {
+    const toString = typeof code == 'string' ? code : `${code}`;
+    if (toString.length == 0) {
+        return ""
+    }
+    return `c${toString[0]}xx`;
 }

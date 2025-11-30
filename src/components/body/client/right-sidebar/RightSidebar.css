@@ -1,4 +1,4 @@
-#right-sidebar {
+#right-sidebar-client {
     overflow: hidden;
     display: flex;
     flex: 1 1 auto;
@@ -44,26 +44,6 @@
 
 .response-code {
     font-weight: bold;
-}
-
-.response-code.c1xx {
-    color: #007bff;
-}
-
-.response-code.c2xx {
-    color: #28a745;
-}
-
-.response-code.c3xx {
-    color: #17a2b8;
-}
-
-.response-code.c4xx {
-    color: #fd7e14;
-}
-
-.response-code.c5xx {
-    color: #dc3545;
 }
 
 #cancel-container {

@@ -1,0 +1,69 @@
+.condition-form-step {
+    display: flex;
+    align-items: center;
+}
+
+.cond-input {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.cond-input input,
+.cond-input select {
+    height: 25px;
+    box-sizing: border-box;
+}
+
+.cond-value-input {
+    flex: 1 1 auto;
+}
+
+.cond-value-input input,
+.cond-value-input select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#condition-form-header {
+    font-weight: 600;
+    font-size: 0.85em;
+    font-style: italic;
+    margin-left: 5px;
+    margin-top: 0px;
+    margin-bottom: 5px;
+}
+
+.warning-step {
+    content: '*';
+    color: crimson;
+    font-weight: 600;
+    visibility: hidden;
+}
+
+.warning-step.show {
+    visibility: visible;
+}
+
+.step-connector {
+    font-weight: 600;
+    font-size: 0.85em;
+    font-style: italic;
+    margin: 3px;
+    margin-left: 15px;
+}
+
+#condition-form-buttons {
+    display: flex;
+    justify-content: center;
+}
+
+.condition-form-step-container {
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.condition-form-step-container.operator.and {
+    margin-top: 13px;
+    margin-bottom: 13px;
+}
+

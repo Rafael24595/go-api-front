@@ -44,3 +44,26 @@
     margin-left: 10px;
     margin-right: 10px;
 }
+
+#apps-button-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    height: 35px;
+    width: 35px;
+    padding: 0px;
+    border: 0px;
+    background-color: transparent;
+}
+
+.apps-menu-row {
+    display: flex;
+}
+
+.apps-menu-row>.cube {
+    height: 4px;
+    width: 4px;
+    margin: 2px;
+    background-color: var(--header-text-color);
+}
