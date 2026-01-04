@@ -97,7 +97,7 @@ export const fetchAuthenticate = async (oldPassword: string, newPassword1: strin
       new_password_2: newPassword2
     };
 
-    const apiResponse = await authApiManager.put(`/user/verify`, request);
+    const apiResponse = await authApiManager.put(`/user`, request);
     return apiResponse.data;
   } catch (error) {
     throw error;
