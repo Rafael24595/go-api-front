@@ -20,9 +20,9 @@
     "crypto-js": "4.2.0",
     "highlight.js": "11.11.1",
     "prettier": "3.7.4",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-router-dom": "^7.11.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-router-dom": "7.11.0",
     "uuid": "13.0.0"
   },
   "devDependencies": {

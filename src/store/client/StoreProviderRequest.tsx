@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { generateHash } from "../../services/Utils";
 import { Auths, fromRequest, ItemBody, ItemRequest, LiteRequest, newItemRequest, newRequest, Request, toRequest } from "../../interfaces/client/request/Request";
 import { cleanCopy, ItemStatusKeyValue } from "../../interfaces/StatusKeyValue";
 import { fixOrder } from "../../interfaces/StatusKeyValue";
@@ -19,6 +18,7 @@ import { CacheRequestFocus } from "../../interfaces/client/Cache";
 import { UserData } from "../../interfaces/system/UserData";
 import { CACHE_CATEGORY_FOCUS } from "../Constants";
 import { pushHistoric } from "../../services/api/ServiceHistory";
+import { EventAction, Events, InitialEvent } from "../../types/EventAction";
 
 const TRIGGER_KEY_VIEW = "StoreProviderRequestViewTrigger";
 
@@ -35,12 +35,14 @@ interface StoreProviderRequestType {
   request: ItemRequest;
   response: ItemResponse;
   waitingRequest: boolean;
+  event: EventAction;
+
   cancelRequest: () => void;
   cleanRequest: () => void;
   discardRequest: (request?: LiteRequest) => void;
   defineFreeRequest: (request: Request, response?: Response, oldRequest?: Request) => void;
   defineGroupRequest: (parent: string, context: string, request: Request, response?: Response, oldRequest?: Request) => void;
-  updateRequest: (newRequest: Request, newResponse?: Response, oldRequest?: Request) => void;
+
   updateName: (name: string) => void;
   updateMethod: (method: string) => void;
   updateUri: (uri: string) => void;
@@ -49,15 +51,20 @@ interface StoreProviderRequestType {
   updateCookie: (items: ItemStatusKeyValue[]) => void;
   updateBody: (body: ItemBody) => void;
   updateAuth: (auth: Auths) => void;
+
   executeAction: () => Promise<void>;
+
   fetchFreeRequest: (request: LiteRequest) => Promise<void>;
   fetchGroupRequest: (parent: string, context: string, request: LiteRequest) => Promise<void>;
+
   releaseAction: () => Promise<ResponseExecuteAction>;
   insertRequest: (request: Request, response?: Response) => Promise<ResponseExecuteAction>;
+
   isParentCached: (parent: string) => boolean;
   isCached: (request: LiteRequest) => boolean;
   cacheComments: () => string[];
   cacheLenght: () => number;
+
   processUri: () => void;
 }
 
@@ -103,6 +110,8 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     cancel: VOID_FUNCTION
   });
 
+  const [event, setEventAction] = useState<EventAction>(InitialEvent);
+
   useEffect(() => {
     pushTrigger(TRIGGER_KEY_VIEW, focusOrClean);
 
@@ -120,10 +129,10 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const updateStatus = async (request: ItemRequest) => {
     let initialHash = data.initialHash;
     if (data.initialHash == "") {
-      initialHash = await calculateHash(data.backup);
+      initialHash = JSON.stringify(data.backup);
     }
 
-    const actualHash = await calculateHash(data.request);
+    const actualHash = JSON.stringify(data.request);
 
     if (actualHash != initialHash) {
       insert(CACHE_CATEGORY_STORE, request._id, {
@@ -153,10 +162,6 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     }));
   }
 
-  const calculateHash = async (request: ItemRequest) => {
-    return await generateHash(toRequest(request));
-  }
-
   const focusOrClean = (newUser: UserData, oldUser: UserData) => {
     if (newUser.username != oldUser.username || !focusLastRequest()) {
       cleanRequest();
@@ -183,14 +188,16 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   const discardRequest = (request?: LiteRequest) => {
     if (!request || request._id == data.backup._id) {
-      return releaseItemRequest(data.backup, data.response, toRequest(data.request));
+      releaseItemRequest(data.backup, data.response, toRequest(data.request));
+    } else {
+      remove(CACHE_CATEGORY_STORE, request._id);
+
+      setData(prevData => {
+        return { ...prevData };
+      });
     }
 
-    remove(CACHE_CATEGORY_STORE, request._id);
-
-    setData(prevData => {
-      return { ...prevData };
-    });
+    pushEvent(Events.DISCARD);
   }
 
   const defineFreeRequest = (request: Request, response?: Response, oldRequest?: Request) => {
@@ -233,6 +240,57 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     });
 
     fetchContext(context, parent);
+
+    pushEvent(Events.DEFINE);
+
+  }
+
+  const releaseRequest = (request: Request, response: Response, oldRequest: Request) => {
+    const itemRequest = fromRequest(request);
+    const itemResponse = fromResponse(response);
+    releaseItemRequest(itemRequest, itemResponse, oldRequest)
+  }
+
+  const releaseItemRequest = (request: ItemRequest, response: ItemResponse, oldRequest: Request) => {
+    const loadResponse = dataFetch.waiting && data.request._id == request._id;
+    response = loadResponse ? newItemResponse(userData.username) : response;
+
+    setData(prevData => {
+      if (oldRequest && oldRequest._id != request._id) {
+        remove(CACHE_CATEGORY_STORE, oldRequest._id);
+      }
+
+      return {
+        ...prevData,
+        initialHash: "",
+        actualHash: "",
+        backup: { ...request },
+        request: { ...request },
+        response: { ...response },
+      }
+    });
+
+    pushEvent(Events.RELEASE);
+
+  }
+
+  const evalueCancelRequest = (newRequest: ItemRequest): boolean => {
+    if (data.request._id == newRequest._id) {
+      return false;
+    }
+
+    dataFetch.cancel();
+
+    cleanFetchData();
+
+    if (dataFetch.waiting) {
+      push({
+        category: EAlertCategory.WARN,
+        content: "Request cancelled"
+      });
+    }
+
+    return true;
   }
 
   const updateRequest = (request: Request, response?: Response, oldRequest?: Request) => {
@@ -260,74 +318,8 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
         response: response
       }
     });
-  }
 
-  const releaseRequest = (request: Request, response: Response, oldRequest: Request) => {
-    const itemRequest = fromRequest(request);
-    const itemResponse = fromResponse(response);
-    releaseItemRequest(itemRequest, itemResponse, oldRequest)
-  }
-
-  const releaseItemRequest = (request: ItemRequest, response: ItemResponse, oldRequest: Request) => {
-    const loadResponse = dataFetch.waiting && data.request._id == request._id;
-    response = loadResponse ? newItemResponse(userData.username) : response;
-
-    setData(prevData => {
-      if (oldRequest && oldRequest._id != request._id) {
-        remove(CACHE_CATEGORY_STORE, oldRequest._id);
-      }
-
-      return {
-        ...prevData,
-        initialHash: "",
-        actualHash: "",
-        backup: { ...request },
-        request: { ...request },
-        response: { ...response },
-      }
-    });
-  }
-
-  const evalueCancelRequest = (newRequest: ItemRequest): boolean => {
-    if (data.request._id == newRequest._id) {
-      return false;
-    }
-
-    dataFetch.cancel();
-
-    cleanFetchData();
-
-    if (dataFetch.waiting) {
-      push({
-        category: EAlertCategory.WARN,
-        content: "Request cancelled"
-      });
-    }
-
-    return true;
-  }
-
-  const fixRequest = (request: Request, oldRequest?: Request) => {
-    let itemRequest = fromRequest(request);
-    if (oldRequest && oldRequest._id != request._id) {
-      remove(CACHE_CATEGORY_STORE, oldRequest._id);
-    }
-
-    setData(prevData => {
-      const prevRequest = oldRequest ? fromRequest(oldRequest) : prevData.request;
-      itemRequest = {
-        ...prevRequest,
-        _id: itemRequest._id,
-        modified: itemRequest.modified,
-        owner: itemRequest.owner,
-        timestamp: itemRequest.timestamp
-      }
-
-      return {
-        ...prevData,
-        request: itemRequest
-      }
-    });
+    pushEvent(Events.UPDATE);
   }
 
   const updateResponse = (response?: Response) => {
@@ -504,10 +496,34 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     apiResponse = await pushHistoric(request, apiResponse.response);
 
-    fixRequest(apiResponse.request, base);
+    fixRequestData(apiResponse.request, base);
 
     fetchAll();
   };
+
+  const fixRequestData = (request: Request, oldRequest?: Request) => {
+    let itemRequest = fromRequest(request);
+    if (oldRequest && oldRequest._id != request._id) {
+      remove(CACHE_CATEGORY_STORE, oldRequest._id);
+    }
+
+    setData(prevData => {
+      const prevRequest = oldRequest ? fromRequest(oldRequest) : prevData.request;
+
+      itemRequest = {
+        ...prevRequest,
+        _id: itemRequest._id,
+        modified: itemRequest.modified,
+        owner: itemRequest.owner,
+        timestamp: itemRequest.timestamp
+      }
+
+      return {
+        ...prevData,
+        request: itemRequest
+      }
+    });
+  }
 
   const releaseAction = async () => {
     const request = toRequest(data.request);
@@ -621,13 +637,18 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     }));
   }
 
+  const pushEvent = (reason: string, source?: string, target?: string) => {
+    setEventAction({ reason, source, target });
+  }
+
   return (
     <StoreRequest.Provider value={{
       ...data,
       waitingRequest: dataFetch.waiting,
       cancelRequest: dataFetch.cancel,
+      event,
       cleanRequest, discardRequest, defineFreeRequest,
-      defineGroupRequest, updateRequest, updateName,
+      defineGroupRequest, updateName,
       updateMethod, updateUri, updateQuery,
       updateHeader, updateCookie, updateBody,
       updateAuth, executeAction, fetchFreeRequest,

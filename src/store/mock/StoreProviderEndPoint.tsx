@@ -4,13 +4,15 @@ import { useStoreCache } from "../StoreProviderCache";
 import { CacheEndPointStore, CacheEndPointFocus } from "../../interfaces/mock/Cache";
 import { useStoreSession } from "../system/StoreProviderSession";
 import { emptyItemResponse, ItemResponse, resolveResponses, removeResponse as removeResponseFromList, fixResponses } from "../../interfaces/mock/Response";
-import { deepClone, generateHash } from "../../services/Utils";
+import { deepClone } from "../../services/Utils";
 import { UserData } from "../../interfaces/system/UserData";
 import { Optional } from "../../types/Optional";
 import { CACHE_CATEGORY_FOCUS } from "../Constants";
 import { useStoreMock } from "./StoreProviderMock";
 import { emptyMetrics, Metrics } from "../../interfaces/mock/Metrics";
 import { findEndPoint, findMetrics, insertEndPoint } from "../../services/api/ServiceEndPoint";
+import { EventAction, Events, InitialEvent } from "../../types/EventAction";
+import { EndPointEvents } from "./Constants";
 
 interface StoreProviderEndPointType {
     endPoint: ItemEndPoint;
@@ -35,6 +37,7 @@ interface StoreProviderEndPointType {
     defineResponse: (response: ItemResponse) => void;
     resolveResponse: (response: ItemResponse, rename?: boolean) => boolean;
     removeResponse: (response: ItemResponse) => void;
+    updateResponse: (response: ItemResponse) => void;
     orderResponses: (responses: ItemResponse[]) => void;
 
     isFocused: (endPoint: LiteEndPoint) => boolean;
@@ -49,12 +52,6 @@ interface PayloadData {
     actualHash: string;
     backup: ItemEndPoint;
     endPoint: ItemEndPoint;
-}
-
-interface EventAction {
-    reason: string;
-    target: string;
-    source: string;
 }
 
 const TRIGGER_SESSION_CHANGE = "SessionChangeEndPoint";
@@ -73,11 +70,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     const [response, setResponse] = useState<ItemResponse>(emptyItemResponse());
     const [metrics, setMetrics] = useState<Metrics>(emptyMetrics(data.endPoint));
 
-    const [event, setEventAction] = useState<EventAction>({
-        reason: "initial",
-        source: "",
-        target: ""
-    });
+    const [event, setEventAction] = useState<EventAction>(InitialEvent);
 
     useEffect(() => {
         pushTrigger(TRIGGER_SESSION_CHANGE, onSessionChange);
@@ -94,10 +87,10 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     const updateDataStatus = async (endPoint: ItemEndPoint) => {
         let initialHash = data.initialHash;
         if (data.initialHash == "") {
-            initialHash = await generateHash(data.backup);
+            initialHash = JSON.stringify(data.backup);
         }
 
-        const actualHash = await generateHash(data.endPoint);
+        const actualHash = JSON.stringify(data.endPoint);
 
         if (actualHash != initialHash) {
             insert<CacheEndPointStore>(CACHE_CATEGORY_STORE, endPoint._id, {
@@ -135,7 +128,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             })
     }
 
-    const pushEvent = (reason: string, source: string, target: string) => {
+    const pushEvent = (reason: string, source?: string, target?: string) => {
         setEventAction({ reason, source, target });
     }
 
@@ -164,7 +157,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     }
 
     const newEndPoint = () => {
-        pushEvent("new", data.endPoint._id, "");
+        pushEvent(Events.DEFINE, data.endPoint._id, "");
         return clearAll();
     }
 
@@ -180,7 +173,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     }
 
     const fetchEndPointById = async (id: string) => {
-        pushEvent("fetch", data.endPoint._id, id);
+        pushEvent(Events.DEFINE, data.endPoint._id, id);
 
         //TODO: Evalue response focus caching.
         setResponse(emptyItemResponse());
@@ -247,7 +240,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         clearAll();
 
         restoreEndPoint(endPoint);
-        pushEvent("define", data.endPoint._id, "");
+        pushEvent(Events.DEFINE, data.endPoint._id, "");
     }
 
     const releaseEndPoint = async (endPoint?: ItemEndPoint) => {
@@ -260,7 +253,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             return;
         }
 
-        pushEvent("release", data.endPoint._id, endPoint._id);
+        pushEvent(Events.RELEASE, data.endPoint._id, endPoint._id);
 
         const id = await insertEndPoint(newEndPoint);
         newEndPoint._id = id;
@@ -275,7 +268,7 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     }
 
     const discardEndPoint = (endPoint?: ItemEndPoint | LiteEndPoint) => {
-        pushEvent("discard", data.endPoint._id, (endPoint || data.backup)._id);
+        pushEvent(Events.DISCARD, data.endPoint._id, (endPoint || data.backup)._id);
 
         if (!endPoint || endPoint._id == data.backup._id) {
             return restoreEndPoint(data.backup);
@@ -357,6 +350,18 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     }
 
     const defineResponse = (response: ItemResponse) => {
+        const status = setFixedResponse(response);
+        pushEvent(EndPointEvents.DEFINE_REQUEST);
+        return status;
+    }
+
+    const updateResponse = (response: ItemResponse) => {
+        const status = setFixedResponse(response);
+        pushEvent(EndPointEvents.UPDATE_REQUEST);
+        return status;
+    }
+
+    const setFixedResponse = (response: ItemResponse) => {
         const newResponse = deepClone(response);
 
         if (!resolveResponse(newResponse)) {
@@ -467,8 +472,8 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
             updateStatus, switchSafe, updateMethod,
             updatePath, discardEndPoint, fetchMetrics,
             newResponse, defineResponse, resolveResponse,
-            removeResponse, orderResponses, isCached,
-            cacheLenght, cacheComments
+            removeResponse, updateResponse, orderResponses,
+            isCached, cacheLenght, cacheComments
         }}>
             {children}
         </StoreEndPoint.Provider>

@@ -1,13 +1,15 @@
+import { v4 as uuidv4 } from 'uuid';
 import { Fragment, useEffect, useState } from 'react';
-import { TextData } from './text/TextData';
-import { ItemBody, ItemBodyParameter, orderItemBodyParameter } from '../../../../../../interfaces/client/request/Request';
-import { JsonData } from './json/JsonData';
+import { findDocumentParameter, ItemBody, ItemBodyParameter, orderItemBodyParameter } from '../../../../../../interfaces/client/request/Request';
+import { findFormatter } from '../../../../../../services/mock/Constants';
 import { useStoreRequest } from '../../../../../../store/client/StoreProviderRequest';
-import { formatJson, formatXml } from '../../../../../../utils/Formatter';
 import { FormData } from './form-data/FormData';
 import { Dict } from '../../../../../../types/Dict';
-import { XmlData } from './xml/XmlData';
 import { KeyValue } from '../../../../../../interfaces/KeyValue';
+import { TextData } from '../../../../../form/text-area/text/TextData';
+import { XmlData } from '../../../../../form/text-area/xml/XmlData';
+import { JsonData } from '../../../../../form/text-area/json/JsonData';
+import { Events } from '../../../../../../types/EventAction';
 
 import './BodyArguments.css';
 
@@ -42,76 +44,100 @@ const cursors: KeyValue[] = [
 const DEFAULT_CURSOR = VIEW_TEXT;
 
 interface Payload {
+    key: string;
     status: boolean;
     content: string;
     parameters: Dict<ItemBodyParameter[]>;
 }
 
 export function BodyArguments() {
-    const { request, updateBody } = useStoreRequest();
+    const { request, event, updateBody } = useStoreRequest();
 
     const [cursor, setCursor] = useState<string>(request.body.content_type || DEFAULT_CURSOR);
 
     const [data, setData] = useState<Payload>({
-        status: request.body.status, 
+        key: uuidv4(),
+        status: request.body.status,
         content: request.body.content_type,
         parameters: request.body.parameters,
     });
 
     useEffect(() => {
+        if (event.reason != Events.DEFINE && event.reason != Events.DISCARD) {
+            return;
+        }
+
+        updateData();
+    }, [event]);
+
+    const updateData = (cursor?: string) => {
         setData({
-            status: request.body.status, 
+            key: uuidv4(),
+            status: request.body.status,
             content: request.body.content_type,
             parameters: request.body.parameters,
         });
-        setCursor(request.body.content_type || DEFAULT_CURSOR);
-    }, [request.body]);
-    
+        setCursor(cursor || request.body.content_type || DEFAULT_CURSOR);
+    }
+
     const cursorChangeEvent = (e: React.ChangeEvent<HTMLInputElement>) => {
         cursorChange(e.target.value);
     };
 
     const cursorChange = (cursor: string) => {
-        const newData = {
-            ...data, 
-            content: cursor,
+        const newBody: ItemBody = {
+            status: data.status,
+            parameters: request.body.parameters,
+            content_type: cursor,
         };
-        
-        setCursor(cursor);
-        setData(newData);
 
-        if(Object.entries(request.body.parameters).length > 0) {
-            updateBody(makeBody(newData));
+        updateData(cursor);
+
+        if (Object.entries(request.body.parameters).length > 0) {
+            updateBody(newBody);
         }
     };
 
     const statusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newData = {
-            ...data, 
+        setData({
+            ...data,
             status: e.target.checked
-        };
-        setData(newData);
-        updateBody(makeBody(newData));
+        });
+
+        updateBody({
+            status: e.target.checked,
+            parameters: data.parameters,
+            content_type: data.content,
+        });
     };
 
-    const documentChange = (content: string, document: ItemBodyParameter) => {
+    const documentChange = (content: string, value: string) => {
+        const parameter = {
+            id: "",
+            order: 0,
+            status: true,
+            isFile: false,
+            fileType: "",
+            fileName: "",
+            key: "",
+            value: value,
+            focus: ""
+        };
+
         const newParameters = { ...data.parameters };
 
         delete newParameters[DOCUMENT_PARAM];
-        
-        if (document.value != "") {
-            document.key = PAYLOAD_PARAM;
-            newParameters[DOCUMENT_PARAM] = orderItemBodyParameter([document]);
+
+        if (parameter.value != "") {
+            parameter.key = PAYLOAD_PARAM;
+            newParameters[DOCUMENT_PARAM] = orderItemBodyParameter([parameter]);
         }
 
-        const newData = {
-            ...data,
-            content: content,
-            parameters: newParameters
-        };
-
-        setData(newData);
-        updateBody(makeBody(newData));
+        updateBody({
+            status: data.status,
+            parameters: newParameters,
+            content_type: content,
+        });
     }
 
     const formDataChange = (content: string, parameters: ItemBodyParameter[]) => {
@@ -123,53 +149,41 @@ export function BodyArguments() {
             newParameters[FORM_DATA_PARAM] = orderItemBodyParameter(parameters);
         }
 
-        const newData = {
-            ...data,
-            content: content,
-            parameters: newParameters
-        };
-
-        setData(newData);
-        updateBody(makeBody(newData));
-    }
-
-    const makeBody = (payload: Payload): ItemBody => {
-        return {
-            status: payload.status,
-            content_type: payload.content,
-            parameters: payload.parameters
-        };
+        updateBody({
+            status: data.status,
+            parameters: newParameters,
+            content_type: content,
+        });
     }
 
     const formatPayload = async () => {
+        const formatter = findFormatter(cursor);
+        if (!formatter) {
+            return;
+        }
+
         const category = data.parameters[DOCUMENT_PARAM];
-        if(!category) {
+        if (!category) {
             return;
         }
 
         const document = category.find(p => p.key == PAYLOAD_PARAM);
-        if(!document) {
+        if (!document) {
             return;
         }
 
-        if(cursor == VIEW_JSON) {
-            document.value = await formatJson(document.value);
-        }
+        document.value = await formatter(document.value);
 
-        if(cursor == VIEW_XML) {
-            document.value = await formatXml(document.value);
-        }
-
-        const newData = {
-            ...data,
-            parameters: {
-                ...data.parameters,
-                [DOCUMENT_PARAM]: [document]
-            }
+        const newParameters = {
+            ...data.parameters,
+            [DOCUMENT_PARAM]: [document]
         };
-           
-        setData(newData);
-        updateBody(makeBody(newData));
+
+        updateBody({
+            status: data.status,
+            parameters: newParameters,
+            content_type: data.content,
+        });
     }
 
     return (
@@ -177,26 +191,26 @@ export function BodyArguments() {
             <div id="client-argument-content">
                 <div id="body-parameters-group" className="border-bottom">
                     <div className="radio-button-group">
-                    <input 
-                        name="status" 
-                        id="body-enable"
-                        type="checkbox" 
-                        checked={data.status}
-                        onChange={statusChange}/>
-                    {cursors.map(c => (
-                        <Fragment key={c.key}>
-                            <input type="radio" id={`tag-body-${c.key.toLowerCase()}`} className="client-tag" name="cursor-body"
-                                checked={cursor === c.key} 
-                                value={c.key} 
-                                onChange={cursorChangeEvent}/>
-                            <button
-                                type="button"
-                                className="button-tag"
-                                onClick={() => cursorChange(c.key)}>
-                                {c.value}
-                            </button>
-                        </Fragment>
-                    ))}
+                        <input
+                            name="status"
+                            id="body-enable"
+                            type="checkbox"
+                            checked={data.status}
+                            onChange={statusChange} />
+                        {cursors.map(c => (
+                            <Fragment key={c.key}>
+                                <input type="radio" id={`tag-body-${c.key.toLowerCase()}`} className="client-tag" name="cursor-body"
+                                    checked={cursor === c.key}
+                                    value={c.key}
+                                    onChange={cursorChangeEvent} />
+                                <button
+                                    type="button"
+                                    className="button-tag"
+                                    onClick={() => cursorChange(c.key)}>
+                                    {c.value}
+                                </button>
+                            </Fragment>
+                        ))}
                     </div>
                     {(cursor === VIEW_JSON || cursor === VIEW_XML) && (
                         <div className="radio-button-group aux-group">
@@ -204,10 +218,21 @@ export function BodyArguments() {
                         </div>
                     )}
                 </div>
-                {cursor === VIEW_TEXT && <TextData onValueChange={documentChange}/>}
-                {cursor === VIEW_XML && <XmlData onValueChange={documentChange}/>}
-                {cursor === VIEW_JSON && <JsonData onValueChange={documentChange}/>}
-                {cursor === VIEW_FORM && <FormData onValueChange={formDataChange}/>}
+                {cursor === VIEW_TEXT && <TextData
+                    key={data.key}
+                    payload={findDocumentParameter(data.parameters)}
+                    onValueChange={documentChange} />}
+                {cursor === VIEW_XML && <XmlData
+                    key={data.key}
+                    payload={findDocumentParameter(data.parameters)}
+                    onValueChange={documentChange} />}
+                {cursor === VIEW_JSON && <JsonData
+                    key={data.key}
+                    payload={findDocumentParameter(data.parameters)}
+                    onValueChange={documentChange} />}
+                {cursor === VIEW_FORM && <FormData
+                    key={data.key}
+                    onValueChange={formDataChange} />}
             </div>
         </>
     )

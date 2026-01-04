@@ -8,6 +8,7 @@ import { Combo } from '../../../../utils/combo/Combo';
 import { responseOptions, statusOptions } from './Constants';
 import { PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
 import { Optional } from '../../../../../types/Optional';
+import { Events } from '../../../../../types/EventAction';
 
 import './EndPointForm.css';
 
@@ -47,10 +48,8 @@ export function EndPointForm() {
 
     useEffect(() => {
         switch (event.reason) {
-            case "new":
-            case "define":
-            case "fetch":
-            case "discard":
+            case Events.DEFINE:
+            case Events.DISCARD:
                 hideResponseForm();
                 break;
             default:

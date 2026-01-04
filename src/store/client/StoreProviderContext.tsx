@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../../interfaces/client/context/Context";
 import { findContext, findUserContext, insertContext } from "../../services/api/ServiceContext";
-import { generateHash } from "../../services/Utils";
 import { CacheContext } from "../../interfaces/client/Cache";
 import { useStoreCache } from "../StoreProviderCache";
 import { Optional } from "../../types/Optional";
@@ -70,10 +69,10 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
 
     let initialHash = data.initialHash;
     if (data.initialHash == "") {
-      initialHash = await calculateHash(data.backup);
+      initialHash = JSON.stringify(data.backup);
     }
 
-    const actualHash = await calculateHash(data.context);
+    const actualHash = JSON.stringify(data.context);
 
     if(actualHash != initialHash) {
       insert(CACHE_KEY, context._id, {
@@ -90,10 +89,6 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
       initialHash,
       actualHash,
     }));
-  }
-
-  const calculateHash = async (context: ItemContext) => {
-    return await generateHash(toContext(context));
   }
 
   const getContext = (): Context => {

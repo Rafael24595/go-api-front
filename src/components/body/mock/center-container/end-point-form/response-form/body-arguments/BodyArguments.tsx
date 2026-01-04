@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { ItemResponse } from '../../../../../../../interfaces/mock/Response';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useStoreEndPoint } from '../../../../../../../store/mock/StoreProviderEndPoint';
@@ -5,10 +6,12 @@ import { FormatsLite, StepFormat } from '../../../../../../../services/mock/Cons
 import { TextData } from '../../../../../../form/text-area/text/TextData';
 import { XmlData } from '../../../../../../form/text-area/xml/XmlData';
 import { JsonData } from '../../../../../../form/text-area/json/JsonData';
+import { EndPointEvents } from '../../../../../../../store/mock/Constants';
 
 import './BodyArguments.css';
 
 interface Payload {
+    key: string
     content: string
     payload: string
 }
@@ -18,32 +21,29 @@ const defaultPayload = (response: ItemResponse): Payload => {
     const content = FormatsLite.map(f => f.key)
         .find(f => f == body.content_type);
     return {
+        key: uuidv4(),
         content: content || StepFormat.TEXT,
         payload: body.payload
     };
 }
 
 export function BodyArguments() {
-    const { response, defineResponse } = useStoreEndPoint();
+    const { event, response, defineResponse, updateResponse } = useStoreEndPoint();
 
     const [data, setData] = useState<Payload>(defaultPayload(response));
 
     useEffect(() => {
-        setData(defaultPayload(response));
+        if (event.reason == EndPointEvents.DEFINE_REQUEST) {
+            setData(defaultPayload(response));
+        }
     }, [response.body]);
 
     const onContentChange = (e: ChangeEvent<HTMLSelectElement>) => {
-        const content = e.target.value;
-        setData((prevData) => ({
-            ...prevData,
-            content: content
-        }));
-
         const newResponse: ItemResponse = {
             ...response,
             body: {
                 ...response.body,
-                content_type: content
+                content_type: e.target.value
             }
         };
 
@@ -51,11 +51,6 @@ export function BodyArguments() {
     }
 
     const onPayloadChange = (content: string, payload: string) => {
-        setData({
-            content: content,
-            payload: payload
-        });
-
         const newResponse: ItemResponse = {
             ...response,
             body: {
@@ -64,7 +59,7 @@ export function BodyArguments() {
             }
         };
 
-        defineResponse(newResponse);
+        updateResponse(newResponse);
     }
 
     return (
@@ -80,9 +75,18 @@ export function BodyArguments() {
                         ))}
                     </select>
                 </label>
-                {data.content === StepFormat.TEXT && <TextData payload={data.payload} onValueChange={onPayloadChange} />}
-                {data.content === StepFormat.XML && <XmlData payload={data.payload} onValueChange={onPayloadChange} />}
-                {data.content === StepFormat.JSON && <JsonData payload={data.payload} onValueChange={onPayloadChange} />}
+                {data.content === StepFormat.TEXT && <TextData 
+                    key={data.key}
+                    payload={data.payload} 
+                    onValueChange={onPayloadChange} />}
+                {data.content === StepFormat.XML && <XmlData 
+                    key={data.key}
+                    payload={data.payload} 
+                    onValueChange={onPayloadChange} />}
+                {data.content === StepFormat.JSON && <JsonData 
+                    key={data.key}
+                    payload={data.payload} 
+                    onValueChange={onPayloadChange} />}
             </div>
         </>
     )
