@@ -6,7 +6,7 @@ interface StoreOptions<T> {
     stringifier?: (value: T) => string
 }
 
-interface FindOptions<T> {
+export interface FindOptions<T> {
     def: T;
     range?: T[];
     strict?: boolean;

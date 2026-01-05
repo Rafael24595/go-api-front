@@ -87,11 +87,10 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     const updateDataStatus = async (endPoint: ItemEndPoint) => {
         let initialHash = data.initialHash;
         if (data.initialHash == "") {
-            initialHash = JSON.stringify(data.backup);
+            initialHash = calculateHash(data.backup);
         }
 
-        const actualHash = JSON.stringify(data.endPoint);
-
+        const actualHash = calculateHash(data.endPoint);
         if (actualHash != initialHash) {
             insert<CacheEndPointStore>(CACHE_CATEGORY_STORE, endPoint._id, {
                 backup: data.backup,
@@ -493,6 +492,10 @@ const clearEndPointData = (endPoint: ItemEndPoint, backup?: ItemEndPoint): Paylo
         endPoint: deepClone(endPoint),
     }
 };
+
+const calculateHash = (endPoint: ItemEndPoint) => {
+  return JSON.stringify(endPoint);
+}
 
 export const useStoreEndPoint = (): StoreProviderEndPointType => {
     const context = useContext(StoreEndPoint);

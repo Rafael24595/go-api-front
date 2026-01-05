@@ -129,11 +129,10 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   const updateStatus = async (request: ItemRequest) => {
     let initialHash = data.initialHash;
     if (data.initialHash == "") {
-      initialHash = JSON.stringify(data.backup);
+      initialHash = calculateHash(data.backup);
     }
 
-    const actualHash = JSON.stringify(data.request);
-
+    const actualHash = calculateHash(data.request);
     if (actualHash != initialHash) {
       insert(CACHE_CATEGORY_STORE, request._id, {
         parent: data.parent,
@@ -242,7 +241,6 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     fetchContext(context, parent);
 
     pushEvent(Events.DEFINE);
-
   }
 
   const releaseRequest = (request: Request, response: Response, oldRequest: Request) => {
@@ -660,6 +658,10 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     </StoreRequest.Provider>
   );
 };
+
+const calculateHash = (request: ItemRequest) => {
+  return JSON.stringify(toRequest(request));
+}
 
 export const useStoreRequest = (): StoreProviderRequestType => {
   const context = useContext(StoreRequest);

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useStoreStatus } from "../../../store/StoreProviderStatus";
+import { booleanParser } from "../../../store/Helper";
 
 import './Details.css';
 
@@ -17,10 +18,7 @@ export const Details: React.FC<DetailsProps> = ({ identity, summary, options, su
   const { find, store } = useStoreStatus();
 
   const [isOpen, setIsOpen] = useState(
-    find(identity, {
-      def: false,
-      parser: (v) => v == "true"
-    })
+    find(identity, booleanParser())
   );
 
   const toggleOpen = () => {

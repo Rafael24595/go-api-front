@@ -13,6 +13,7 @@ import { useAlert } from '../../utils/alert/Alert';
 import { useStoreStatus } from '../../../store/StoreProviderStatus';
 import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../utils/drag/VerticalDragDrop';
 import { Combo } from '../../utils/combo/Combo';
+import { booleanParser, jsonParser } from '../../../store/Helper';
 
 import './ContextModal.css';
 
@@ -135,15 +136,9 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         preview: find(CONTENT_KEY, {
             def: TEMPLATE
         }),
-        showPreview: find(STATUS_KEY, {
-            def: true,
-            parser: (v) => v == "true"
-        }),
+        showPreview: find(STATUS_KEY, booleanParser()),
         showImport: false,
-        filter: find(FILTER_KEY, {
-            def: EMPTY_FILTER,
-            parser: (v) => JSON.parse(v)
-        }),
+        filter: find(FILTER_KEY, jsonParser(EMPTY_FILTER)),
         status: context.status,
         argument: context.dictionary
     });
