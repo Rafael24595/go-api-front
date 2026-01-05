@@ -5,7 +5,8 @@ import { Scopes, Token } from "../../interfaces/system/Token";
 import { UserData } from "../../interfaces/system/UserData";
 import { apiManager, sessionApiManager, authApiManager } from "./ApiManager";
 import { RequestAuthentication, RequestLogin, RequestSignin } from "./Requests";
-import { ResponseExecuteAction, ResponseFetch } from "./Responses";
+import { CmdCompHelp, ResponseExecuteAction, ResponseFetch } from "./Responses";
+import { queryHelper } from "./HelperClient";
 
 export const executeFormAction = (request: Request, context: Context): ResponseFetch<ResponseExecuteAction> => {
   const controller = new AbortController();
@@ -158,9 +159,19 @@ export const fetchTokenScopes = async (): Promise<Scopes[]> => {
   }
 };
 
-export const fetchCmd = async (cmd: string): Promise<string> => {
+export const fetchCmdExec = async (cmd: string): Promise<string> => {
   try {
-    const apiResponse = await authApiManager.post(`/system/cmd`, cmd);
+    const apiResponse = await authApiManager.post(`/system/cmd/exec`, cmd);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchCmdComp = async (cmd: string, step?: number): Promise<CmdCompHelp> => {
+  try {
+    const query = queryHelper(["step", step != undefined ? step : -1]);
+    const apiResponse = await authApiManager.post(`/system/cmd/comp${query}`, cmd);
     return apiResponse.data;
   } catch (error) {
     throw error;

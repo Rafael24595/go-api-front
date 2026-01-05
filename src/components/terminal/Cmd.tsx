@@ -1,7 +1,8 @@
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
-import { fetchCmd } from "../../services/api/ServiceManager";
+import { fetchCmdComp, fetchCmdExec } from "../../services/api/ServiceManager";
 import { api } from "../../services/api/ApiManager";
 import { useStoreSession } from "../../store/system/StoreProviderSession";
+import { CmdCompHelp } from "../../services/api/Responses";
 
 import './Terminal.css';
 
@@ -14,13 +15,17 @@ interface PayloadCmd {
     cursor: number
     records: CmdRecord[]
     history: CmdRecord[]
+    reference: string
+    step: number
 }
 
 export function Cmd() {
     const [linesData, setLinesData] = useState<PayloadCmd>({
         cursor: 0,
         records: [],
-        history: []
+        history: [],
+        reference: "",
+        step: -1,
     });
 
     const { userData, checkSession } = useStoreSession()
@@ -58,6 +63,11 @@ export function Cmd() {
         if (e.key === "ArrowDown") {
             return resolveMoveCursor(1);
         }
+
+        if (e.key === "Tab") {
+            e.preventDefault();
+            return resolveTab();
+        }
     };
 
     const resolveEnter = async () => {
@@ -66,6 +76,10 @@ export function Cmd() {
         if (inputRef.current) {
             inputRef.current.innerText = "";
         }
+    };
+
+    const resolveTab = async () => {
+        comp(linesData.reference || inputRef.current?.innerText || "");
     };
 
     const runCommand = async (input: string, ignore?: boolean) => {
@@ -87,13 +101,14 @@ export function Cmd() {
 
     const clean = (cmd: CmdRecord) => {
         setLinesData((prevData) => ({
-            ...prevData,
-            cursor: 0,
+            cursor: prevData.history.length + 1,
             records: [],
             history: [
                 ...prevData.history,
                 cmd
-            ]
+            ],
+            reference: "",
+            step: -1
         }));
 
         if (inputRef.current) {
@@ -107,46 +122,99 @@ export function Cmd() {
     };
 
     const exec = async (cmd: CmdRecord, ignore?: boolean) => {
-        const result = await fetchCmd(cmd.content)
+        const result = await fetchCmdExec(cmd.content)
             .catch(e => `${e.message || "something goes wrong"}`);
 
+        setLinesData(prevData => {
+            let newRecords = [...prevData.records];
+            let newHistory = [...prevData.history];
+            let newCursor = prevData.history.length;
+
+            if (!ignore) {
+                newRecords.push(cmd);
+                newHistory.push(cmd);
+                newCursor += 1;
+            }
+
+            newRecords.push(...cmdToRecord(result));
+
+            return {
+                ...prevData,
+                cursor: newCursor,
+                records: newRecords,
+                history: newHistory,
+                reference: "",
+                step: -1,
+            }
+
+        });
+    };
+
+    const comp = async (cmd: string) => {
+        const result: CmdCompHelp = await fetchCmdComp(cmd, linesData.step || -1)
+            .catch(e => {
+                return {
+                    message: `${e.message || "something goes wrong"}`,
+                    position: -1,
+                    application: cmd,
+                    lenght: 0
+                };
+            });
+
+        if (inputRef.current) {
+            inputRef.current.innerText = result.application != "" ? result.application : cmd;
+        }
+
+        setLinesData(prevData => {
+            let newRecords = [...prevData.records];
+            let newHistory = [...prevData.history];
+            let newCursor = prevData.history.length;
+
+            let newReference = prevData.reference == "" ? cmd : prevData.reference;
+
+            if (result.message) {
+                prevData.records.push({
+                    request: true,
+                    content: cmd.trim() || ""
+                });
+                prevData.records.push(...cmdToRecord(result.message));
+            }
+
+            if (result.application) {
+                newHistory.push({
+                    request: true,
+                    content: result.application.trim() || ""
+                });
+                newCursor += 1;
+            }
+
+            return {
+                ...prevData,
+                cursor: newCursor,
+                records: newRecords,
+                history: newHistory,
+                reference: newReference,
+                step: result.position
+            }
+        });
+
+    };
+
+    const cmdToRecord = (cmd: string) => {
         const output: CmdRecord[] = [];
-        for (const c of result.split("\n")) {
+        for (const c of cmd.split("\n")) {
             output.push({
                 request: false,
                 content: c
             })
         }
-
-        if (ignore) {
-            setLinesData((prevData) => ({
-                ...prevData,
-                cursor: prevData.history.length,
-                records: [
-                    ...prevData.records,
-                    ...output,
-                ]
-            }));
-
-            return;
-        }
-
-        setLinesData((prevData) => ({
-            cursor: prevData.history.length + 1,
-            records: [
-                ...prevData.records,
-                cmd,
-                ...output,
-            ],
-            history: [
-                ...prevData.history,
-                cmd,
-            ]
-        }));
+        return output;
     };
 
     const resolveMoveCursor = async (step: number) => {
         const requests = linesData.history.filter(r => r.request);
+
+        console.log(linesData.cursor)
 
         let newCursor = linesData.cursor + step;
         if (newCursor < 0) {

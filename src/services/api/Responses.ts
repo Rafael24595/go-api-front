@@ -10,3 +10,10 @@ export interface ResponseFetch<T> {
     promise: Promise<T>;
     cancel: () => void
 }
+
+export interface CmdCompHelp {
+    message: string
+    application: string
+    position: number
+    lenght: number
+}
