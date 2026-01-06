@@ -68,6 +68,12 @@ export function Cmd() {
             e.preventDefault();
             return resolveTab();
         }
+
+        setLinesData(prevData => ({
+            ...prevData,
+            reference: "",
+            step: -1,
+        }));
     };
 
     const resolveEnter = async () => {
