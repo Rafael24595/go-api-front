@@ -75,7 +75,6 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
 
   const openModal = async () => {
     fetchMetadata();
-
     setModalData({ isOpen: true });
   }
 
@@ -84,10 +83,12 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   const showLogs = () => {
+    fetchMetadata();
     window.open(`/log`, '_blank', windowPreferences(850, 500));
   }
 
   const showTerminal = () => {
+    fetchMetadata();
     window.open(`/cmd`, '_blank', windowPreferences(850, 500));
   }
 
