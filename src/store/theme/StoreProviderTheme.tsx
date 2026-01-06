@@ -53,7 +53,7 @@ interface Payload {
 const StoreTheme = createContext<StoreProviderThemeType | undefined>(undefined);
 
 export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, pushTrigger, trimTrigger } = useStoreSession();
+  const { userData, webData, pushTrigger, trimTrigger, updateWebData } = useStoreSession();
   const { find, findAll, store, remove } = useStoreStatus();
   const { push } = useAlert();
 
@@ -63,10 +63,15 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     return `${STORAGE_THEME_KEY}-${userData.username}`
   }
 
+  const findThemeCode = (userData: UserData) => {
+    return webData.data.theme ||
+      find(makeCacheKey(userData), {
+        def: THEME_LIGHT
+      });
+  }
+
   const [theme, setTheme] = useState(
-    find(makeCacheKey(userData), {
-      def: THEME_LIGHT
-    })
+    findThemeCode(userData)
   );
 
   const [modalData, setModalData] = useState<Payload>({
@@ -96,18 +101,23 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
       return;
     }
 
-    store(makeCacheKey(userData), theme);
     document.documentElement.setAttribute('data-theme', theme);
+
     setModalData((prevData) => ({
       ...prevData,
+      loading: true,
       themeName: theme
     }));
+
+    updateWebData({
+      theme: theme
+    });
+
+    store(makeCacheKey(userData), theme);
   }, [theme]);
 
   const findSessionTheme = (userData: UserData) => {
-    const theme = find(makeCacheKey(userData), {
-      def: THEME_LIGHT
-    });
+    const theme = findThemeCode(userData);
     preloadCursorTheme(theme);
   }
 

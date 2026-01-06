@@ -7,6 +7,7 @@ import { apiManager, sessionApiManager, authApiManager } from "./ApiManager";
 import { RequestAuthentication, RequestLogin, RequestSignin } from "./Requests";
 import { CmdCompHelp, ResponseExecuteAction, ResponseFetch } from "./Responses";
 import { queryHelper } from "./HelperClient";
+import { RawWebData, WebData } from "../../interfaces/system/WebData";
 
 export const executeFormAction = (request: Request, context: Context): ResponseFetch<ResponseExecuteAction> => {
   const controller = new AbortController();
@@ -84,6 +85,24 @@ export const fetchUserData = async (): Promise<UserData> => {
 export const fetchRemove = async (): Promise<UserData> => {
   try {
     const apiResponse = await authApiManager.delete(`/user`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchUserWebData = async (): Promise<RawWebData> => {
+  try {
+    const apiResponse = await authApiManager.get(`/user/web`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const resolveUserWebData = async (webData: WebData): Promise<RawWebData> => {
+  try {
+    const apiResponse = await authApiManager.post(`/user/web`, webData);
     return apiResponse.data;
   } catch (error) {
     throw error;

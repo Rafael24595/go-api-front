@@ -1,34 +1,43 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from "react";
-import { deleteUserToken, fetchAuthenticate, fetchLogin, fetchLogout, fetchRefresh, fetchRemove, fetchSignin, fetchTokenScopes, fetchUserData, fetchUserTokens, insertUserToken } from "../../services/api/ServiceManager";
+import { deleteUserToken, fetchAuthenticate, fetchLogin, fetchLogout, fetchRefresh, fetchRemove, fetchSignin, fetchTokenScopes, fetchUserData, fetchUserTokens, fetchUserWebData, insertUserToken, resolveUserWebData } from "../../services/api/ServiceManager";
 import { newUserData, UserData } from "../../interfaces/system/UserData";
 import { Dict } from "../../types/Dict";
 import { generateHash } from "../../services/Utils";
 import { putRefreshHandler } from "../../services/api/ApiManager";
 import { Scopes, Token } from "../../interfaces/system/Token";
+import { emptyWebData, FormWebData, rawToWebData, RawWebData, WebData } from "../../interfaces/system/WebData";
 
 interface StoreProviderSessionType {
   userData: UserData;
+  webData: WebData;
   scopes: Scopes[];
   tokens: Token[];
+
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
   signin: (username: string, password1: string, password2: string, isAdmin: boolean) => Promise<void>
   remove: () => Promise<void>
+
   fetchUser: () => Promise<void>
   fetchTokens: () => Promise<void>
+
   insertToken: (token: Token) => Promise<string>
   deleteToken: (token: Token) => Promise<void>
+  
   authenticate: (oldPassword: string, newPassword1: string, newPassword2: string) => Promise<void>
   checkSession: () => Promise<void>
+
   pushTrigger: (key: string, trigger: Trigger) => Promise<void>
   trimTrigger: (key: string) => Promise<void>
+
+  updateWebData: (data: FormWebData) => Promise<boolean>
 }
 
 type Trigger = (newUser: UserData, oldUser: UserData) => void
 
 interface Payload {
-  userData: UserData;
   hash: string;
+  userData: UserData;
   triggers: Dict<Trigger>
   loaded: boolean;
 }
@@ -43,12 +52,17 @@ interface PayloadTokens {
   tokens: Token[];
 }
 
+interface PayloadWebData {
+  hash: string;
+  webData: WebData;
+}
+
 const StoreSession = createContext<StoreProviderSessionType | undefined>(undefined);
 
 export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState<Payload>({
-    userData: newUserData(),
     hash: "",
+    userData: newUserData(),
     triggers: {},
     loaded: false
   });
@@ -61,6 +75,11 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
   const [dataTokens, setTokensData] = useState<PayloadTokens>({
     hash: "",
     tokens: [],
+  });
+
+  const [dataWeb, setDataWeb] = useState<PayloadWebData>({
+    hash: "",
+    webData: emptyWebData()
   });
 
   const userDataRef = useRef(data.userData);
@@ -83,6 +102,7 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     userDataRef.current = data.userData;
     fetchScopes();
     fetchTokens();
+    fetchWebData();
   }, [data.userData]);
 
   useEffect(() => {
@@ -165,6 +185,16 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       });
   };
 
+   const fetchWebData = async () => {
+    await fetchUserWebData()
+      .then(async (raw) => {
+        defineWebData(raw);
+      }).catch((err) => {
+        //TODO: Manage error.
+        throw err;
+      });
+  };
+
   const insertToken = async (token: Token) => {
     const raw = await insertUserToken(token)
       .catch((err) => {
@@ -198,8 +228,8 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
 
       return {
         ...prevData,
-        userData: newUser,
         hash: newHash,
+        userData: newUser,
         loaded: true,
       };
     });
@@ -220,8 +250,8 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       }
 
       return {
-        scopes: scopes,
         hash: newHash,
+        scopes: scopes,
       };
     });
   };
@@ -237,8 +267,25 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       }
 
       return {
-        tokens: tokens,
         hash: newHash,
+        tokens: tokens,
+      };
+    });
+  };
+
+  const defineWebData = async (raw: RawWebData) => {
+    const webData = rawToWebData(raw);
+
+    const newHash = await generateHash(webData);
+
+    setDataWeb(prevData => {
+      if (prevData.hash === newHash) {
+        return prevData;
+      }
+
+      return {
+        hash: newHash,
+        webData: webData,
       };
     });
   };
@@ -264,15 +311,36 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     });
   };
 
+  const updateWebData = async (data: FormWebData) => {
+    const newWebData = { 
+      ...dataWeb.webData,
+      data: {
+        theme: data.theme || dataWeb.webData.data.theme
+      }
+    };
+    
+    return resolveUserWebData(newWebData)
+      .then(r => {
+        defineWebData(r);
+        return true;
+      })
+      .catch(e => {
+        console.error(e);
+        return false;
+      });
+  };
+
   return (
     <StoreSession.Provider value={{
       ...data,
       scopes: dataScopes.scopes,
       tokens: dataTokens.tokens,
+      webData: dataWeb.webData,
       login, logout, signin,
       remove, fetchUser, fetchTokens,
       insertToken, deleteToken, authenticate,
-      checkSession, pushTrigger, trimTrigger
+      checkSession, pushTrigger, trimTrigger,
+      updateWebData
     }}>
       {data.loaded ? children :
         <>
