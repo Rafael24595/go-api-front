@@ -167,8 +167,10 @@ export function Cmd() {
                 };
             });
 
+        const application = result.application ? result.application : cmd;
+
         if (inputRef.current) {
-            inputRef.current.innerText = result.application != "" ? result.application : cmd;
+            inputRef.current.innerText = application;
         }
 
         setLinesData(prevData => {
@@ -176,7 +178,8 @@ export function Cmd() {
             let newHistory = [...prevData.history];
             let newCursor = prevData.history.length;
 
-            let newReference = prevData.reference == "" ? cmd : prevData.reference;
+            let newCmd = result.lenght == 1 ? application : cmd;
+            let newReference = prevData.reference == "" ? newCmd : prevData.reference;
 
             if (result.message) {
                 prevData.records.push({
