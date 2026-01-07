@@ -223,8 +223,6 @@ export function Cmd() {
     const resolveMoveCursor = async (step: number) => {
         const requests = linesData.history.filter(r => r.request);
 
-        console.log(linesData.cursor)
-
         let newCursor = linesData.cursor + step;
         if (newCursor < 0) {
             newCursor = 0;
