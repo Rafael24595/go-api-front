@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { emptyItemEndPoint, ItemEndPoint, LiteEndPoint } from "../../interfaces/mock/EndPoint";
 import { useStoreCache } from "../StoreProviderCache";
 import { CacheEndPointStore, CacheEndPointFocus } from "../../interfaces/mock/Cache";
@@ -62,7 +62,7 @@ const StoreEndPoint = createContext<StoreProviderEndPointType | undefined>(undef
 
 export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { search, gather, insert, excise, remove, length } = useStoreCache();
-    const { userData, fetchUser, pushTrigger, trimTrigger } = useStoreSession();
+    const { userData, loaded, fetchUser, pushTrigger, trimTrigger } = useStoreSession();
 
     const { fetchEndPoints } = useStoreMock();
 
@@ -75,12 +75,20 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
     useEffect(() => {
         pushTrigger(TRIGGER_SESSION_CHANGE, onSessionChange);
 
+        if (loaded) {
+            focusCached();
+        }
+
         return () => {
             trimTrigger(TRIGGER_SESSION_CHANGE);
         };
     }, []);
 
     useEffect(() => {
+        if (!loaded) {
+            return;
+        }
+
         updateDataStatus(data.endPoint);
     }, [data.endPoint]);
 
@@ -131,19 +139,16 @@ export const StoreProviderEndPoint: React.FC<{ children: ReactNode }> = ({ child
         setEventAction({ reason, source, target });
     }
 
-    const onSessionChange = (newUser: UserData, oldUser: UserData) => {
-        tryFocusCached(newUser, oldUser);
-    }
-
-    const tryFocusCached = (newUser: UserData, oldUser: UserData) => {
+    const onSessionChange = useCallback(async (newUser: UserData, oldUser: UserData) => {
         if (newUser.username != oldUser.username || !focusCached()) {
             clearAll();
             cleanCache();
         }
-    }
+    }, []);
 
     const focusCached = () => {
         const focus: Optional<CacheEndPointFocus> = search(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
+        console.log(focus)
         if (focus != undefined) {
             return fetchEndPointById(focus.endPoint);
         }
@@ -494,7 +499,7 @@ const clearEndPointData = (endPoint: ItemEndPoint, backup?: ItemEndPoint): Paylo
 };
 
 const calculateHash = (endPoint: ItemEndPoint) => {
-  return JSON.stringify(endPoint);
+    return JSON.stringify(endPoint);
 }
 
 export const useStoreEndPoint = (): StoreProviderEndPointType => {

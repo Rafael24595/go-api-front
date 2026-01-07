@@ -12,6 +12,7 @@ interface StoreProviderSessionType {
   webData: WebData;
   scopes: Scopes[];
   tokens: Token[];
+  loaded: boolean;
 
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
@@ -60,6 +61,11 @@ interface PayloadWebData {
 const StoreSession = createContext<StoreProviderSessionType | undefined>(undefined);
 
 export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const userDataRef = useRef<UserData>(newUserData());
+  const triggersRef = useRef<Dict<Trigger>>({});
+  const fetchingRef = useRef(false);
+  const forceTriggersRef = useRef(false);
+
   const [data, setData] = useState<Payload>({
     hash: "",
     userData: newUserData(),
@@ -81,10 +87,6 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     webData: emptyWebData()
   });
 
-  const userDataRef = useRef(data.userData);
-  const triggersRef = useRef<Dict<Trigger>>({});
-  const fetchingRef = useRef(false);
-
   useEffect(() => {
     fetchUserRetry();
 
@@ -98,10 +100,22 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
   }, []);
 
   useEffect(() => {
+    if (!data.loaded) {
+      return;
+    }
+
+    const oldUser = userDataRef.current;
     userDataRef.current = data.userData;
+
     fetchScopes();
     fetchTokens();
     fetchWebData();
+
+    if (forceTriggersRef.current || data.userData.username != oldUser.username) {
+      forceTriggersRef.current = false;
+      executeTriggers(data.userData, oldUser);
+    }
+
   }, [data.userData]);
 
   const login = async (username: string, password: string) => {
@@ -157,7 +171,8 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
 
   const refresh = async () => {
     const userData = await fetchRefresh();
-    return defineUserData(userData, true);
+    forceTriggersRef.current = true;
+    return defineUserData(userData);
   };
 
   const fetchScopes = async () => {
@@ -209,9 +224,8 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     fetchTokens();
   };
 
-  const defineUserData = async (newUser: UserData, forceTriggers?: boolean) => {
+  const defineUserData = async (newUser: UserData) => {
     const newHash = await generateHash(newUser);
-    const oldUser = userDataRef.current;
 
     setData(prevData => {
       if (prevData.hash === newHash) {
@@ -228,10 +242,6 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
         loaded: true,
       };
     });
-
-    if (forceTriggers || newUser.username != oldUser.username) {
-      executeTriggers(newUser, oldUser);
-    }
   };
 
   const defineScopes = async (scopes: Scopes[]) => {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../../interfaces/client/context/Context";
 import { findContext, findUserContext, insertContext } from "../../services/api/ServiceContext";
 import { CacheContext } from "../../interfaces/client/Cache";
@@ -10,10 +10,8 @@ const TRIGGER_KEY = "StoreProviderContextTrigger";
 const CACHE_KEY = "StoreProviderContextCache";
 
 interface StoreProviderContextType {
-  initialHash: string;
-  actualHash: string;
-  backup: ItemContext;
   context: ItemContext;
+
   getContext: () => Context;
   discardContext: (context?: string) => void;
   defineContext: (context: Context, parent?: string) => void;
@@ -21,6 +19,8 @@ interface StoreProviderContextType {
   updateContext: (context: ItemContext) => void;
   fetchContext: (id?: string, parent?: string) => Promise<void>;
   releaseContext: () => Promise<Context>;
+  
+  isModified: () => boolean;
   isParentCached: (parent: string) => boolean;
   cacheComments: () => string[];
   cacheLenght: () => number;
@@ -37,7 +37,7 @@ interface Payload {
 const StoreContext = createContext<StoreProviderContextType | undefined>(undefined);
 
 export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, pushTrigger, trimTrigger } = useStoreSession();
+  const { userData, loaded, pushTrigger, trimTrigger } = useStoreSession();
   const { gather, search, exists, insert, excise, remove, length } = useStoreCache();
 
   const [data, setData] = useState<Payload>({
@@ -50,8 +50,11 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   });
 
   useEffect(() => {
-    pushTrigger(TRIGGER_KEY, cleanCache);
-    fetchContext();
+    pushTrigger(TRIGGER_KEY, onSessionChange);
+
+    if (loaded) {
+      fetchContext();
+    }
 
     return () => {
       trimTrigger(TRIGGER_KEY);
@@ -61,6 +64,10 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   useEffect(() => {
     updateStatus(data.context);
   }, [data.context]);
+
+  const onSessionChange = useCallback(async () => {
+    excise(CACHE_KEY);
+  }, []);
 
   const updateStatus = async (context: ItemContext) => {
     if (data.loading) {
@@ -92,10 +99,6 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
 
   const getContext = (): Context => {
     return toContext(data.context);
-  }
-
-  const cleanCache = () => {
-    excise(CACHE_KEY);
   }
 
   const discardContext = (context?: string) => {
@@ -174,6 +177,10 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     return fixContext;
   }
 
+  const isModified = () => {
+    return data.initialHash != data.actualHash;
+  }
+
   const isParentCached = (parent: string) => {
     return exists(CACHE_KEY, (_: string, i: CacheContext) => i.parent == parent);
   }
@@ -201,8 +208,8 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
       ...data,
       getContext, discardContext, defineContext,
       defineItemContext, updateContext, fetchContext,
-      releaseContext, isParentCached, cacheComments,
-      cacheLenght
+      releaseContext, isModified, isParentCached,
+      cacheComments, cacheLenght
     }}>
       {children}
     </StoreContext.Provider>

@@ -36,17 +36,13 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
     const { userData } = useStoreSession();
     const { loadThemeWindow } = useStoreTheme();
 
-    const { request, cleanRequest, defineFreeRequest, fetchFreeRequest, insertRequest } = useStoreRequest();
+    const { request, cleanRequest, defineRequest, fetchFreeRequest, insertRequest } = useStoreRequest();
     const { historic, fetchHistoric, fetchStored, fetchCollection } = useStoreCollections();
 
     const [modalData, setModalData] = useState<PayloadModal>({
         request: newRequest(userData.username),
         status: false,
     });
-
-    const defineRequest = async (item: LiteRequest) => {
-        await fetchFreeRequest(item);
-    }
 
     const openModal = (item: LiteRequest) => {
         setModalData({
@@ -111,7 +107,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
         const request = action.request;
 
         request._id = "";
-        defineFreeRequest(request);
+        defineRequest(request);
     };
 
     const actionShowCurl = async (item: LiteRequest, raw?: boolean) => {
@@ -155,7 +151,7 @@ export function HistoricColumn({ setCursor }: HistoricColumnProps) {
                     historic.map((cursor) => (
                         <div key={makeKey(cursor)} className={`request-preview ${cursor._id == request._id && "request-selected"}`}>
                             <button className="request-link" title={cursor.uri}
-                                onClick={() => defineRequest(cursor)}>
+                                onClick={() => fetchFreeRequest(cursor)}>
                                 <div className="request-sign">
                                     <span className={`request-sign-method ${cursor.method}`}>{cursor.method}</span>
                                     <span className="request-sign-url">{cursor.uri}</span>

@@ -1,13 +1,14 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect, Dispatch, useMemo, useCallback } from "react";
 import { findAllAction, sortRequests } from "../../services/api/ServiceStorage";
 import { LiteRequest } from "../../interfaces/client/request/Request";
-import { ItemNodeCollection, ItemNodeRequest, LiteItemCollection, newCollection } from "../../interfaces/client/collection/Collection";
+import { ItemNodeCollection, ItemNodeRequest, LiteItemCollection } from "../../interfaces/client/collection/Collection";
 import { useStoreSession } from "../system/StoreProviderSession";
 import { RequestNode } from "../../services/api/Requests";
 import { generateHash } from "../../services/Utils";
 import { findAllCollection, findCollectionLite, sortCollectionRequests, sortCollections } from "../../services/api/ServiceCollection";
 import { findAllHistoric } from "../../services/api/ServiceHistory";
 import { SignedPayload } from "../../interfaces/SignedPayload";
+import { UserData } from "../../interfaces/system/UserData";
 
 interface StoreProviderCollectionsType {
   historic: LiteRequest[];
@@ -33,187 +34,82 @@ interface PayloadCollection {
   hash: string;
 }
 
+interface TriggerContext {
+  setHistoric: Dispatch<React.SetStateAction<PayloadRequest>>,
+  setStored: Dispatch<React.SetStateAction<PayloadRequest>>,
+  setCollection: React.Dispatch<React.SetStateAction<PayloadCollection>>
+}
+
 const TRIGGER_KEY = "StoreRequestsTrigger";
 
 const StoreCollection = createContext<StoreProviderCollectionsType | undefined>(undefined);
 
 export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, fetchUser, pushTrigger, trimTrigger } = useStoreSession();
+  const { userData, loaded, fetchUser, pushTrigger, trimTrigger } = useStoreSession();
 
   const [historic, setHistoric] = useState<PayloadRequest>({
+    hash: "",
     items: [],
-    hash: ""
   });
 
   const [stored, setStored] = useState<PayloadRequest>({
+    hash: "",
     items: [],
-    hash: ""
   });
 
   const [collection, setCollection] = useState<PayloadCollection>({
+    hash: "",
     items: [],
-    hash: ""
   });
 
+  const triggerContext = useMemo<TriggerContext>(() => ({
+    setHistoric,
+    setStored,
+    setCollection
+  }), []);
+
   useEffect(() => {
-    fetchAllWithoutValidation();
+    pushTrigger(TRIGGER_KEY, onSessionChange);
 
-    const interval = setInterval(() => {
-      fetchAllWithoutValidation();
-    }, 30 * 60 * 1000);
-
-    pushTrigger(TRIGGER_KEY, cleanFetchAll);
+    if (loaded) {
+      fetchAll(triggerContext, userData);
+    }
 
     return () => {
       trimTrigger(TRIGGER_KEY);
-      clearInterval(interval);
     };
   }, []);
 
-  const cleanFetchAll = async () => {
-    cleanAll();
-    fetchAllWithoutValidation();
+  const onSessionChange = useCallback(async (userData: UserData) => {
+    cleanAll(triggerContext);
+    fetchAll(triggerContext, userData);
+  }, []);
+
+  const fetchAllWithValidation = async () => {
+    fetchHistoricWithValidation();
+    fetchStoredWithValidation();
+    fetchCollectionWithValidation();
   };
 
-  const cleanAll = async () => {
-    setHistoric({
-      items: [],
-      hash: "",
-    });
-    setStored({
-      items: [],
-      hash: "",
-    });
-    setCollection({
-      items: [],
-      hash: "",
-    });
-  };
-
-  const fetchAll = async () => {
-    fetchHistoric();
-    fetchStored();
-    fetchCollection();
-  };
-
-  const fetchAllWithoutValidation = async () => {
-    fetchHistoricWithoutValidation();
-    fetchStoredWithoutValidation();
-    fetchCollectionWithoutValidation();
-  };
-
-  const fetchHistoric = async () => {
-    const owner = await fetchHistoricWithoutValidation();
+  const fetchHistoricWithValidation = async () => {
+    const owner = await fetchHistoric(triggerContext, userData);
     if (owner != userData.username) {
       fetchUser();
     }
   };
 
-  const fetchHistoricWithoutValidation = async (): Promise<string> => {
-    const response: SignedPayload<ItemNodeRequest[]> = await findAllHistoric()
-      .catch((e) => {
-        console.error("Error fetching history:", e);
-        return { owner: "", payload: [] };
-      });
-
-    if (response.owner == "" || response.owner != userData.username) {
-      return response.owner;
-    }
-
-    const data = response.payload
-      .sort((a, b) => b.order - a.order)
-      .map(n => n.request);
-
-    const newHash = await generateHash(data);
-
-    setHistoric((prevData) => {
-      if (prevData.hash == newHash) {
-        return prevData;
-      }
-
-      return {
-        items: data,
-        hash: newHash
-      };
-    });
-
-    return response.owner;
-  };
-
-  const fetchStored = async () => {
-    const owner = await fetchStoredWithoutValidation();
+  const fetchStoredWithValidation = async () => {
+    const owner = await fetchStored(triggerContext, userData);
     if (owner != userData.username) {
       fetchUser();
     }
   };
 
-  const fetchStoredWithoutValidation = async (): Promise<string> => {
-    const response: SignedPayload<ItemNodeRequest[]> = await findAllAction()
-      .catch((e) => {
-        console.error("Error fetching stored:", e);
-        return { owner: "", payload: [] };
-      });
-
-    if (response.owner == "" || response.owner != userData.username) {
-      return response.owner;
-    }
-
-    const data = response.payload
-      .sort((a, b) => a.order - b.order)
-      .map(n => n.request);
-
-    const newHash = await generateHash(data);
-
-    setStored((prevData) => {
-      if (prevData.hash == newHash) {
-        return prevData;
-      }
-
-      return {
-        items: data,
-        hash: newHash
-      };
-    });
-
-    return response.owner;
-  };
-
-  const fetchCollection = async () => {
-    const owner = await fetchCollectionWithoutValidation();
+  const fetchCollectionWithValidation = async () => {
+    const owner = await fetchCollection(triggerContext, userData);
     if (owner != userData.username) {
       fetchUser();
     }
-  };
-
-  const fetchCollectionWithoutValidation = async (): Promise<string> => {
-    const response: SignedPayload<ItemNodeCollection[]> = await findAllCollection()
-      .catch((e) => {
-        console.error("Error fetching collection:", e);
-        return { owner: "", payload: [] };
-      });
-
-    if (response.owner == "" || response.owner != userData.username) {
-      return response.owner;
-    }
-
-    const data = response.payload
-      .sort((a, b) => a.order - b.order)
-      .map(n => n.collection);
-
-    const newHash = await generateHash(data);
-
-    setCollection((prevData) => {
-      if (prevData.hash == newHash) {
-        return prevData;
-      }
-
-      return {
-        items: data,
-        hash: newHash
-      };
-    });
-
-    return response.owner;
   };
 
   const fetchCollectionItem = async (item: LiteItemCollection) => {
@@ -233,7 +129,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
         return;
       }
 
-      fetchCollection();
+      fetchCollectionWithValidation();
     } catch (error) {
       console.error("Error fetching collection:", error);
     }
@@ -294,7 +190,7 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
       .map(n => cursor.nodes.find(r => r.request._id == n.item))
       .filter(r => r != undefined);
 
-    const newHash = await generateHash(newCollection);
+    const newHash = await generateHash(items);
 
     setCollection((prevData) => {
       if (prevData.hash == newHash) {
@@ -311,10 +207,124 @@ export const StoreProviderCollections: React.FC<{ children: ReactNode }> = ({ ch
   }
 
   return (
-    <StoreCollection.Provider value={{ historic: historic.items, stored: stored.items, collection: collection.items, fetchAll, fetchHistoric, fetchStored, fetchCollection, fetchCollectionItem, updateStoredOrder, updateCollectionsOrder, updateCollectionRequestsOrder }}>
+    <StoreCollection.Provider value={{ historic: historic.items, stored: stored.items, collection: collection.items, fetchAll: fetchAllWithValidation, fetchHistoric: fetchHistoricWithValidation, fetchStored: fetchStoredWithValidation, fetchCollection: fetchCollectionWithValidation, fetchCollectionItem, updateStoredOrder, updateCollectionsOrder, updateCollectionRequestsOrder }}>
       {children}
     </StoreCollection.Provider>
   );
+};
+
+const cleanAll = (ctx: TriggerContext) => {
+  ctx.setHistoric({
+    hash: "",
+    items: [],
+  });
+  ctx.setStored({
+    hash: "",
+    items: [],
+  });
+  ctx.setCollection({
+    hash: "",
+    items: [],
+  });
+};
+
+const fetchAll = async (ctx: TriggerContext, userData: UserData) => {
+  fetchHistoric(ctx, userData);
+  fetchStored(ctx, userData);
+  fetchCollection(ctx, userData);
+};
+
+const fetchHistoric = async (ctx: TriggerContext, userData: UserData): Promise<string> => {
+  const response: SignedPayload<ItemNodeRequest[]> = await findAllHistoric()
+    .catch((e) => {
+      console.error("Error fetching history:", e);
+      return { owner: "", payload: [] };
+    });
+
+  if (response.owner == "" || response.owner != userData.username) {
+    return response.owner;
+  }
+
+  const data = response.payload
+    .sort((a, b) => b.order - a.order)
+    .map(n => n.request);
+
+  const newHash = await generateHash(data);
+
+  ctx.setHistoric((prevData) => {
+    if (prevData.hash == newHash) {
+      return prevData;
+    }
+
+    return {
+      items: data,
+      hash: newHash
+    };
+  });
+
+  return response.owner;
+};
+
+const fetchStored = async (ctx: TriggerContext, userData: UserData): Promise<string> => {
+  const response: SignedPayload<ItemNodeRequest[]> = await findAllAction()
+    .catch((e) => {
+      console.error("Error fetching stored:", e);
+      return { owner: "", payload: [] };
+    });
+
+  if (response.owner == "" || response.owner != userData.username) {
+    return response.owner;
+  }
+
+  const data = response.payload
+    .sort((a, b) => a.order - b.order)
+    .map(n => n.request);
+
+  const newHash = await generateHash(data);
+
+  ctx.setStored((prevData) => {
+    if (prevData.hash == newHash) {
+      return prevData;
+    }
+
+    return {
+      items: data,
+      hash: newHash
+    };
+  });
+
+  return response.owner;
+};
+
+const fetchCollection = async (ctx: TriggerContext, userData: UserData): Promise<string> => {
+  const response: SignedPayload<ItemNodeCollection[]> = await findAllCollection()
+    .catch((e) => {
+      console.error("Error fetching collection:", e);
+      return { owner: "", payload: [] };
+    });
+
+  if (response.owner == "" || response.owner != userData.username) {
+    return response.owner;
+  }
+
+  const data = response.payload
+    .sort((a, b) => a.order - b.order)
+    .map(n => n.collection);
+
+  const newHash = await generateHash(data);
+
+  ctx.setCollection((prevData) => {
+    if (prevData.hash == newHash) {
+      return prevData;
+    }
+
+    return {
+      items: data,
+      hash: newHash
+    };
+  });
+
+  return response.owner;
 };
 
 export const useStoreCollections = (): StoreProviderCollectionsType => {

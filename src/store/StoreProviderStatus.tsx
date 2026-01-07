@@ -23,7 +23,7 @@ interface RemoveOptions<T> {
     parser?: (value: string) => T;
 }
 
-interface StoreProviderStatusType {
+export interface StoreProviderStatusType {
     find: <T>(key: string, options: FindOptions<T>) => T;
     findAll: <T>(key: string, options: FindAllOptions<T>) => T[];
     store: <T>(key: string, value: T, options?: StoreOptions<T>) => T;

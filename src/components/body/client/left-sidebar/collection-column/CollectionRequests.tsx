@@ -35,7 +35,7 @@ export function CollectionRequests({ collection, showDuplicateModal, showMoveMod
 
     const { loadThemeWindow } = useStoreTheme();
 
-    const { request, cleanRequest, discardRequest, defineFreeRequest, fetchGroupRequest, isCached } = useStoreRequest();
+    const { request, cleanRequest, discardRequest, defineRequest, fetchGroupRequest, isCached } = useStoreRequest();
     const { fetchStored, fetchCollection, updateCollectionRequestsOrder } = useStoreCollections();
 
     const [dragData, setDragData] = useState<PayloadDrag>({
@@ -127,7 +127,7 @@ export function CollectionRequests({ collection, showDuplicateModal, showMoveMod
 
         request._id = "";
         request.status = 'draft';
-        defineFreeRequest(request);
+        defineRequest(request);
     };
 
     const takeFrom = async (itemRequest: LiteRequest) => {

@@ -74,6 +74,18 @@ export const isIThemeData = (obj: any): obj is IThemeData => {
     );
 };
 
+export const parseITheme = (cache: string) => {
+    try {
+        const data = JSON.parse(cache);
+        if (isITheme(data)) {
+            return data;
+        }
+    } catch (e) {
+        //
+    }
+    return null;
+}
+
 export const Themes: IThemes = {
     marine: {
         code: "marine",
@@ -1595,91 +1607,97 @@ export const Themes: IThemes = {
     },
 }
 
+export const ThemeLight: ITheme = {
+    code: "light",
+    description: "Light",
+    theme: {
+        "logo-color": "#303030",
+        "body-color": "#ffffff",
+        "body-text-color": "#000000",
+        "header-color": "#ffffff",
+        "header-text-color": "#000000",
+        "border-color": "#d5d5d5",
+        "border-selected-color": "#9b9b9b",
+        "input-color": "transparent",
+        "option-disabled-color": "#9e9d9d",
+        "option-selected-color": "#e2e2e2",
+        "button-color": "#f9f9f9",
+        "button-text-color": "#000000",
+        "button-hover-color": "#f9f9f9",
+        "button-border-color": "#d1d1d1",
+        "button-delete-color": "#e4c1c1",
+        "modal-color": "#f5f5f5",
+        "modal-button-color": "#f9f9f9",
+        "modal-border-color": "#d1d1d1",
+        "combo-color": "#efefef",
+        "combo-hover-color": "#f8f8f8",
+        "combo-shadow-color": "#a9a9a9",
+        "selected-gutter": "#e2e2e2",
+        "selected-line": "#d8d8d848",
+        "string-color": "#aa1111",
+        "number-color": "#116644",
+        "boolean-color": "#221199",
+        "undefined-color": "#770088",
+        "tag-color": "#008855",
+        "scrollbar-track-color": "#f0f0f0",
+        "scrollbar-color": "#888888",
+        "scrollbar-hover-color": "#555555",
+        "landing-area-color": "#000000",
+        "terminal-color": "#000000",
+        "terminal-text-color": "#ffffff",
+        "step-group-color": "#878787",
+        "step-group-block-color": "#333333",
+    }
+}
+
+export const ThemeDark: ITheme = {
+    code: "dark",
+    description: "Dark",
+    theme: {
+        "logo-color": "#f1f1f1",
+        "body-color": "#232323",
+        "body-text-color": "#f1f1f1",
+        "header-color": "#232323",
+        "header-text-color": "#f1f1f1",
+        "border-color": "#6d6d6d",
+        "border-selected-color": "#919191",
+        "input-color": "#2d2d2d",
+        "option-disabled-color": "#d1d1d1",
+        "option-selected-color": "#919191",
+        "button-color": "#3d3d3d",
+        "button-text-color": "#f1f1f1",
+        "button-border-color": "#5a5a5a",
+        "button-hover-color": "#d1d1d1",
+        "button-delete-color": "#e23e5f",
+        "modal-color": "#3b3b3b",
+        "modal-button-color": "#696969",
+        "modal-border-color": "#454545",
+        "combo-color": "#3b3b3b",
+        "combo-hover-color": "#505050",
+        "combo-shadow-color": "#111111",
+        "selected-gutter": "#979797",
+        "selected-line": "#ffffff1f",
+        "string-color": "#ca2828",
+        "number-color": "#11a5aa",
+        "boolean-color": "#6495ed",
+        "undefined-color": "#b70ace",
+        "tag-color": "#28be86",
+        "scrollbar-track-color": "#707070",
+        "scrollbar-color": "#aaaaaa",
+        "scrollbar-hover-color": "#d4d4d4",
+        "landing-area-color": "#ffffff",
+        "terminal-color": "#000000",
+        "terminal-text-color": "#ffffff",
+        "step-group-color": "#000000",
+        "step-group-block-color": "#818181"
+    }
+}
+
+export const ThemeBase: ITheme = ThemeLight
+
 export const ThemesDefault: IThemes = {
-    light: {
-        code: "light",
-        description: "Light",
-        theme: {
-            "logo-color": "#303030",
-            "body-color": "#ffffff",
-            "body-text-color": "#000000",
-            "header-color": "#ffffff",
-            "header-text-color": "#000000",
-            "border-color": "#d5d5d5",
-            "border-selected-color": "#9b9b9b",
-            "input-color": "transparent",
-            "option-disabled-color": "#9e9d9d",
-            "option-selected-color": "#e2e2e2",
-            "button-color": "#f9f9f9",
-            "button-text-color": "#000000",
-            "button-hover-color": "#f9f9f9",
-            "button-border-color": "#d1d1d1",
-            "button-delete-color": "#e4c1c1",
-            "modal-color": "#f5f5f5",
-            "modal-button-color": "#f9f9f9",
-            "modal-border-color": "#d1d1d1",
-            "combo-color": "#efefef",
-            "combo-hover-color": "#f8f8f8",
-            "combo-shadow-color": "#a9a9a9",
-            "selected-gutter": "#e2e2e2",
-            "selected-line": "#d8d8d848",
-            "string-color": "#aa1111",
-            "number-color": "#116644",
-            "boolean-color": "#221199",
-            "undefined-color": "#770088",
-            "tag-color": "#008855",
-            "scrollbar-track-color": "#f0f0f0",
-            "scrollbar-color": "#888888",
-            "scrollbar-hover-color": "#555555",
-            "landing-area-color": "#000000",
-            "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff",
-            "step-group-color": "#878787",
-            "step-group-block-color": "#333333",
-        }
-    },
-    dark: {
-        code: "dark",
-        description: "Dark",
-        theme: {
-            "logo-color": "#f1f1f1",
-            "body-color": "#232323",
-            "body-text-color": "#f1f1f1",
-            "header-color": "#232323",
-            "header-text-color": "#f1f1f1",
-            "border-color": "#6d6d6d",
-            "border-selected-color": "#919191",
-            "input-color": "#2d2d2d",
-            "option-disabled-color": "#d1d1d1",
-            "option-selected-color": "#919191",
-            "button-color": "#3d3d3d",
-            "button-text-color": "#f1f1f1",
-            "button-border-color": "#5a5a5a",
-            "button-hover-color": "#d1d1d1",
-            "button-delete-color": "#e23e5f",
-            "modal-color": "#3b3b3b",
-            "modal-button-color": "#696969",
-            "modal-border-color": "#454545",
-            "combo-color": "#3b3b3b",
-            "combo-hover-color": "#505050",
-            "combo-shadow-color": "#111111",
-            "selected-gutter": "#979797",
-            "selected-line": "#ffffff1f",
-            "string-color": "#ca2828",
-            "number-color": "#11a5aa",
-            "boolean-color": "#6495ed",
-            "undefined-color": "#b70ace",
-            "tag-color": "#28be86",
-            "scrollbar-track-color": "#707070",
-            "scrollbar-color": "#aaaaaa",
-            "scrollbar-hover-color": "#d4d4d4",
-            "landing-area-color": "#ffffff",
-            "terminal-color": "#000000",
-            "terminal-text-color": "#ffffff",
-            "step-group-color": "#000000",
-            "step-group-block-color": "#818181"
-        }
-    },
+    light: ThemeLight,
+    dark: ThemeDark,
 }
 
 export const ThemeTemplate: IThemeData = {
@@ -1722,4 +1740,11 @@ export const ThemeTemplate: IThemeData = {
     "terminal-text-color": "#ffffff",
     "step-group-color": "#ffffff",
     "step-group-block-color": "#ffffff"
+}
+
+export const themeToCSS = (theme: ITheme) => {
+  const cssVars = Object.entries(theme.theme)
+    .map(([key, value]) => `  --${key}: ${value};`)
+    .join('\n');
+  return `[data-theme="${theme.code}"] {\n${cssVars}\n}`;
 }
