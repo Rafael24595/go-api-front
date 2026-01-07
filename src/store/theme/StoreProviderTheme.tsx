@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { useStoreStatus } from "../StoreProviderStatus";
 import { isITheme, isIThemeData, ITheme, IThemeData, Themes, ThemesDefault, ThemeTemplate } from "./Themes";
 import { Modal } from "../../components/utils/modal/Modal";
@@ -12,6 +12,7 @@ import { useStoreSession } from "../system/StoreProviderSession";
 import { UserData } from "../../interfaces/system/UserData";
 import { createRoot } from "react-dom/client";
 import { windowPreferences } from "../../utils/Window";
+import { WebData } from "../../interfaces/system/WebData";
 
 const STORAGE_THEME_KEY = "StoreProviderThemeCache";
 const TRIGGER_KEY = "StoreProviderThemeTrigger";
@@ -53,26 +54,13 @@ interface Payload {
 const StoreTheme = createContext<StoreProviderThemeType | undefined>(undefined);
 
 export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, webData, pushTrigger, trimTrigger, updateWebData } = useStoreSession();
+  const { userData, webData, fetchWebData, pushTrigger, trimTrigger, updateWebData } = useStoreSession();
   const { find, findAll, store, remove } = useStoreStatus();
   const { push } = useAlert();
 
+  const waitingRef = useRef(false);
+
   const [customThemes, setCustomThemes] = useState<Dict<ITheme>>({});
-
-  const makeCacheKey = (userData: UserData) => {
-    return `${STORAGE_THEME_KEY}-${userData.username}`
-  }
-
-  const findThemeCode = (userData: UserData) => {
-    return webData.data.theme ||
-      find(makeCacheKey(userData), {
-        def: THEME_LIGHT
-      });
-  }
-
-  const [theme, setTheme] = useState(
-    findThemeCode(userData)
-  );
 
   const [modalData, setModalData] = useState<Payload>({
     isOpen: false,
@@ -86,10 +74,40 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     fileType: DEFAULT_CURSOR
   });
 
+  const findThemeCode = (userData: UserData, webData: WebData) => {
+    if (waitingRef.current || !webData.data.theme) {
+      return findCacheThemeCode(userData);
+    }
+    return webData.data.theme;
+  }
+
+  const findSyncThemeCode = async (userData: UserData): Promise<Optional<string>> => {
+    if (waitingRef.current) {
+      return findCacheThemeCode(userData);
+    }
+
+    const webData = await fetchWebData();
+    if (userData.username != webData.owner) {
+      return;
+    }
+
+    return webData.data.theme || findCacheThemeCode(userData);
+  }
+
+  const findCacheThemeCode = (userData: UserData) => {
+    return find(makeCacheKey(userData), {
+      def: THEME_LIGHT
+    });
+  }
+
+  const [theme, setTheme] = useState(
+    findThemeCode(userData, webData)
+  );
+
   useEffect(() => {
-    pushTrigger(TRIGGER_KEY, findSessionTheme);
-    preloadCustomThemes();
-    preloadCursorTheme();
+    pushTrigger(TRIGGER_KEY, applyUserTheme);
+    loadCustomThemes();
+    loadCursorTheme();
 
     return () => {
       trimTrigger(TRIGGER_KEY);
@@ -105,23 +123,28 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
 
     setModalData((prevData) => ({
       ...prevData,
-      loading: true,
       themeName: theme
     }));
 
-    updateWebData({
-      theme: theme
-    });
+    waitingRef.current = true;
 
     store(makeCacheKey(userData), theme);
+
+    updateWebData({
+      theme: theme
+    }).then(() => {
+      waitingRef.current = false;
+    });
   }, [theme]);
 
-  const findSessionTheme = (userData: UserData) => {
-    const theme = findThemeCode(userData);
-    preloadCursorTheme(theme);
+  const applyUserTheme = async (userData: UserData) => {
+    const theme = await findSyncThemeCode(userData);
+    if (theme) {
+      loadCursorTheme(theme);
+    }
   }
 
-  const preloadCustomThemes = async () => {
+  const loadCustomThemes = () => {
     const cachedThemes = findAll(CUSTOM_THEME, {
       prefix: true,
       parser: parseCache
@@ -134,7 +157,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     setCustomThemes(newCustomThemes);
   }
 
-  const preloadCursorTheme = async (cursorTheme?: string) => {
+  const loadCursorTheme = (cursorTheme?: string) => {
     if (cursorTheme == undefined) {
       cursorTheme = theme;
     }
@@ -194,9 +217,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   }
 
   const toggleDefaultThemes = () => {
-    setTheme(prev => {
-      return prev === THEME_LIGHT ? THEME_DARK : THEME_LIGHT;
-    });
+    setTheme(theme === THEME_LIGHT ? THEME_DARK : THEME_LIGHT);
   }
 
   const loadThemeWindow = (width: number, height: number, content: string | Blob | ReactNode) => {
@@ -579,6 +600,10 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     </StoreTheme.Provider>
   );
 };
+
+const makeCacheKey = (userData: UserData) => {
+  return `${STORAGE_THEME_KEY}-${userData.username}`
+}
 
 export const useStoreTheme = (): StoreProviderThemeType => {
   const context = useContext(StoreTheme);
