@@ -170,7 +170,7 @@ export function Cmd() {
         const application = result.application ? result.application : cmd;
 
         if (inputRef.current) {
-            inputRef.current.innerText = application;
+            defineInnerText(inputRef.current, application);
         }
 
         setLinesData(prevData => {
@@ -235,13 +235,44 @@ export function Cmd() {
         }
 
         if (inputRef.current) {
-            inputRef.current.innerText = !clean ? requests[newCursor].content : "";
+            const text = !clean ? requests[newCursor].content : "";
+            defineInnerText(inputRef.current, text);
         }
 
         setLinesData((prevData) => ({
             ...prevData,
             cursor: newCursor
         }));
+    };
+
+    const defineInnerText = async (input: HTMLElement, text: string) => {
+        input.innerText = text;
+        requestAnimationFrame(() => {
+            moveCursorToEnd(inputRef.current!);
+        });
+    };
+
+    const moveCursorToEnd = (element: HTMLElement) => {
+        element.focus();
+
+        const selection = window.getSelection();
+        if (!selection) {
+            return;
+        }
+
+        const range = document.createRange();
+        const textNode = element.firstChild;
+
+        if (textNode) {
+            range.setStart(textNode, textNode.textContent!.length);
+            range.collapse(true);
+        } else {
+            range.selectNodeContents(element);
+            range.collapse(false);
+        }
+
+        selection.removeAllRanges();
+        selection.addRange(range);
     };
 
     return (
