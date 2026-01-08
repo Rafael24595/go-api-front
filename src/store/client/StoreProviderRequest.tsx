@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect, useRef, useCallback } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useRef, useCallback, Dispatch, SetStateAction } from "react";
 import { Auths, fromRequest, ItemBody, ItemRequest, LiteRequest, newItemRequest, newRequest, Request, toRequest } from "../../interfaces/client/request/Request";
 import { cleanCopy, ItemStatusKeyValue } from "../../interfaces/StatusKeyValue";
 import { fixOrder } from "../../interfaces/StatusKeyValue";
@@ -74,26 +74,14 @@ interface Payload {
   context: Optional<string>
 }
 
-interface PayloadFectch {
-  waiting: boolean;
-  cancel: () => void;
-}
-
 const StoreRequest = createContext<StoreProviderRequestType | undefined>(undefined);
 
 export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, loaded, fetchUser, pushTrigger, trimTrigger } = useStoreSession();
-  const { fetchContext } = useStoreContext();
+  const { gather, search, exists, insert, remove, length } = useStoreCache();
+  const { userData, loaded, pushTrigger, trimTrigger } = useStoreSession();
   const { getContext } = useStoreContext();
   const { fetchAll } = useStoreCollections();
   const { push } = useAlert();
-  const { gather, search, exists, insert, excise, remove, length } = useStoreCache();
-
-  const requestRef = useRef<ItemRequest>(newItemRequest(userData.username));
-  const fetchRef = useRef<PayloadFectch>({
-    waiting: false,
-    cancel: VOID_FUNCTION
-  });
 
   const [data, setData] = useState<Payload>({
     initialHash: "",
@@ -107,17 +95,38 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
   const [event, setEventAction] = useState<EventAction>(InitialEvent);
 
+  const pushEvent = (reason: string, source?: string, target?: string) => {
+    setEventAction({ reason, source, target });
+  }
+
+  const {
+    backupRef, requestRef, responseRef, fetchRef,
+    fetchRequest, focusLastRequest, defineRequest,
+    releaseRequest, updateRequest, discardRequest,
+    updateResponse, defineFetchData, cleanFetchData,
+    cleanCache,
+  } = useRequestController({
+    setData,
+    pushEvent,
+  })
+
   useEffect(() => {
     pushTrigger(TRIGGER_KEY_VIEW, onSessionChange);
 
     if (loaded) {
-      focusLastRequest();
+      focusLastRequest(userData);
     }
 
     return () => {
       trimTrigger(TRIGGER_KEY_VIEW);
     };
   }, []);
+
+  useEffect(() => {
+    if (loaded) {
+      backupRef.current = data.backup;
+    }
+  }, [data.backup]);
 
   useEffect(() => {
     if (!loaded) {
@@ -128,6 +137,12 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     updateStatus(data);
   }, [data.request]);
+
+  useEffect(() => {
+    if (loaded) {
+      responseRef.current = data.response;
+    }
+  }, [data.response]);
 
   const updateStatus = async (data: Payload) => {
     let initialHash = data.initialHash;
@@ -165,7 +180,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   const onSessionChange = useCallback(async (newUser: UserData, oldUser: UserData) => {
-    if (newUser.username != oldUser.username || !focusLastRequest()) {
+    if (newUser.username != oldUser.username || !focusLastRequest(newUser)) {
       const request = newRequest(newUser.username);
       defineRequest(request);
       cleanCache();
@@ -173,195 +188,25 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
   }, []);
 
   const fetchFreeRequest = async (request: LiteRequest) => {
-    fetchRequest(request._id);
+    fetchRequest(userData, request._id);
   }
 
   const fetchGroupRequest = async (parent: string, context: string, request: LiteRequest) => {
-    fetchRequest(request._id, parent, context);
+    fetchRequest(userData, request._id, parent, context);
   }
 
-  const fetchRequest = async (request: string, parent?: string, context?: string) => {
-    const cached: Optional<CacheActionData> = search(CACHE_CATEGORY_STORE, request);
-    if (cached != undefined) {
-      if (cached.request.owner != userData.username) {
-        return false;
-      }
-
-      restoreRequest(cached.backup, cached.request, cached.response, undefined, cached.parent, context);
-      return false;
-    }
-
-    if (request == "") {
-      return false;
-    }
-
-    const action = await findActionById(request)
-      .catch(err => {
-        if (err.statusCode == 404) {
-          fetchUser();
-          return;
-        }
-        throw err;
-      });
-
-    if (action?.request == undefined) {
-      return false;
-    }
-
-    if (action.request.owner != userData.username) {
-      fetchUser();
-      return false;
-    }
-
-    defineRequest(action.request, action.response, undefined, parent, context);
-
-    return true;
+  const defineFreeRequest = (request: Request, response?: Response, oldRequest?: Request, parent?: string, context?: string) => {
+    defineRequest(request, response, oldRequest, parent, context);
   }
 
-  const focusLastRequest = () => {
-    const focus: Optional<CacheRequestFocus> = search(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
-    if (focus != undefined) {
-      return fetchRequest(focus.request, focus.parent, focus.context);
-    }
-    return false;
-  }
-
-  const defineRequest = (request: Request, response?: Response, oldRequest?: Request, parent?: string, context?: string) => {
-    const itemRequest = fromRequest(request);
-    const itemResponse = response ? fromResponse(response) : newItemResponse(request.owner);
-    restoreRequest(itemRequest, itemRequest, itemResponse, oldRequest, parent, context);
-  }
-
-  const restoreRequest = (backup: ItemRequest, request: ItemRequest, response: ItemResponse, oldRequest?: Request, parent?: string, context?: string) => {
-    if (fetchRef.current.waiting && requestRef.current._id == request._id) {
-      response = newItemResponse(request.owner);
-    }
-
-    evalueCancelRequest(request);
-
-    if (oldRequest && oldRequest._id != request._id) {
-      remove(CACHE_CATEGORY_STORE, oldRequest._id);
-    }
-
-    setData(prevData => {
-      return {
-        ...prevData,
-        initialHash: "",
-        actualHash: "",
-        parent: parent || "",
-        backup: { ...backup },
-        request: { ...request },
-        response: { ...response },
-        context: context,
-      }
-    });
-
-    fetchContext(context, parent);
-
-    pushEvent(Events.DEFINE);
-  }
-
-  const releaseRequest = (request: ItemRequest, response: ItemResponse, oldRequest: Request) => {
-    if (fetchRef.current.waiting && requestRef.current._id == request._id) {
-      response = newItemResponse(userData.username);
-    }
-
-    if (oldRequest && oldRequest._id != request._id) {
-      remove(CACHE_CATEGORY_STORE, oldRequest._id);
-    }
-
-    setData(prevData => {
-      return {
-        ...prevData,
-        initialHash: "",
-        actualHash: "",
-        backup: { ...request },
-        request: { ...request },
-        response: { ...response },
-      }
-    });
-
-    pushEvent(Events.RELEASE);
-  }
-
-  const updateRequest = (request: ItemRequest, response: ItemResponse) => {
-    if (fetchRef.current.waiting && requestRef.current._id == request._id) {
-      response = newItemResponse(userData.username);
-    }
-
-    evalueCancelRequest(request);
-
-    setData(prevData => {
-      return {
-        ...prevData,
-        request: request,
-        response: response
-      }
-    });
-
-    pushEvent(Events.UPDATE);
-  }
-
-  const updateResponse = (response?: Response) => {
-    const itemResponse = response ? fromResponse(response) : newItemResponse(userData.username);
-    setData(prevData => ({
-      ...prevData,
-      response: itemResponse
-    }));
-  }
-
-  const evalueCancelRequest = (newRequest: ItemRequest): boolean => {
-    if (requestRef.current._id == newRequest._id) {
-      return false;
-    }
-
-    fetchRef.current.cancel();
-
-    cleanFetchData();
-
-    if (fetchRef.current.waiting) {
-      push({
-        category: EAlertCategory.WARN,
-        content: "Request cancelled"
-      });
-    }
-
-    return true;
-  }
-
-  const discardRequest = (request?: LiteRequest) => {
-    if (!request || request._id == data.backup._id) {
-      releaseRequest(data.backup, data.response, toRequest(data.request));
-    } else {
-      remove(CACHE_CATEGORY_STORE, request._id);
-
-      setData(prevData => {
-        return { ...prevData };
-      });
-    }
-
-    pushEvent(Events.DISCARD);
-  }
-
-  const cleanCache = () => {
-    remove(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
-    excise(CACHE_CATEGORY_STORE);
+  const discardCursorRequest = (request?: LiteRequest) => {
+    discardRequest(userData, request);
   }
 
   const cleanRequest = () => {
     const request = newRequest(userData.username);
     defineRequest(request);
   }
-
-  const updateName = (name: string) => {
-    setData(prevData => ({
-      ...prevData,
-      request: {
-        ...prevData.request,
-        name
-      }
-    }));
-  };
 
   const updateMethod = (method: string) => {
     setData(prevData => ({
@@ -444,7 +289,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     const itemRequest = fromRequest(request);
     const itemResponse = newItemResponse(userData.username);
-    updateRequest(itemRequest, itemResponse);
+    updateRequest(userData, itemRequest, itemResponse);
 
     const fetchResponse = executeFormAction(request, context);
     defineFetchData(fetchResponse);
@@ -466,7 +311,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
       return;
     }
 
-    updateResponse(apiResponse.response);
+    updateResponse(userData, apiResponse.response);
 
     apiResponse = await pushHistoric(request, apiResponse.response);
 
@@ -514,7 +359,7 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
 
     const itemRequest = fromRequest(fixRequest);
     const itemResponse = fromResponse(fixResponse);
-    releaseRequest(itemRequest, itemResponse, request);
+    releaseRequest(userData, itemRequest, itemResponse, request);
 
     apiResponse = await pushHistoric(apiResponse.request, apiResponse.response);
 
@@ -603,6 +448,214 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     return length(CACHE_CATEGORY_STORE);
   }
 
+  return (
+    <StoreRequest.Provider value={{
+      ...data,
+      event,
+      waitingRequest: fetchRef.current.waiting,
+      cancelRequest: fetchRef.current.cancel,
+      discardRequest: discardCursorRequest, defineRequest: defineFreeRequest,
+      cleanRequest, updateMethod, updateUri,
+      updateQuery, updateHeader, updateCookie,
+      updateBody, updateAuth, executeAction,
+      fetchFreeRequest, fetchGroupRequest, releaseAction,
+      insertRequest, processUri, isModified,
+      isParentCached, isCached, cacheComments,
+      cacheLenght
+    }}>
+      {children}
+    </StoreRequest.Provider>
+  );
+};
+
+interface RequestControllerType {
+  setData: Dispatch<SetStateAction<Payload>>
+  pushEvent: (reason: string, source?: string | undefined, target?: string | undefined) => void
+}
+
+interface PayloadFectch {
+  waiting: boolean;
+  cancel: () => void;
+}
+
+const useRequestController = ({ setData, pushEvent }: RequestControllerType) => {
+  const { search, remove, excise } = useStoreCache();
+  const { userData, fetchUser } = useStoreSession();
+  const { fetchContext } = useStoreContext();
+  const { push } = useAlert();
+
+  const backupRef = useRef<ItemRequest>(newItemRequest(userData.username));
+  const requestRef = useRef<ItemRequest>(newItemRequest(userData.username));
+  const responseRef = useRef<ItemResponse>(newItemResponse(userData.username));
+
+  const fetchRef = useRef<PayloadFectch>({
+    waiting: false,
+    cancel: VOID_FUNCTION
+  });
+
+  const fetchRequest = async (userData: UserData, request: string, parent?: string, context?: string) => {
+    const cached: Optional<CacheActionData> = search(CACHE_CATEGORY_STORE, request);
+    if (cached != undefined) {
+      if (cached.request.owner != userData.username) {
+        return false;
+      }
+
+      restoreRequest(cached.backup, cached.request, cached.response, undefined, cached.parent, context);
+      return false;
+    }
+
+    if (request == "") {
+      return false;
+    }
+
+    const action = await findActionById(request)
+      .catch(err => {
+        if (err.statusCode == 404) {
+          fetchUser();
+          return;
+        }
+        throw err;
+      });
+
+    if (action?.request == undefined) {
+      return false;
+    }
+
+    if (action.request.owner != userData.username) {
+      fetchUser();
+      return false;
+    }
+
+    defineRequest(action.request, action.response, undefined, parent, context);
+
+    return true;
+  }
+
+  const focusLastRequest = (userData: UserData) => {
+    const focus: Optional<CacheRequestFocus> = search(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
+    if (focus != undefined) {
+      return fetchRequest(userData, focus.request, focus.parent, focus.context);
+    }
+    return false;
+  }
+
+  const defineRequest = (request: Request, response?: Response, oldRequest?: Request, parent?: string, context?: string) => {
+    const itemRequest = fromRequest(request);
+    const itemResponse = response ? fromResponse(response) : newItemResponse(request.owner);
+    restoreRequest(itemRequest, itemRequest, itemResponse, oldRequest, parent, context);
+  }
+
+  const restoreRequest = (backup: ItemRequest, request: ItemRequest, response: ItemResponse, oldRequest?: Request, parent?: string, context?: string) => {
+    if (fetchRef.current.waiting && requestRef.current._id == request._id) {
+      response = newItemResponse(request.owner);
+    }
+
+    evalueCancelRequest(request);
+
+    if (oldRequest && oldRequest._id != request._id) {
+      remove(CACHE_CATEGORY_STORE, oldRequest._id);
+    }
+
+    setData(prevData => {
+      return {
+        ...prevData,
+        initialHash: "",
+        actualHash: "",
+        parent: parent || "",
+        backup: { ...backup },
+        request: { ...request },
+        response: { ...response },
+        context: context,
+      }
+    });
+
+    fetchContext(context, parent);
+
+    pushEvent(Events.DEFINE);
+  }
+
+  const releaseRequest = (userData: UserData, request: ItemRequest, response: ItemResponse, oldRequest: Request) => {
+    if (fetchRef.current.waiting && requestRef.current._id == request._id) {
+      response = newItemResponse(userData.username);
+    }
+
+    if (oldRequest && oldRequest._id != request._id) {
+      remove(CACHE_CATEGORY_STORE, oldRequest._id);
+    }
+
+    setData(prevData => {
+      return {
+        ...prevData,
+        initialHash: "",
+        actualHash: "",
+        backup: { ...request },
+        request: { ...request },
+        response: { ...response },
+      }
+    });
+
+    pushEvent(Events.RELEASE);
+  }
+
+  const updateRequest = (userData: UserData, request: ItemRequest, response: ItemResponse) => {
+    if (fetchRef.current.waiting && requestRef.current._id == request._id) {
+      response = newItemResponse(userData.username);
+    }
+
+    evalueCancelRequest(request);
+
+    setData(prevData => {
+      return {
+        ...prevData,
+        request: request,
+        response: response
+      }
+    });
+
+    pushEvent(Events.UPDATE);
+  }
+
+  const updateResponse = (userData: UserData, response?: Response) => {
+    const itemResponse = response ? fromResponse(response) : newItemResponse(userData.username);
+    setData(prevData => ({
+      ...prevData,
+      response: itemResponse
+    }));
+  }
+
+  const evalueCancelRequest = (newRequest: ItemRequest): boolean => {
+    if (requestRef.current._id == newRequest._id) {
+      return false;
+    }
+
+    fetchRef.current.cancel();
+
+    cleanFetchData();
+
+    if (fetchRef.current.waiting) {
+      push({
+        category: EAlertCategory.WARN,
+        content: "Request cancelled"
+      });
+    }
+
+    return true;
+  }
+
+  const discardRequest = (userData: UserData, request?: LiteRequest) => {
+    if (!request || request._id == backupRef.current._id) {
+      releaseRequest(userData, backupRef.current, responseRef.current, toRequest(requestRef.current));
+    } else {
+      remove(CACHE_CATEGORY_STORE, request._id);
+
+      setData(prevData => {
+        return { ...prevData };
+      });
+    }
+
+    pushEvent(Events.DISCARD);
+  }
+
   const defineFetchData = (fetch: ResponseFetch<ResponseExecuteAction>) => {
     fetchRef.current = {
       waiting: true,
@@ -617,28 +670,34 @@ export const StoreProviderRequest: React.FC<{ children: ReactNode }> = ({ childr
     };
   }
 
-  const pushEvent = (reason: string, source?: string, target?: string) => {
-    setEventAction({ reason, source, target });
+  const cleanCache = () => {
+    remove(CACHE_CATEGORY_FOCUS, CACHE_KEY_FOCUS);
+    excise(CACHE_CATEGORY_STORE);
   }
 
-  return (
-    <StoreRequest.Provider value={{
-      ...data,
-      waitingRequest: fetchRef.current.waiting,
-      cancelRequest: fetchRef.current.cancel,
-      event,
-      cleanRequest, discardRequest, defineRequest,
-      updateMethod, updateUri, updateQuery,
-      updateHeader, updateCookie, updateBody,
-      updateAuth, executeAction, fetchFreeRequest,
-      fetchGroupRequest, releaseAction, insertRequest,
-      processUri, isModified, isParentCached, isCached,
-      cacheComments, cacheLenght
-    }}>
-      {children}
-    </StoreRequest.Provider>
-  );
-};
+  return {
+    backupRef,
+    requestRef,
+    responseRef,
+
+    fetchRef,
+
+
+    fetchRequest,
+    focusLastRequest,
+
+    defineRequest,
+    releaseRequest,
+    updateRequest,
+    discardRequest,
+    updateResponse,
+
+    defineFetchData,
+    cleanFetchData,
+
+    cleanCache,
+  }
+}
 
 const calculateHash = (request: ItemRequest) => {
   return JSON.stringify(toRequest(request));
