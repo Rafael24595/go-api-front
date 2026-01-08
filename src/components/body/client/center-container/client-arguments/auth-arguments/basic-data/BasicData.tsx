@@ -17,7 +17,7 @@ interface Payload {
     password: string;
 }
 
-export function BasicData({value, onValueChange}: BasicProps) {
+export function BasicData({ value, onValueChange }: BasicProps) {
     const [data, setData] = useState<Payload>(extractValue(value));
 
     useEffect(() => {
@@ -31,16 +31,16 @@ export function BasicData({value, onValueChange}: BasicProps) {
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let newData = {...data,  [e.target.name]: e.target.value };
+        let newData = { ...data, [e.target.name]: e.target.value };
         setData(newData);
         onValueChange(AUTH_CODE_BASIC, makeAuth(newData));
     };
 
     const makeAuth = (payload: Payload): Auth | undefined => {
-        if(!payload.status && payload.username == "" && payload.password == "") {
+        if (!payload.status && payload.username == "" && payload.password == "") {
             return undefined;
         }
-        
+
         return {
             type: AUTH_CODE_BASIC,
             status: payload.status,
@@ -50,15 +50,17 @@ export function BasicData({value, onValueChange}: BasicProps) {
             }
         };
     };
-    
+
     return (
-        <>
+        <form>
             <div className="parameter-container">
-                <input name="status" type="checkbox" onChange={handleChecked} checked={data.status}/>
-                <input className="parameter-input" name="username" type="text" onChange={handleChange} placeholder="username" value={data.username}/>
-                <input className="parameter-input" name="password" type="password" onChange={handleChange} placeholder="password" value={data.password}/>
+                <input name="status" type="checkbox" onChange={handleChecked} checked={data.status} />
+                <input className="parameter-input" name="username" type="text" onChange={handleChange} placeholder="username"
+                    value={data.username} autoComplete="username" />
+                <input className="parameter-input" name="password" type="password" onChange={handleChange} placeholder="password"
+                    value={data.password} autoComplete="current-password" />
             </div>
-        </>
+        </form>
     )
 }
 
