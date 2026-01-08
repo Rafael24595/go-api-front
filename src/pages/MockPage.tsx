@@ -2,7 +2,7 @@ import { MockBody } from "../components/body/mock/MockBody.tsx"
 import { Footer } from "../components/footer/Footer.tsx"
 import { Header } from "../components/header/Header.tsx"
 import { joinMessages } from "../services/Utils.ts";
-import { useStoreEndPoint } from "../store/mock/StoreProviderEndPoint.tsx";
+import { useStoreEndPoint } from "../store/mock/endpoint/StoreProviderEndPoint.tsx";
 import { MockProviders } from "../store/Providers.tsx"
 
 function MockPage() {

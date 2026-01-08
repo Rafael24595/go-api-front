@@ -35,7 +35,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
 
   const { clean } = useStoreStatus();
 
-  const { userData } = useStoreSession();
+  const { userData, checkSession } = useStoreSession();
 
   const [modalData, setModalData] = useState<PayloadModal>({
     isOpen: false
@@ -74,7 +74,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   };
 
   const openModal = async () => {
-    fetchMetadata();
+    checkSession();
     setModalData({ isOpen: true });
   }
 
@@ -83,7 +83,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   const showLogs = () => {
-    fetchMetadata();
+    checkSession();
     window.open(`/log`, '_blank', windowPreferences(850, 500));
   }
 

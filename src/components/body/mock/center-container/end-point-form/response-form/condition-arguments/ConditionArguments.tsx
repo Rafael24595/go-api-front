@@ -4,7 +4,7 @@ import { StepType, Inputs, Operators, Types, Formats } from '../../../../../../.
 import { ConditionStep, defaultValue, evalueSteps, evalueTypeValue, isLogicalOperator, newConditionStep } from '../../../../../../../services/mock/ConditionStep';
 import { KeyValue } from '../../../../../../../interfaces/KeyValue';
 import { Optional } from '../../../../../../../types/Optional';
-import { useStoreEndPoint } from '../../../../../../../store/mock/StoreProviderEndPoint';
+import { useStoreEndPoint } from '../../../../../../../store/mock/endpoint/StoreProviderEndPoint';
 
 import '../../../../../../structure/status-key-value/StatusKeyValue.css';
 import './ConditionArguments.css';

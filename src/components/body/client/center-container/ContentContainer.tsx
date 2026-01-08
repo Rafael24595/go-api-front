@@ -1,6 +1,6 @@
 import { MethodSelector } from "./method-selector/MethodSelector";
 import { ParameterSelector } from "./client-arguments/ParameterSelector";
-import { useStoreRequest } from "../../../../store/client/StoreProviderRequest";
+import { useStoreRequest } from "../../../../store/client/request/StoreProviderRequest";
 import { Combo } from "../../../utils/combo/Combo";
 
 import './ContentContainer.css';

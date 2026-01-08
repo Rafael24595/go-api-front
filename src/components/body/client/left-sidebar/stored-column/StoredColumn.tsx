@@ -1,8 +1,8 @@
 import { deleteAction, exportAllRequests, exportManyRequests, findAction, exportCurl, importCurl, importRequests, updateAction } from '../../../../../services/api/ServiceStorage';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
-import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
+import { useStoreRequest } from '../../../../../store/client/request/StoreProviderRequest';
+import { useStoreCollections } from '../../../../../store/client/collection/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useState } from 'react';
 import { CollectRequestModal } from '../../../../client/collection/CollectRequestModal';

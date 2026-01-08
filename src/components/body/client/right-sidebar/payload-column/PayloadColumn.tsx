@@ -5,7 +5,7 @@ import { JsonView } from './json-view/JsonView';
 import { TextView } from './text-view/TextView';
 import { HtmlView } from './html-view/HtmlView';
 import { XmlView } from './xml-view/XmlView';
-import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
+import { useStoreRequest } from '../../../../../store/client/request/StoreProviderRequest';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { useEffect, useState } from 'react';
 import { copyTextToClipboard } from '../../../../../services/Utils';

@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { HTTP_METHODS, httpStatusDescriptions } from '../../../../../constants/HttpMethod';
-import { useStoreEndPoint } from '../../../../../store/mock/StoreProviderEndPoint';
+import { useStoreEndPoint } from '../../../../../store/mock/endpoint/StoreProviderEndPoint';
 import { ResponseForm } from './response-form/ResponseForm';
 import { DEFAULT_RESPONSE, emptyItemResponse, ItemResponse } from '../../../../../interfaces/mock/Response';
 import { millisecondsToDate, statusCodeToCss } from '../../../../../services/Tools';

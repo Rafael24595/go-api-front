@@ -3,8 +3,8 @@ import { LiteRequest, newRequest } from '../../../../../interfaces/client/reques
 import { findAction, exportCurl } from '../../../../../services/api/ServiceStorage';
 import { deleteHistoric as fetchDeleteHistoric } from '../../../../../services/api/ServiceHistory';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
-import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
+import { useStoreRequest } from '../../../../../store/client/request/StoreProviderRequest';
+import { useStoreCollections } from '../../../../../store/client/collection/StoreProviderCollections';
 import { CollectRequestModal } from '../../../../client/collection/CollectRequestModal';
 import { Combo } from '../../../../utils/combo/Combo';
 import { VIEW_STORED } from '../LeftSidebar';

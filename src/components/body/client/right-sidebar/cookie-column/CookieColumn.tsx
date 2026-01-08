@@ -1,7 +1,7 @@
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { cookieToString } from '../../../../../interfaces/client/response/Response';
 import { copyTextToClipboard } from '../../../../../services/Utils';
-import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
+import { useStoreRequest } from '../../../../../store/client/request/StoreProviderRequest';
 import { useAlert } from '../../../../utils/alert/Alert';
 
 import './CookieColumn.css';

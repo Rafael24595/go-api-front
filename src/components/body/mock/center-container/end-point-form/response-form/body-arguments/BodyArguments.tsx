@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ItemResponse } from '../../../../../../../interfaces/mock/Response';
 import { ChangeEvent, useEffect, useState } from 'react';
-import { useStoreEndPoint } from '../../../../../../../store/mock/StoreProviderEndPoint';
+import { useStoreEndPoint } from '../../../../../../../store/mock/endpoint/StoreProviderEndPoint';
 import { FormatsLite, StepFormat } from '../../../../../../../services/mock/Constants';
 import { TextData } from '../../../../../../form/text-area/text/TextData';
 import { XmlData } from '../../../../../../form/text-area/xml/XmlData';

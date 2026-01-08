@@ -1,6 +1,6 @@
-import { createContext, Dispatch, ReactNode, RefObject, SetStateAction, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { StoreProviderStatusType, useStoreStatus } from "../StoreProviderStatus";
-import { isIThemeData, ITheme, IThemeData, parseITheme, ThemeBase, ThemeDark, ThemeLight, Themes, ThemesDefault, ThemeTemplate, themeToCSS } from "./Themes";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import { useStoreStatus } from "../StoreProviderStatus";
+import { isIThemeData, ITheme, IThemeData, parseITheme, ThemeBase, ThemeDark, ThemeLight, Themes, ThemesDefault, ThemeTemplate } from "./Themes";
 import { Modal } from "../../components/utils/modal/Modal";
 import { useAlert } from "../../components/utils/alert/Alert";
 import { EAlertCategory } from "../../interfaces/AlertData";
@@ -12,9 +12,10 @@ import { useStoreSession } from "../system/StoreProviderSession";
 import { UserData } from "../../interfaces/system/UserData";
 import { createRoot } from "react-dom/client";
 import { windowPreferences } from "../../utils/Window";
-import { WebData } from "../../interfaces/system/WebData";
+import { useThemeController } from "./StoreControllerTheme";
+import { makeCacheKey } from "./Helper";
 
-const STORAGE_THEME_KEY = "StoreProviderThemeCache";
+
 const TRIGGER_KEY = "StoreProviderThemeTrigger";
 
 const CUSTOM_THEME = "custom-theme";
@@ -43,28 +44,12 @@ interface Payload {
   fileType: string
 }
 
-interface TriggerContext {
-  cache: StoreProviderStatusType,
-  theme: {
-    custom: RefObject<Dict<ITheme>>
-    pushing: RefObject<boolean>
-    set: Dispatch<SetStateAction<string>>
-  }
-  webData: {
-    fetch: () => Promise<WebData>
-  }
-}
-
 const StoreTheme = createContext<StoreProviderThemeType | undefined>(undefined);
 
 export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, fetchWebData, pushTrigger, trimTrigger, updateWebData } = useStoreSession();
-  const storeStatus = useStoreStatus();
-  const { findAll, store, remove } = storeStatus;
+  const { userData, pushTrigger, trimTrigger, updateWebData } = useStoreSession();
+  const { findAll, store, remove } = useStoreStatus();
   const { push } = useAlert();
-
-  const waitingRef = useRef(false);
-  const customRef = useRef<Dict<ITheme>>({});
 
   const [modalData, setModalData] = useState<Payload>({
     isOpen: false,
@@ -78,13 +63,13 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
 
   const [theme, setTheme] = useState("");
 
-  const triggerContext = useMemo<TriggerContext>(() => ({
-    cache: storeStatus,
-    theme: {
-      custom: customRef, pushing: waitingRef, set: setTheme
-    },
-    webData: { fetch: fetchWebData }
-  }), []);
+  const {
+    customRef, waitingRef,
+
+    findSyncThemeCode, applyTheme
+  } = useThemeController({
+    setTheme
+  });
 
   useEffect(() => {
     pushTrigger(TRIGGER_KEY, onSessionChange);
@@ -120,8 +105,8 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   }, [theme]);
 
   const onSessionChange = useCallback(async (userData: UserData) => {
-    const theme = await findSyncThemeCode(triggerContext, userData);
-    applyTheme(triggerContext, theme || ThemeBase.code);
+    const theme = await findSyncThemeCode(userData);
+    applyTheme(theme || ThemeBase.code);
   }, []);
 
   const fetchCustomThemes = () => {
@@ -344,7 +329,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
       name = key;
     }
 
-    if (!applyTheme(triggerContext, name)) {
+    if (!applyTheme(name)) {
       push({
         category: EAlertCategory.ERRO,
         content: `Cannot load theme: ${name}`
@@ -370,7 +355,12 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   };
 
   return (
-    <StoreTheme.Provider value={{ theme, isDark, openModal, closeModal, toggleDefaultThemes, loadThemeWindow }}>
+    <StoreTheme.Provider value={{
+      theme,
+
+      isDark, openModal, closeModal,
+      toggleDefaultThemes, loadThemeWindow
+    }}>
       {children}
       <Modal
         buttons={[
@@ -489,62 +479,6 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     </StoreTheme.Provider>
   );
 };
-
-const applyTheme = (ctx: TriggerContext, theme: string) => {
-  const themeDefault = ThemesDefault[theme];
-  if (themeDefault) {
-    ctx.theme.set(themeDefault.code);
-    return true;
-  }
-
-  const themeLazy = Themes[theme] || ctx.theme.custom.current[theme];
-  if (themeLazy) {
-    injectTheme(themeLazy);
-    ctx.theme.set(themeLazy.code);
-    return true;
-  }
-
-  return false;
-}
-
-const findSyncThemeCode = async (ctx: TriggerContext, userData: UserData): Promise<Optional<string>> => {
-  if (ctx.theme.pushing.current) {
-    return findCacheThemeCode(ctx, userData);
-  }
-
-  const webData = await ctx.webData.fetch();
-  if (userData.username != webData.owner) {
-    return;
-  }
-
-  return webData.data.theme || findCacheThemeCode(ctx, userData);
-}
-
-const findCacheThemeCode = (ctx: TriggerContext, userData: UserData) => {
-  const key = makeCacheKey(userData);
-  return ctx.cache.find(key, { def: ThemeLight.code });
-}
-
-const injectTheme = (theme: ITheme) => {
-  const existingStyle = document.querySelector(`style[data-theme-name="${theme.code}"]`);
-  const cssContent = themeToCSS(theme);
-
-  document.documentElement.setAttribute("data-theme", theme.code);
-
-  if (existingStyle) {
-    existingStyle.textContent = cssContent;
-    return;
-  }
-
-  const style = document.createElement('style');
-  style.setAttribute('data-theme-name', theme.code);
-  style.textContent = cssContent;
-  document.head.appendChild(style);
-}
-
-const makeCacheKey = (userData: UserData) => {
-  return `${STORAGE_THEME_KEY}-${userData.username}`
-}
 
 export const useStoreTheme = (): StoreProviderThemeType => {
   const context = useContext(StoreTheme);

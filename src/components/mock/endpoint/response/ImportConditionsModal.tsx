@@ -2,7 +2,7 @@ import { JSX, useState } from 'react';
 import { ConditionStep, isLogicalOperator } from '../../../../services/mock/ConditionStep';
 import { Modal } from '../../../utils/modal/Modal';
 import { StepType } from '../../../../services/mock/Constants';
-import { useStoreEndPoint } from '../../../../store/mock/StoreProviderEndPoint';
+import { useStoreEndPoint } from '../../../../store/mock/endpoint/StoreProviderEndPoint';
 import { bridgeConditionToStep } from '../../../../services/api/ServiceEndPoint';
 
 import './ImportConditionsModal.css';

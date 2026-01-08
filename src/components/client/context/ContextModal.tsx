@@ -5,7 +5,7 @@ import { cleanCopy, fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue
 import { StatusCategoryKeyValue } from '../../structure/status-category-key-value/StatusCategoryKeyValue';
 import { Context, ItemContext, toContext } from '../../../interfaces/client/context/Context';
 import { importContext } from '../../../services/api/ServiceContext';
-import { useStoreContext } from '../../../store/client/StoreProviderContext';
+import { useStoreContext } from '../../../store/client/context/StoreProviderContext';
 import { downloadFile } from '../../../services/Utils';
 import { ImportContext } from './ImportContext';
 import { EAlertCategory } from '../../../interfaces/AlertData';

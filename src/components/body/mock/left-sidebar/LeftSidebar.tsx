@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { EndPointColumn } from './end-point-column/EndPointColumn';
-import { useStoreMock } from '../../../../store/mock/StoreProviderMock';
+import { useStoreMock } from '../../../../store/mock/mock/StoreProviderMock';
 import { MOCK_CURSORS, VIEW_END_POINTS } from '../MockBody';
 
 import './LeftSidebar.css';

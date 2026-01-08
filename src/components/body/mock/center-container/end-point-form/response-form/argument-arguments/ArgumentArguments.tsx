@@ -4,7 +4,7 @@ import { HttpHeader } from '../../../../../../../constants/HttpHeader';
 import { ItemStatusKeyValue } from '../../../../../../../interfaces/StatusKeyValue';
 import { ItemResponse } from '../../../../../../../interfaces/mock/Response';
 import { useEffect, useState } from 'react';
-import { useStoreEndPoint } from '../../../../../../../store/mock/StoreProviderEndPoint';
+import { useStoreEndPoint } from '../../../../../../../store/mock/endpoint/StoreProviderEndPoint';
 
 import './ArgumentArguments.css';
 

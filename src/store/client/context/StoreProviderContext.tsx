@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
-import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../../interfaces/client/context/Context";
-import { findContext, findUserContext, insertContext } from "../../services/api/ServiceContext";
-import { CacheContext } from "../../interfaces/client/Cache";
-import { useStoreCache } from "../StoreProviderCache";
-import { Optional } from "../../types/Optional";
-import { useStoreSession } from "../system/StoreProviderSession";
+import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../../../interfaces/client/context/Context";
+import { findContext, findUserContext, insertContext } from "../../../services/api/ServiceContext";
+import { CacheContext } from "../../../interfaces/client/Cache";
+import { useStoreCache } from "../../StoreProviderCache";
+import { Optional } from "../../../types/Optional";
+import { useStoreSession } from "../../system/StoreProviderSession";
 
 const TRIGGER_KEY = "StoreProviderContextTrigger";
 const CACHE_KEY = "StoreProviderContextCache";

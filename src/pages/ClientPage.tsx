@@ -2,8 +2,8 @@ import { ClientBody } from "../components/body/client/ClientBody.tsx"
 import { Footer } from "../components/footer/Footer.tsx"
 import { Header } from "../components/header/Header.tsx"
 import { joinMessages } from "../services/Utils.ts";
-import { useStoreContext } from "../store/client/StoreProviderContext.tsx";
-import { useStoreRequest } from "../store/client/StoreProviderRequest.tsx";
+import { useStoreContext } from "../store/client/context/StoreProviderContext.tsx";
+import { useStoreRequest } from "../store/client/request/StoreProviderRequest.tsx";
 import { ClientProviders } from "../store/Providers.tsx"
 
 function ClientPage() {

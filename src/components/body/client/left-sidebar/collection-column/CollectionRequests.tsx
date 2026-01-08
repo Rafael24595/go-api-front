@@ -3,8 +3,8 @@ import { LiteItemCollection, LiteItemNodeRequest } from '../../../../../interfac
 import { LiteRequest } from '../../../../../interfaces/client/request/Request';
 import { findAction, exportCurl, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
-import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
+import { useStoreRequest } from '../../../../../store/client/request/StoreProviderRequest';
+import { useStoreCollections } from '../../../../../store/client/collection/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { calculateWindowSize } from '../../../../../services/Utils';
