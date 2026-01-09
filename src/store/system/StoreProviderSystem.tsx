@@ -10,11 +10,18 @@ import { hostURL } from "../../services/api/ApiManager";
 import { useStoreStatus } from "../StoreProviderStatus";
 import { hasRole, Role } from "../../interfaces/system/UserData";
 import { windowPreferences } from "../../utils/Window";
+import { ShortCutAction } from "../../services/shortcut/ShortCut";
+import { shortCutActions } from "./Constants";
 
 import './StoreProviderSystem.css';
 
 interface StoreProviderSystemType {
   metadata: SystemMetadata;
+
+  shortCutModal: ShortCutAction
+  shortCutLog: ShortCutAction
+  shortCutCmd: ShortCutAction
+  
   openModal: () => void;
   closeModal: () => void;
 }
@@ -88,7 +95,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   const showTerminal = () => {
-    fetchMetadata();
+    checkSession();
     window.open(`/cmd`, '_blank', windowPreferences(850, 500));
   }
 
@@ -97,7 +104,15 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   return (
-    <StoreTheme.Provider value={{ metadata: metadata.metadata, openModal, closeModal }}>
+    <StoreTheme.Provider value={{
+      metadata: metadata.metadata,
+
+      ...shortCutActions({
+        openModal, showLogs, showTerminal
+      }),
+
+      openModal, closeModal
+    }}>
       {children}
       <Modal
         buttons={[

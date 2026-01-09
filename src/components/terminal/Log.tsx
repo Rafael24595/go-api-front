@@ -19,7 +19,6 @@ const AUTH_LOG: Record = {
 }
 
 export function Log() {
-
     const [records, setRecords] = useState<PayloadRecords>({
         hash: "",
         records: []
