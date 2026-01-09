@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { TokenModal } from './token/TokenModal';
 import { ViewMenuIcon, viewOptions } from './Constants';
 import { useStoreTheme } from '../../store/theme/StoreProviderTheme';
+import { formatShortCut } from '../../services/shortcut/ShortCut';
 
 import './Header.css';
 
@@ -72,7 +73,7 @@ export function Header({ unsaved }: HeaderProps) {
 
     return (
         <div id="header-container">
-            <button id="logo-container" onClick={system.openModal} title="View system metadata">
+            <button id="logo-container" onClick={system.openModal} title={`View system metadata ${formatShortCut(userData, system.shortCutModal, { addParentheses: true })}`}>
                 &lt;API&gt;
             </button>
             <div id="user-container">

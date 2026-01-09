@@ -21,6 +21,40 @@ export const closeWindow = (actions: {
     }
 };
 
+export const formatShortCut = (
+    userData: UserData,
+    action: ShortCutAction,
+    opts?: {
+        addParentheses: boolean
+    }
+): string => {
+    if (action.roles && !hasRole(userData, ...action.roles)) {
+        return ""
+    }
+
+    const buffer = [];
+
+    if (action.ctrl) {
+        buffer.push("CTRL");
+    }
+
+    if (action.alt) {
+        buffer.push("ALT");
+    }
+
+    if (action.key != "") {
+        buffer.push(action.key.toUpperCase());
+    }
+
+    let result = buffer.join(" + ");
+
+    if (opts?.addParentheses) {
+        result = `(${result})`;
+    }
+
+    return result;
+};
+
 export const executeShortCut = (event: KeyboardEvent, userData: UserData, ...actions: ShortCutAction[]) => {
     const ctrlKey = event.ctrlKey;
     const altKey = event.altKey;

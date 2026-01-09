@@ -1,10 +1,12 @@
 import { Role } from "../../interfaces/system/UserData";
+import { ShortCutAction } from "../../services/shortcut/ShortCut";
+import { Dict } from "../../types/Dict";
 
 export const shortCutActions = (actions: {
     openModal: () => void,
     showLogs: () => void,
     showTerminal: () => void
-}) => {
+}): Dict<ShortCutAction> => {
     return {
         shortCutModal: {
             roles: [Role.ROLE_ADMIN],
