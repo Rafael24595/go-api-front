@@ -9,7 +9,6 @@ export const shortCutActions = (actions: {
 }): Dict<ShortCutAction> => {
     return {
         shortCutModal: {
-            roles: [Role.ROLE_ADMIN],
             ctrl: true,
             alt: true,
             key: "d",

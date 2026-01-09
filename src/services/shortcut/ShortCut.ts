@@ -21,13 +21,44 @@ export const closeWindow = (actions: {
     }
 };
 
-export const formatShortCut = (
+export enum Cover {
+    parentheses = "parentheses",
+    brackets = "brackets",
+    braces = "braces"
+}
+
+export const formatShortCutOpts = (
     userData: UserData,
     action: ShortCutAction,
     opts?: {
-        addParentheses: boolean
+        cover: string | Cover
     }
 ): string => {
+    const result = formatShortCut(userData, action);
+    if (result == "" || !opts) {
+        return ""
+    }
+
+    switch (opts.cover) {
+        case Cover.parentheses:
+            return `(${result})`;
+        case Cover.brackets:
+            return `[${result}]`;
+        case Cover.braces:
+            return `{${result}}`;
+        case "":
+        case undefined:
+            return result;
+        default:
+            return `${opts.cover}${result}${opts.cover}`;
+    }
+};
+
+export const formatShortCut = (
+    userData: UserData,
+    action: ShortCutAction
+): string => {
+    console.log(userData, action)
     if (action.roles && !hasRole(userData, ...action.roles)) {
         return ""
     }
@@ -46,13 +77,7 @@ export const formatShortCut = (
         buffer.push(action.key.toUpperCase());
     }
 
-    let result = buffer.join(" + ");
-
-    if (opts?.addParentheses) {
-        result = `(${result})`;
-    }
-
-    return result;
+    return buffer.join(" + ");
 };
 
 export const executeShortCut = (event: KeyboardEvent, userData: UserData, ...actions: ShortCutAction[]) => {

@@ -10,7 +10,7 @@ import { hostURL } from "../../services/api/ApiManager";
 import { useStoreStatus } from "../StoreProviderStatus";
 import { hasRole, Role } from "../../interfaces/system/UserData";
 import { windowPreferences } from "../../utils/Window";
-import { formatShortCut, ShortCutAction } from "../../services/shortcut/ShortCut";
+import { Cover, formatShortCutOpts, ShortCutAction } from "../../services/shortcut/ShortCut";
 import { shortCutActions } from "./Constants";
 
 import './StoreProviderSystem.css';
@@ -207,8 +207,8 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
               <button className="button-anchor" onClick={clean} title="Clear storage">Clear Storage</button>
               {hasRole(userData, Role.ROLE_ADMIN) && (
                 <>
-                  <button className="button-anchor" onClick={showLogs} title={`View system logs ${formatShortCut(userData, shortCutLog, { addParentheses: true })}`}>Logs</button>
-                  <button className="button-anchor" onClick={showTerminal} title={`Open CMD ${formatShortCut(userData, shortCutCmd, { addParentheses: true })}`}>Cmd</button>
+                  <button className="button-anchor" onClick={showLogs} title={`View system logs ${formatShortCutOpts(userData, shortCutLog, { cover: Cover.parentheses })}`}>Logs</button>
+                  <button className="button-anchor" onClick={showTerminal} title={`Open CMD ${formatShortCutOpts(userData, shortCutCmd, { cover: Cover.parentheses })}`}>Cmd</button>
                 </>
               )}
             </div>
