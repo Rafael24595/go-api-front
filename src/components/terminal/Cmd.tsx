@@ -35,6 +35,7 @@ export function Cmd() {
 
     useEffect(() => {
         runCommand("cmd -h", true)
+        inputRef.current?.focus();
     }, []);
 
     useEffect(() => {
