@@ -243,7 +243,7 @@ export function EndPointForm() {
                                             onChange={(e) => onRequestChange(e, cursor)}
                                             title={`${cursor.status ? "Enabled response" : "Disabled response"}`}
                                             checked={cursor.status} />
-                                        <button className="request-link border-bottom" type="button" onClick={() => showResponseForm(cursor)}>
+                                        <button className="request-link" type="button" onClick={() => showResponseForm(cursor)}>
                                             <div className="response-sign">
                                                 <span className={`response-sign-code ${statusCodeToCss(cursor.code)}`}
                                                     title={httpStatusDescriptions.get(cursor.code) || ""}>{cursor.code}</span>
