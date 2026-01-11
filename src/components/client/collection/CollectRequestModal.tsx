@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal } from '../../utils/modal/Modal';
 import { LiteRequest } from '../../../interfaces/client/request/Request';
-import { useStoreCollections } from '../../../store/client/StoreProviderCollections';
+import { useStoreCollections } from '../../../store/client/collection/StoreProviderCollections';
 
 import './CollectRequestModal.css';
 

@@ -3,7 +3,7 @@ import { VoidCallback } from '../../../../../interfaces/Callback';
 import { DEFAULT_RESPONSE } from '../../../../../interfaces/mock/Response';
 import { removeMetrics } from '../../../../../services/api/ServiceEndPoint';
 import { MILLISECOND, millisecondsToDate, millisecondsToTime } from '../../../../../services/Tools';
-import { useStoreEndPoint } from '../../../../../store/mock/StoreProviderEndPoint';
+import { useStoreEndPoint } from '../../../../../store/mock/endpoint/StoreProviderEndPoint';
 import { useAlert } from '../../../../utils/alert/Alert';
 
 import './EndPointMetrics.css';

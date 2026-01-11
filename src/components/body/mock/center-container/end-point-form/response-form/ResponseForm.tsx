@@ -7,7 +7,7 @@ import { DEFAULT_RESPONSE, ItemResponse } from '../../../../../../interfaces/moc
 import { ConditionArguments } from './condition-arguments/ConditionArguments';
 import { ImportConditionsModal } from '../../../../../mock/endpoint/response/ImportConditionsModal';
 import { DataArguments } from './data-arguments/DataArguments';
-import { useStoreEndPoint } from '../../../../../../store/mock/StoreProviderEndPoint';
+import { useStoreEndPoint } from '../../../../../../store/mock/endpoint/StoreProviderEndPoint';
 import { BodyArguments } from './body-arguments/BodyArguments';
 import { Formattable, findFormatter } from '../../../../../../services/mock/Constants';
 import { Combo } from '../../../../../utils/combo/Combo';

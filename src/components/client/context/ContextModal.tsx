@@ -5,7 +5,7 @@ import { cleanCopy, fixOrder, ItemStatusCategoryKeyValue, StatusCategoryKeyValue
 import { StatusCategoryKeyValue } from '../../structure/status-category-key-value/StatusCategoryKeyValue';
 import { Context, ItemContext, toContext } from '../../../interfaces/client/context/Context';
 import { importContext } from '../../../services/api/ServiceContext';
-import { useStoreContext } from '../../../store/client/StoreProviderContext';
+import { useStoreContext } from '../../../store/client/context/StoreProviderContext';
 import { downloadFile } from '../../../services/Utils';
 import { ImportContext } from './ImportContext';
 import { EAlertCategory } from '../../../interfaces/AlertData';
@@ -13,6 +13,7 @@ import { useAlert } from '../../utils/alert/Alert';
 import { useStoreStatus } from '../../../store/StoreProviderStatus';
 import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../utils/drag/VerticalDragDrop';
 import { Combo } from '../../utils/combo/Combo';
+import { booleanParser, jsonParser } from '../../../store/Helper';
 
 import './ContextModal.css';
 
@@ -53,9 +54,9 @@ const ROW_DEFINITION = {
         }
 
     ],
-    key: "Key", 
-    value: "Value", 
-    disabled: true 
+    key: "Key",
+    value: "Value",
+    disabled: true
 }
 
 const STATUS_VALUES = [
@@ -120,7 +121,7 @@ interface Payload {
 export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     const { find, store } = useStoreStatus();
 
-    const { initialHash, actualHash, context, getContext, discardContext, updateContext, fetchContext, releaseContext } = useStoreContext();
+    const { context, getContext, discardContext, updateContext, fetchContext, releaseContext, isModified } = useStoreContext();
 
     const { push } = useAlert();
 
@@ -135,15 +136,9 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
         preview: find(CONTENT_KEY, {
             def: TEMPLATE
         }),
-        showPreview: find(STATUS_KEY, {
-            def: true,
-            parser: (v) => v == "true"
-        }),
+        showPreview: find(STATUS_KEY, booleanParser()),
         showImport: false,
-        filter: find(FILTER_KEY, {
-            def: EMPTY_FILTER,
-            parser: (v) => JSON.parse(v)
-        }),
+        filter: find(FILTER_KEY, jsonParser(EMPTY_FILTER)),
         status: context.status,
         argument: context.dictionary
     });
@@ -178,22 +173,22 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     };
 
     const clearFilter = () => {
-        setData({...data, filter: EMPTY_FILTER});
+        setData({ ...data, filter: EMPTY_FILTER });
         store(FILTER_KEY, JSON.stringify(EMPTY_FILTER));
     }
 
     const filterContext = (item: ItemStatusCategoryKeyValue): FilterResult<ItemStatusCategoryKeyValue> => {
-        if(data.filter.status != "none" && data.filter.status != `${item.status}`) {
+        if (data.filter.status != "none" && data.filter.status != `${item.status}`) {
             return { matches: false };
         }
-        if(data.filter.category != "none" && data.filter.category != item.category) {
+        if (data.filter.category != "none" && data.filter.category != item.category) {
             return { matches: false };
         }
-        if(data.filter.key != "") {
+        if (data.filter.key != "") {
             return { matches: matches(data.filter.key, item.key) };
-            
+
         }
-        if(data.filter.value != "") {
+        if (data.filter.value != "") {
             return { matches: matches(data.filter.value, item.value) };
         }
         return { matches: true };
@@ -207,18 +202,18 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     }
 
     const onFilterChange = (key: string, value: string) => {
-        const newFilter: Filter = {...data.filter, [key]: value};
-        setData({...data, filter: newFilter});
+        const newFilter: Filter = { ...data.filter, [key]: value };
+        setData({ ...data, filter: newFilter });
         store(FILTER_KEY, JSON.stringify(newFilter));
     };
 
-    const onStatusChange = (e: React.ChangeEvent<HTMLInputElement>)  => {
+    const onStatusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateContext(makeContext(e.target.checked, data.argument));
         updatePreview(e.target.checked, data.template, data.categoryPreview, data.argument);
     }
 
     const rowTrim = (order: number) => {
-        if(order < 0 || data.argument.length < order ) {
+        if (order < 0 || data.argument.length < order) {
             return;
         }
 
@@ -232,20 +227,20 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     }
 
     const rowPush = (row: StrStatusCategoryKeyValue, focus: string, order?: number) => {
-        let newEmpty= data.empty;
+        let newEmpty = data.empty;
         let newRows = cleanCopy(data.argument);
-        
-        if(order != undefined && 0 <= order && data.argument.length >= order) {
+
+        if (order != undefined && 0 <= order && data.argument.length >= order) {
             newRows[order] = {
-                ...row, 
-                id: newRows[order].id, 
+                ...row,
+                id: newRows[order].id,
                 focus: ""
             };
         } else {
             newEmpty = uuidv4();
             newRows.push({
-                ...row, 
-                id: uuidv4(), 
+                ...row,
+                id: uuidv4(),
                 focus: focus
             });
         }
@@ -262,14 +257,14 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     }
 
     const switchPreview = () => {
-        setData({...data, showPreview: !data.showPreview});
+        setData({ ...data, showPreview: !data.showPreview });
         store(STATUS_KEY, !data.showPreview);
     }
 
     const switchImport = () => {
         setData((prevData) => ({
             ...prevData,
-            showImport: !prevData.showImport  
+            showImport: !prevData.showImport
         }));
     }
 
@@ -293,28 +288,28 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     const updatePreview = (status: boolean, template: string, category: string, argument: ItemStatusCategoryKeyValue[]) => {
         store(CONTENT_KEY, template);
 
-        const newData = { 
-            status, 
-            template, 
-            categoryPreview: category, 
-            argument: argument, 
+        const newData = {
+            status,
+            template,
+            categoryPreview: category,
+            argument: argument,
             preview: template,
         };
 
-        if(!status || template == "") {
+        if (!status || template == "") {
             setData(prevData => ({
                 ...prevData,
                 ...newData
             }));
             return;
         }
-        
+
         let newPreview = template;
         for (const arg of argument) {
-            if(!arg.status) {
+            if (!arg.status) {
                 continue;
             }
-            if(arg.category == category) {
+            if (arg.category == category) {
                 const pattern = new RegExp(`\\$\\{(?:${arg.category}\\.)?${arg.key}\\}`, "g");
                 newPreview = newPreview.replace(pattern, arg.value);
             } else {
@@ -331,7 +326,8 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     }
 
     const makeContext = (status: boolean, argument: ItemStatusCategoryKeyValue[]): ItemContext => {
-        return {...context, 
+        return {
+            ...context,
             status: status,
             dictionary: argument,
         };
@@ -344,19 +340,20 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
 
     const submitImportContext = async (source: Context) => {
         const target = getContext();
-        const result = await importContext(target, source).catch(e =>
-            push({
-                title: `[${e.statusCode}] ${e.statusText}`,
-                category: EAlertCategory.ERRO,
-                content: e.message,
-            }));
-        if(!result) {
+        const result = await importContext(target, source)
+            .catch(e =>
+                push({
+                    title: `[${e.statusCode}] ${e.statusText}`,
+                    category: EAlertCategory.ERRO,
+                    content: e.message,
+                }));
+        if (!result) {
             return;
         }
-        
+
         setData((prevData) => ({
             ...prevData,
-            showImport: false  
+            showImport: false
         }));
 
         await fetchContext(result);
@@ -372,7 +369,7 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
     };
 
     return (
-        <Modal 
+        <Modal
             buttons={[
                 {
                     title: "Save",
@@ -400,14 +397,14 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                         func: onClose
                     }
                 }
-            ]}  
+            ]}
             titleCustom={
                 <span id="context-title-container">
                     <span>{translateDomain(context.domain)} Context</span>
-                    <div className={`button-modified-container ${ initialHash != actualHash ? "visible" : "" }`}>
-                        <Combo 
+                    <div className={`button-modified-container ${isModified() ? "visible" : ""}`}>
+                        <Combo
                             custom={(
-                                <span className={`button-modified-status ${ initialHash != actualHash ? "visible" : "" }`}></span>
+                                <span className={`button-modified-status ${isModified() ? "visible" : ""}`}></span>
                             )}
                             options={[
                                 {
@@ -433,119 +430,120 @@ export function ContextModal({ isOpen, onClose }: ContextModalProps) {
                 maxWidth: "1100px",
                 maxHeight: "750px"
             }}
-            isOpen={isOpen} 
+            isOpen={isOpen}
             onClose={onClose}>
-                <div id="preview-title" className="border-bottom">
-                    <p className="title">Preview:</p>
-                    <div id="preview-buttons" className="radio-button-group aux-group">
-                        <button type="button" className="button-tag" onClick={switchPreview}>{ data.showPreview ? "Hide" : "Show" }</button>
-                        <button type="button" className="button-tag" onClick={previewReset}>Reset</button>
-                        <button type="button" className="button-tag" onClick={previewClean}>Clean</button>
+            <div id="preview-title" className="border-bottom">
+                <p className="title">Preview:</p>
+                <div id="preview-buttons" className="radio-button-group aux-group">
+                    <button type="button" className="button-tag" onClick={switchPreview}>{data.showPreview ? "Hide" : "Show"}</button>
+                    <button type="button" className="button-tag" onClick={previewReset}>Reset</button>
+                    <button type="button" className="button-tag" onClick={previewClean}>Clean</button>
+                </div>
+            </div>
+            {data.showPreview ? (
+                <div id="preview-container">
+                    <div id="preview-params">
+                        <div className="preview-select-param">
+                            <label htmlFor="test-category">Category:</label>
+                            <select name="test-category" onChange={onPreviewCategoryChange} defaultValue={data.filter.category}>
+                                {ROW_DEFINITION.categories.map(c => (
+                                    <option key={c.value} value={c.value}>{c.key}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <div id="preview-areas">
+                        <pre className="preview-component">{data.preview}</pre>
+                        <textarea className="preview-component" onChange={updateTemplate} value={data.template} />
                     </div>
                 </div>
-                {data.showPreview ? (
-                    <div id="preview-container">
-                        <div id="preview-params">
-                            <div className="preview-select-param">
-                                <label htmlFor="test-category">Category:</label>
-                                <select name="test-category" onChange={onPreviewCategoryChange} defaultValue={data.filter.category}>
+            ) : (
+                <br />
+            )}
+            <div id="dictionary-title" className="border-bottom">
+                <div id="dictionary-status">
+                    <input type="checkbox" onChange={onStatusChange} checked={data.status} />
+                    <p className="title">Dictionary:</p>
+                </div>
+                <div className="radio-button-group aux-group">
+                    <button type="button" className="button-tag" onClick={switchImport}><span>{data.showImport ? "Variables" : "Import"}</span></button>
+                    <button type="button" className="button-tag" onClick={exportContext}>Export</button>
+                </div>
+            </div>
+
+            {data.showImport ? (
+                <div id="import-container">
+                    <ImportContext
+                        onSubmit={submitImportContext} />
+                </div>
+            ) : (
+                <>
+                    <div id="dictionary-items">
+                        <p id="dictionary-items-counter">
+                            Showing: {data.argument.filter(filterContext).length} <span>/</span> {data.argument.length} items
+                        </p>
+                        <div id="filter-container">
+                            <div className='filter-fragment'>
+                                <label htmlFor="filter-status">Status:</label>
+                                <select name="filter-status" onChange={onFilterStatusChange} defaultValue={data.filter.status}>
+                                    {STATUS_VALUES.map(s => (
+                                        <option key={s.value} value={s.value}>{s.key}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className='filter-fragment'>
+                                <label htmlFor="filter-category">Category:</label>
+                                <select name="category" onChange={onFilterCategoryChange} defaultValue={data.filter.category}>
+                                    <option value="none">None</option>
                                     {ROW_DEFINITION.categories.map(c => (
                                         <option key={c.value} value={c.value}>{c.key}</option>
                                     ))}
                                 </select>
                             </div>
-                        </div>
-                        <div id="preview-areas">
-                            <pre className="preview-component">{ data.preview }</pre>
-                            <textarea className="preview-component" onChange={updateTemplate} value={data.template}/>
-                        </div>
-                    </div>
-                ) : (
-                    <br />
-                )}
-                <div id="dictionary-title" className="border-bottom">
-                    <div id="dictionary-status">
-                        <input type="checkbox" onChange={onStatusChange} checked={data.status}/>
-                        <p className="title">Dictionary:</p>
-                    </div>
-                    <div className="radio-button-group aux-group">
-                        <button type="button" className="button-tag" onClick={switchImport}><span>{ data.showImport ? "Variables" : "Import" }</span></button>
-                        <button type="button" className="button-tag" onClick={exportContext}>Export</button>
-                    </div>
-                </div>
-
-                {data.showImport ? (
-                    <div id="import-container">
-                        <ImportContext
-                            onSubmit={submitImportContext}/>
-                    </div>
-                ) : (
-                    <>
-                        <div id="dictionary-items">
-                            <p id="dictionary-items-counter">
-                                Showing: {data.argument.filter(filterContext).length} <span>/</span> {data.argument.length} items
-                            </p>
-                            <div id="filter-container">
-                                <div className='filter-fragment'>
-                                    <label htmlFor="filter-status">Status:</label>
-                                    <select name="filter-status" onChange={onFilterStatusChange} defaultValue={data.filter.status}>
-                                        {STATUS_VALUES.map(s => (
-                                            <option key={s.value} value={s.value}>{s.key}</option>    
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className='filter-fragment'>
-                                <label htmlFor="filter-category">Category:</label>
-                                    <select name="category" onChange={onFilterCategoryChange} defaultValue={data.filter.category}>
-                                        <option value="none">None</option>
-                                        {ROW_DEFINITION.categories.map(c => (
-                                            <option key={c.value} value={c.value}>{c.key}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className='filter-fragment'>
-                                    <label htmlFor="filter-key">Key:</label>
-                                    <input type="input" name="filter-key" onChange={(onFilterKeyChange)} value={data.filter.key}/>
-                                </div>
-                                <div className='filter-fragment'>
-                                    <label htmlFor="filter-value">Value:</label>
-                                    <input type="input" name="filter-value" onChange={onFilterValueChange} value={data.filter.value}/>
-                                </div>
-                                <div className='filter-fragment'>
-                                    <button className="modal-button" type="button" onClick={clearFilter}>Clean</button>
-                                </div>
+                            <div className='filter-fragment'>
+                                <label htmlFor="filter-key">Key:</label>
+                                <input type="input" name="filter-key" onChange={(onFilterKeyChange)} value={data.filter.key} />
+                            </div>
+                            <div className='filter-fragment'>
+                                <label htmlFor="filter-value">Value:</label>
+                                <input type="input" name="filter-value" onChange={onFilterValueChange} value={data.filter.value} />
+                            </div>
+                            <div className='filter-fragment'>
+                                <button className="modal-button" type="button" onClick={clearFilter}>Clean</button>
                             </div>
                         </div>
-                        <VerticalDragDrop
-                            id="context-dictionary-content"
-                            items={data.argument}
-                            applyFilter={filterContext}
-                            itemId={makeKey}
-                            onItemsChange={updateOrder}
-                            renderItem={(item, i) => (
-                                <StatusCategoryKeyValue
-                                    key={makeKey(item)}
-                                    order={i}
-                                    focus={item.focus}
-                                    value={item}
-                                    definition={{ 
-                                        ...ROW_DEFINITION, 
-                                        disabled: false}}
-                                    rowPush={rowPush}
-                                    rowTrim={rowTrim}
-                                />
-                            )}
-                            afterTemplate={(
-                                <StatusCategoryKeyValue 
-                                    key={data.empty}
-                                    definition={ ROW_DEFINITION }
-                                    rowPush={rowPush}
-                                    rowTrim={rowTrim}
-                                />
-                            )}
-                        />
-                    </>
-                )}
+                    </div>
+                    <VerticalDragDrop
+                        id="context-dictionary-content"
+                        items={data.argument}
+                        applyFilter={filterContext}
+                        itemId={makeKey}
+                        onItemsChange={updateOrder}
+                        renderItem={(item, i) => (
+                            <StatusCategoryKeyValue
+                                key={makeKey(item)}
+                                order={i}
+                                focus={item.focus}
+                                value={item}
+                                definition={{
+                                    ...ROW_DEFINITION,
+                                    disabled: false
+                                }}
+                                rowPush={rowPush}
+                                rowTrim={rowTrim}
+                            />
+                        )}
+                        afterTemplate={(
+                            <StatusCategoryKeyValue
+                                key={data.empty}
+                                definition={ROW_DEFINITION}
+                                rowPush={rowPush}
+                                rowTrim={rowTrim}
+                            />
+                        )}
+                    />
+                </>
+            )}
         </Modal>
     )
 }

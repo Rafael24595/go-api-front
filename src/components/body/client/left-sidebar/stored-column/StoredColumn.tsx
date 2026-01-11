@@ -1,8 +1,8 @@
 import { deleteAction, exportAllRequests, exportManyRequests, findAction, exportCurl, importCurl, importRequests, updateAction } from '../../../../../services/api/ServiceStorage';
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
-import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
+import { useStoreRequest } from '../../../../../store/client/request/StoreProviderRequest';
+import { useStoreCollections } from '../../../../../store/client/collection/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useState } from 'react';
 import { CollectRequestModal } from '../../../../client/collection/CollectRequestModal';
@@ -44,7 +44,7 @@ export function StoredColumn() {
     const { push, ask } = useAlert();
     const { loadThemeWindow } = useStoreTheme();
 
-    const { request, cleanRequest, discardRequest, defineFreeRequest, fetchFreeRequest, insertRequest, isCached } = useStoreRequest();
+    const { request, cleanRequest, discardRequest, defineRequest, fetchFreeRequest, insertRequest, isCached } = useStoreRequest();
     const { stored, fetchStored, fetchCollection, updateStoredOrder } = useStoreCollections();
 
     const [dragData, setDragData] = useState<Optional<LiteRequest>>(undefined);
@@ -58,10 +58,6 @@ export function StoredColumn() {
         move: false,
         status: false,
     });
-
-    const defineRequest = async (item: LiteRequest) => {
-        await fetchFreeRequest(item);
-    }
 
     const insertNewRequest = async () => {
         const request = newRequest(userData.username);
@@ -301,7 +297,7 @@ export function StoredColumn() {
         request._id = "";
         request.status = 'draft';
 
-        defineFreeRequest(request);
+        defineRequest(request);
     };
 
     const actionShowCurl = async (item: LiteRequest, raw?: boolean) => {
@@ -353,7 +349,7 @@ export function StoredColumn() {
                 renderItem={(cursor) => (
                     <div key={makeKey(cursor)} className={`request-preview ${isRequestSelected(cursor) && "request-selected"} ${isRequestDrag(cursor) && "request-float"}`}>
                         <button className="request-link" title={cursor.uri}
-                            onClick={() => defineRequest(cursor)}>
+                            onClick={() => fetchFreeRequest(cursor)}>
                             <div className="request-sign">
                                 {isCached(cursor) && (
                                     <span className="button-modified-status small visible"></span>

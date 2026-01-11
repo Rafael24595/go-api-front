@@ -1,7 +1,8 @@
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
-import { fetchCmd } from "../../services/api/ServiceManager";
+import { fetchCmdComp, fetchCmdExec } from "../../services/api/ServiceManager";
 import { api } from "../../services/api/ApiManager";
 import { useStoreSession } from "../../store/system/StoreProviderSession";
+import { CmdCompHelp } from "../../services/api/Responses";
 
 import './Terminal.css';
 
@@ -14,13 +15,17 @@ interface PayloadCmd {
     cursor: number
     records: CmdRecord[]
     history: CmdRecord[]
+    reference: string
+    step: number
 }
 
 export function Cmd() {
     const [linesData, setLinesData] = useState<PayloadCmd>({
         cursor: 0,
         records: [],
-        history: []
+        history: [],
+        reference: "",
+        step: -1,
     });
 
     const { userData, checkSession } = useStoreSession()
@@ -30,6 +35,7 @@ export function Cmd() {
 
     useEffect(() => {
         runCommand("cmd -h", true)
+        inputRef.current?.focus();
     }, []);
 
     useEffect(() => {
@@ -58,6 +64,17 @@ export function Cmd() {
         if (e.key === "ArrowDown") {
             return resolveMoveCursor(1);
         }
+
+        if (e.key === "Tab") {
+            e.preventDefault();
+            return resolveTab();
+        }
+
+        setLinesData(prevData => ({
+            ...prevData,
+            reference: "",
+            step: -1,
+        }));
     };
 
     const resolveEnter = async () => {
@@ -66,6 +83,10 @@ export function Cmd() {
         if (inputRef.current) {
             inputRef.current.innerText = "";
         }
+    };
+
+    const resolveTab = async () => {
+        comp(linesData.reference || inputRef.current?.innerText || "");
     };
 
     const runCommand = async (input: string, ignore?: boolean) => {
@@ -87,13 +108,14 @@ export function Cmd() {
 
     const clean = (cmd: CmdRecord) => {
         setLinesData((prevData) => ({
-            ...prevData,
-            cursor: 0,
+            cursor: prevData.history.length + 1,
             records: [],
             history: [
                 ...prevData.history,
                 cmd
-            ]
+            ],
+            reference: "",
+            step: -1
         }));
 
         if (inputRef.current) {
@@ -107,42 +129,96 @@ export function Cmd() {
     };
 
     const exec = async (cmd: CmdRecord, ignore?: boolean) => {
-        const result = await fetchCmd(cmd.content)
+        const result = await fetchCmdExec(cmd.content)
             .catch(e => `${e.message || "something goes wrong"}`);
 
+        setLinesData(prevData => {
+            let newRecords = [...prevData.records];
+            let newHistory = [...prevData.history];
+            let newCursor = prevData.history.length;
+
+            if (!ignore) {
+                newRecords.push(cmd);
+                newHistory.push(cmd);
+                newCursor += 1;
+            }
+
+            newRecords.push(...cmdToRecord(result));
+
+            return {
+                ...prevData,
+                cursor: newCursor,
+                records: newRecords,
+                history: newHistory,
+                reference: "",
+                step: -1,
+            }
+
+        });
+    };
+
+    const comp = async (cmd: string) => {
+        const result: CmdCompHelp = await fetchCmdComp(cmd, linesData.step || -1)
+            .catch(e => {
+                return {
+                    message: `${e.message || "something goes wrong"}`,
+                    position: -1,
+                    application: cmd,
+                    lenght: 0
+                };
+            });
+
+        const application = result.application ? result.application : cmd;
+
+        if (inputRef.current) {
+            defineInnerText(inputRef.current, application);
+        }
+
+        setLinesData(prevData => {
+            let newRecords = [...prevData.records];
+            let newHistory = [...prevData.history];
+            let newCursor = prevData.history.length;
+
+            let newCmd = result.lenght == 1 ? application : cmd;
+            let newReference = prevData.reference == "" ? newCmd : prevData.reference;
+
+            if (result.message) {
+                prevData.records.push({
+                    request: true,
+                    content: cmd.trim() || ""
+                });
+                prevData.records.push(...cmdToRecord(result.message));
+            }
+
+            if (result.application) {
+                newHistory.push({
+                    request: true,
+                    content: result.application.trim() || ""
+                });
+                newCursor += 1;
+            }
+
+            return {
+                ...prevData,
+                cursor: newCursor,
+                records: newRecords,
+                history: newHistory,
+                reference: newReference,
+                step: result.position
+            }
+        });
+
+    };
+
+    const cmdToRecord = (cmd: string) => {
         const output: CmdRecord[] = [];
-        for (const c of result.split("\n")) {
+        for (const c of cmd.split("\n")) {
             output.push({
                 request: false,
                 content: c
             })
         }
-
-        if (ignore) {
-            setLinesData((prevData) => ({
-                ...prevData,
-                cursor: prevData.history.length,
-                records: [
-                    ...prevData.records,
-                    ...output,
-                ]
-            }));
-
-            return;
-        }
-
-        setLinesData((prevData) => ({
-            cursor: prevData.history.length + 1,
-            records: [
-                ...prevData.records,
-                cmd,
-                ...output,
-            ],
-            history: [
-                ...prevData.history,
-                cmd,
-            ]
-        }));
+        return output;
     };
 
     const resolveMoveCursor = async (step: number) => {
@@ -160,13 +236,44 @@ export function Cmd() {
         }
 
         if (inputRef.current) {
-            inputRef.current.innerText = !clean ? requests[newCursor].content : "";
+            const text = !clean ? requests[newCursor].content : "";
+            defineInnerText(inputRef.current, text);
         }
 
         setLinesData((prevData) => ({
             ...prevData,
             cursor: newCursor
         }));
+    };
+
+    const defineInnerText = async (input: HTMLElement, text: string) => {
+        input.innerText = text;
+        requestAnimationFrame(() => {
+            moveCursorToEnd(inputRef.current!);
+        });
+    };
+
+    const moveCursorToEnd = (element: HTMLElement) => {
+        element.focus();
+
+        const selection = window.getSelection();
+        if (!selection) {
+            return;
+        }
+
+        const range = document.createRange();
+        const textNode = element.firstChild;
+
+        if (textNode) {
+            range.setStart(textNode, textNode.textContent!.length);
+            range.collapse(true);
+        } else {
+            range.selectNodeContents(element);
+            range.collapse(false);
+        }
+
+        selection.removeAllRanges();
+        selection.addRange(range);
     };
 
     return (

@@ -1,7 +1,7 @@
 import { ItemResponse } from '../../../../../../../interfaces/mock/Response';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { httpStatusDescriptions } from '../../../../../../../constants/HttpMethod';
-import { useStoreEndPoint } from '../../../../../../../store/mock/StoreProviderEndPoint';
+import { useStoreEndPoint } from '../../../../../../../store/mock/endpoint/StoreProviderEndPoint';
 
 import './DataArguments.css';
 

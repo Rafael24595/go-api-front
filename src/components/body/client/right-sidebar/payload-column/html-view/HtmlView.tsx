@@ -8,9 +8,10 @@ import './HtmlView.css'
 
 interface HtmlViewProps {
   value?: string;
+  render?: boolean;
 }
 
-export function HtmlView({ value }: HtmlViewProps) {
+export function HtmlView({ value, render }: HtmlViewProps) {
   const [data, setFormattedValue] = useState<string>(value || '');
 
   useEffect(() => {
@@ -24,15 +25,28 @@ export function HtmlView({ value }: HtmlViewProps) {
 
   return (
     <>
-      <CodeMirror
-        value={data}
-        height="100%"
-        extensions={[
-          html(),
-          lintGutter(),
-          EditorState.readOnly.of(true)]}
-        theme="light"
-      />
+      {render ? (
+        <CodeMirror
+          value={data}
+          height="100%"
+          extensions={[
+            html(),
+            lintGutter(),
+            EditorState.readOnly.of(true)]}
+          theme="light"
+        />
+      )
+        : (
+          <iframe
+            sandbox="allow-same-origin"
+            srcDoc={data}
+            style={{
+              width: "100%",
+              height: "100%",
+              border: "none"
+            }}
+          />
+        )}
     </>
   );
 }

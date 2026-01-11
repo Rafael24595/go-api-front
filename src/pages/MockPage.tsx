@@ -1,11 +1,34 @@
+import { useCallback, useEffect } from "react";
 import { MockBody } from "../components/body/mock/MockBody.tsx"
 import { Footer } from "../components/footer/Footer.tsx"
 import { Header } from "../components/header/Header.tsx"
 import { joinMessages } from "../services/Utils.ts";
-import { useStoreEndPoint } from "../store/mock/StoreProviderEndPoint.tsx";
+import { useStoreEndPoint } from "../store/mock/endpoint/StoreProviderEndPoint.tsx";
 import { MockProviders } from "../store/Providers.tsx"
+import { useStoreSystem } from "../store/system/StoreProviderSystem.tsx";
+import { executeShortCut } from "../services/shortcut/ShortCut.ts";
+import { useStoreSession } from "../store/system/StoreProviderSession.tsx";
 
 function MockPage() {
+    const { userData } = useStoreSession();
+    const { shortCutModal, shortCutCmd, shortCutLog } = useStoreSystem();
+
+    const ShortCutActions = [
+        shortCutModal, shortCutCmd, shortCutLog
+    ];
+
+    const handleKeyDown = useCallback((event: KeyboardEvent) => {
+        executeShortCut(event, userData, ...ShortCutActions);
+    }, [userData]);
+
+    useEffect(() => {
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [handleKeyDown]);
+
     return (
         <>
             <MockProviders>

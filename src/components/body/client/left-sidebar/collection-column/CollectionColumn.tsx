@@ -3,15 +3,15 @@ import { ItemCollection, LiteItemCollection, LiteItemNodeRequest, newCollection,
 import { ItemRequest, LiteRequest, newRequest } from '../../../../../interfaces/client/request/Request';
 import { findAction, importCurl } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
-import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
+import { useStoreRequest } from '../../../../../store/client/request/StoreProviderRequest';
+import { useStoreCollections } from '../../../../../store/client/collection/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { Details } from '../../../../utils/details/Details';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { EAlertCategory } from '../../../../../interfaces/AlertData';
 import { downloadFile } from '../../../../../services/Utils';
 import { useStoreSession } from '../../../../../store/system/StoreProviderSession';
-import { useStoreContext } from '../../../../../store/client/StoreProviderContext';
+import { useStoreContext } from '../../../../../store/client/context/StoreProviderContext';
 import { RequestNode, RequestRequestCollect } from '../../../../../services/api/Requests';
 import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
 import { Optional } from '../../../../../types/Optional';

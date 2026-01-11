@@ -5,6 +5,7 @@ import { joinStatusKeyValue, collectStatusKeyValue, detachStatusKeyValue, mergeS
 import { Dict } from "../../../types/Dict";
 import { fixOrder, ItemStatusKeyValue, toItem } from "../../StatusKeyValue";
 import { StatusValue } from "../../StatusValue";
+import { DOCUMENT_PARAM, PAYLOAD_PARAM } from '../../../components/body/client/center-container/client-arguments/body-arguments/BodyArguments';
 
 type Status = 'draft' | 'final';
 
@@ -132,7 +133,7 @@ export interface Auth {
 export function newRequest(owner: string, name?: string): Request {
   return {
     _id: "",
-    timestamp: Date.now(),
+    timestamp: 0,
     name: name || "",
     method: HttpMethod.GET,
     uri: "",
@@ -150,7 +151,7 @@ export function newRequest(owner: string, name?: string): Request {
 export function newItemRequest(owner: string, name?: string): ItemRequest {
   return {
     _id: "",
-    timestamp: Date.now(),
+    timestamp: 0,
     name: name || "",
     method: HttpMethod.GET,
     uri: "",
@@ -270,6 +271,15 @@ export const fromBodyParameter = ([key, parameter]: [string, BodyParameter[]]): 
       focus: ""
     }
   });
+}
+
+export const findDocumentParameter = (parameters: Dict<ItemBodyParameter[]>): string => {
+    const category = parameters[DOCUMENT_PARAM];
+    if(!category) {
+      return "";
+    }
+
+    return category.find(p => p.key == PAYLOAD_PARAM)?.value || "";
 }
 
 export const orderItemBodyParameter = (parameters: ItemBodyParameter[]): ItemBodyParameter[] => {

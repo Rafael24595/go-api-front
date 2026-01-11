@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { EndPoint, LiteEndPoint } from '../../../../../interfaces/mock/EndPoint';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreEndPoint } from '../../../../../store/mock/StoreProviderEndPoint';
-import { useStoreMock } from '../../../../../store/mock/StoreProviderMock';
+import { useStoreEndPoint } from '../../../../../store/mock/endpoint/StoreProviderEndPoint';
+import { useStoreMock } from '../../../../../store/mock/mock/StoreProviderMock';
 import { Combo } from '../../../../utils/combo/Combo';
 import { FilterResult, PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
 import { emptyFilter, FilterBar, PayloadFilter } from '../../../../utils/filter-bar/FilterBar';
@@ -17,7 +17,7 @@ import { ImportModal, SubmitArgs } from '../../../../form/import-modal/ImportMod
 import { CodeArea } from '../../../../utils/code-area/CodeArea';
 import { useStoreTheme } from '../../../../../store/theme/StoreProviderTheme';
 import { useStoreCache } from '../../../../../store/StoreProviderCache';
-import { cacheAndFocus } from '../../../../../store/client/Helper';
+import { cacheAndFocus } from '../../../../../store/client/request/Helper';
 import { fromRequest } from '../../../../../interfaces/client/request/Request';
 import { useNavigate } from 'react-router-dom';
 import { Time } from '../../../../../constants/Time';

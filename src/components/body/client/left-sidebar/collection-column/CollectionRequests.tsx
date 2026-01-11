@@ -3,8 +3,8 @@ import { LiteItemCollection, LiteItemNodeRequest } from '../../../../../interfac
 import { LiteRequest } from '../../../../../interfaces/client/request/Request';
 import { findAction, exportCurl, updateAction } from '../../../../../services/api/ServiceStorage';
 import { millisecondsToDate } from '../../../../../services/Tools';
-import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
-import { useStoreCollections } from '../../../../../store/client/StoreProviderCollections';
+import { useStoreRequest } from '../../../../../store/client/request/StoreProviderRequest';
+import { useStoreCollections } from '../../../../../store/client/collection/StoreProviderCollections';
 import { Combo } from '../../../../utils/combo/Combo';
 import { useAlert } from '../../../../utils/alert/Alert';
 import { calculateWindowSize } from '../../../../../services/Utils';
@@ -35,7 +35,7 @@ export function CollectionRequests({ collection, showDuplicateModal, showMoveMod
 
     const { loadThemeWindow } = useStoreTheme();
 
-    const { request, cleanRequest, discardRequest, defineFreeRequest, fetchGroupRequest, isCached } = useStoreRequest();
+    const { request, cleanRequest, discardRequest, defineRequest, fetchGroupRequest, isCached } = useStoreRequest();
     const { fetchStored, fetchCollection, updateCollectionRequestsOrder } = useStoreCollections();
 
     const [dragData, setDragData] = useState<PayloadDrag>({
@@ -127,7 +127,7 @@ export function CollectionRequests({ collection, showDuplicateModal, showMoveMod
 
         request._id = "";
         request.status = 'draft';
-        defineFreeRequest(request);
+        defineRequest(request);
     };
 
     const takeFrom = async (itemRequest: LiteRequest) => {

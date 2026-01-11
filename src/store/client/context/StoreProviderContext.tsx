@@ -1,20 +1,17 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../../interfaces/client/context/Context";
-import { findContext, findUserContext, insertContext } from "../../services/api/ServiceContext";
-import { generateHash } from "../../services/Utils";
-import { CacheContext } from "../../interfaces/client/Cache";
-import { useStoreCache } from "../StoreProviderCache";
-import { Optional } from "../../types/Optional";
-import { useStoreSession } from "../system/StoreProviderSession";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
+import { Context, fromContext, ItemContext, newContext, newItemContext, toContext } from "../../../interfaces/client/context/Context";
+import { findContext, findUserContext, insertContext } from "../../../services/api/ServiceContext";
+import { CacheContext } from "../../../interfaces/client/Cache";
+import { useStoreCache } from "../../StoreProviderCache";
+import { Optional } from "../../../types/Optional";
+import { useStoreSession } from "../../system/StoreProviderSession";
 
 const TRIGGER_KEY = "StoreProviderContextTrigger";
 const CACHE_KEY = "StoreProviderContextCache";
 
 interface StoreProviderContextType {
-  initialHash: string;
-  actualHash: string;
-  backup: ItemContext;
   context: ItemContext;
+
   getContext: () => Context;
   discardContext: (context?: string) => void;
   defineContext: (context: Context, parent?: string) => void;
@@ -22,6 +19,8 @@ interface StoreProviderContextType {
   updateContext: (context: ItemContext) => void;
   fetchContext: (id?: string, parent?: string) => Promise<void>;
   releaseContext: () => Promise<Context>;
+  
+  isModified: () => boolean;
   isParentCached: (parent: string) => boolean;
   cacheComments: () => string[];
   cacheLenght: () => number;
@@ -38,7 +37,7 @@ interface Payload {
 const StoreContext = createContext<StoreProviderContextType | undefined>(undefined);
 
 export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, pushTrigger, trimTrigger } = useStoreSession();
+  const { userData, loaded, pushTrigger, trimTrigger } = useStoreSession();
   const { gather, search, exists, insert, excise, remove, length } = useStoreCache();
 
   const [data, setData] = useState<Payload>({
@@ -51,8 +50,11 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   });
 
   useEffect(() => {
-    pushTrigger(TRIGGER_KEY, cleanCache);
-    fetchContext();
+    pushTrigger(TRIGGER_KEY, onSessionChange);
+
+    if (loaded) {
+      fetchContext();
+    }
 
     return () => {
       trimTrigger(TRIGGER_KEY);
@@ -63,6 +65,10 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     updateStatus(data.context);
   }, [data.context]);
 
+  const onSessionChange = useCallback(async () => {
+    excise(CACHE_KEY);
+  }, []);
+
   const updateStatus = async (context: ItemContext) => {
     if (data.loading) {
       return;
@@ -70,12 +76,11 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
 
     let initialHash = data.initialHash;
     if (data.initialHash == "") {
-      initialHash = await calculateHash(data.backup);
+      initialHash = calculateHash(data.backup);
     }
 
-    const actualHash = await calculateHash(data.context);
-
-    if(actualHash != initialHash) {
+    const actualHash = calculateHash(data.context);
+    if (actualHash != initialHash) {
       insert(CACHE_KEY, context._id, {
         parent: data.parent,
         backup: data.backup,
@@ -92,20 +97,12 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
     }));
   }
 
-  const calculateHash = async (context: ItemContext) => {
-    return await generateHash(toContext(context));
-  }
-
   const getContext = (): Context => {
     return toContext(data.context);
   }
 
-  const cleanCache = () => {
-    excise(CACHE_KEY);
-  }
-
   const discardContext = (context?: string) => {
-    if(!context || context == data.backup._id) {
+    if (!context || context == data.backup._id) {
       return defineContextData(data.backup, data.backup, data.parent);
     }
 
@@ -146,38 +143,42 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
 
   const fetchContext = async (id?: string, parent?: string) => {
     let cached: Optional<CacheContext> = search(CACHE_KEY, id || userData.username);
-    if(cached != undefined) {
+    if (cached != undefined) {
       return defineContextData(cached.backup, cached.context, cached.parent);
     }
-    
-    const request = id == undefined 
+
+    const request = id == undefined
       ? findUserContext()
       : findContext(id);
 
-    const context = await request.catch(() => 
+    const context = await request.catch(() =>
       newContext(userData.username));
-  
+
     if (data.loading) {
       cached = search(CACHE_KEY, context._id);
-      if(cached != undefined) {
+      if (cached != undefined) {
         return defineContextData(cached.backup, cached.context, cached.parent);
       }
     }
-      
+
     defineContext(context, parent);
   };
 
   const releaseContext = async () => {
-      const context = toContext(data.context)
-      const response = await insertContext(context);
+    const context = toContext(data.context)
+    const response = await insertContext(context);
 
-      const fixContext = { ...context };
+    const fixContext = { ...context };
 
-      fixContext._id = response;
-      
-      defineContext(fixContext);
+    fixContext._id = response;
 
-      return fixContext;
+    defineContext(fixContext);
+
+    return fixContext;
+  }
+
+  const isModified = () => {
+    return data.initialHash != data.actualHash;
   }
 
   const isParentCached = (parent: string) => {
@@ -191,7 +192,7 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
 
   const cacheComment = (cached: CacheContext) => {
     let collected = "global";
-    if(cached.parent != undefined && cached.parent != "") {
+    if (cached.parent != undefined && cached.parent != "") {
       collected = "collected";
     }
 
@@ -203,15 +204,21 @@ export const StoreProviderContext: React.FC<{ children: ReactNode }> = ({ childr
   }
 
   return (
-    <StoreContext.Provider value={{ ...data, 
-      getContext, discardContext, defineContext, 
-      defineItemContext, updateContext, fetchContext, 
-      releaseContext, isParentCached, cacheComments, 
-      cacheLenght }}>
+    <StoreContext.Provider value={{
+      ...data,
+      getContext, discardContext, defineContext,
+      defineItemContext, updateContext, fetchContext,
+      releaseContext, isModified, isParentCached,
+      cacheComments, cacheLenght
+    }}>
       {children}
     </StoreContext.Provider>
   );
 };
+
+const calculateHash = (context: ItemContext) => {
+  return JSON.stringify(toContext(context));
+}
 
 export const useStoreContext = (): StoreProviderContextType => {
   const context = useContext(StoreContext);

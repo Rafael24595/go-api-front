@@ -10,11 +10,18 @@ import { hostURL } from "../../services/api/ApiManager";
 import { useStoreStatus } from "../StoreProviderStatus";
 import { hasRole, Role } from "../../interfaces/system/UserData";
 import { windowPreferences } from "../../utils/Window";
+import { Cover, formatShortCutOpts, ShortCutAction } from "../../services/shortcut/ShortCut";
+import { shortCutActions } from "./Constants";
 
 import './StoreProviderSystem.css';
 
 interface StoreProviderSystemType {
   metadata: SystemMetadata;
+
+  shortCutModal: ShortCutAction
+  shortCutLog: ShortCutAction
+  shortCutCmd: ShortCutAction
+
   openModal: () => void;
   closeModal: () => void;
 }
@@ -35,7 +42,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
 
   const { clean } = useStoreStatus();
 
-  const { userData } = useStoreSession();
+  const { userData, checkSession } = useStoreSession();
 
   const [modalData, setModalData] = useState<PayloadModal>({
     isOpen: false
@@ -74,8 +81,7 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   };
 
   const openModal = async () => {
-    fetchMetadata();
-
+    checkSession();
     setModalData({ isOpen: true });
   }
 
@@ -84,10 +90,12 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   const showLogs = () => {
+    checkSession();
     window.open(`/log`, '_blank', windowPreferences(850, 500));
   }
 
   const showTerminal = () => {
+    checkSession();
     window.open(`/cmd`, '_blank', windowPreferences(850, 500));
   }
 
@@ -95,8 +103,18 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
     return `${hostURL()}${source.route}`;
   }
 
+  const { shortCutModal, shortCutCmd, shortCutLog } = shortCutActions({
+    openModal, showLogs, showTerminal
+  });
+
   return (
-    <StoreTheme.Provider value={{ metadata: metadata.metadata, openModal, closeModal }}>
+    <StoreTheme.Provider value={{
+      metadata: metadata.metadata,
+
+      shortCutModal, shortCutCmd, shortCutLog,
+
+      openModal, closeModal
+    }}>
       {children}
       <Modal
         buttons={[
@@ -189,8 +207,8 @@ export const StoreProviderSystem: React.FC<{ children: ReactNode }> = ({ childre
               <button className="button-anchor" onClick={clean} title="Clear storage">Clear Storage</button>
               {hasRole(userData, Role.ROLE_ADMIN) && (
                 <>
-                  <button className="button-anchor" onClick={showLogs} title="View system logs">Logs</button>
-                  <button className="button-anchor" onClick={showTerminal} title="Open CMD">Cmd</button>
+                  <button className="button-anchor" onClick={showLogs} title={`View system logs ${formatShortCutOpts(userData, shortCutLog, { cover: Cover.parentheses })}`}>Logs</button>
+                  <button className="button-anchor" onClick={showTerminal} title={`Open CMD ${formatShortCutOpts(userData, shortCutCmd, { cover: Cover.parentheses })}`}>Cmd</button>
                 </>
               )}
             </div>

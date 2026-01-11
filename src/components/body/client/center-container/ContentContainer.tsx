@@ -1,12 +1,12 @@
 import { MethodSelector } from "./method-selector/MethodSelector";
 import { ParameterSelector } from "./client-arguments/ParameterSelector";
-import { useStoreRequest } from "../../../../store/client/StoreProviderRequest";
+import { useStoreRequest } from "../../../../store/client/request/StoreProviderRequest";
 import { Combo } from "../../../utils/combo/Combo";
 
 import './ContentContainer.css';
 
 export function ContentContainer() {
-    const { initialHash, actualHash, request, waitingRequest, discardRequest, releaseAction, updateUri, executeAction } = useStoreRequest();
+    const { request, waitingRequest, discardRequest, releaseAction, updateUri, executeAction, isModified } = useStoreRequest();
 
     const urlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateUri(e.target.value);
@@ -26,10 +26,10 @@ export function ContentContainer() {
                 <div id="client-buttons" className="border-top">
                     <span className="button-modified-status"></span>
                     <button type="submit" onClick={releaseAction}>Save</button>
-                    <div className={`button-modified-container ${ initialHash != actualHash ? "visible" : "" }`}>
+                    <div className={`button-modified-container ${ isModified() ? "visible" : "" }`}>
                         <Combo 
                             custom={(
-                                <span className={`button-modified-status ${ initialHash != actualHash ? "visible" : "" }`}></span>
+                                <span className={`button-modified-status ${ isModified() ? "visible" : "" }`}></span>
                             )}
                             options={[
                                 {

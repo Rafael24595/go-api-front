@@ -1,35 +1,45 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from "react";
-import { deleteUserToken, fetchAuthenticate, fetchLogin, fetchLogout, fetchRefresh, fetchRemove, fetchSignin, fetchTokenScopes, fetchUserData, fetchUserTokens, insertUserToken } from "../../services/api/ServiceManager";
+import { deleteUserToken, fetchAuthenticate, fetchLogin, fetchLogout, fetchRefresh, fetchRemove, fetchSignin, fetchTokenScopes, fetchUserData, fetchUserTokens, fetchUserWebData, insertUserToken, resolveUserWebData } from "../../services/api/ServiceManager";
 import { newUserData, UserData } from "../../interfaces/system/UserData";
 import { Dict } from "../../types/Dict";
 import { generateHash } from "../../services/Utils";
 import { putRefreshHandler } from "../../services/api/ApiManager";
 import { Scopes, Token } from "../../interfaces/system/Token";
+import { emptyWebData, FormWebData, rawToWebData, RawWebData, WebData } from "../../interfaces/system/WebData";
 
 interface StoreProviderSessionType {
   userData: UserData;
+  webData: WebData;
   scopes: Scopes[];
   tokens: Token[];
+  loaded: boolean;
+
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
   signin: (username: string, password1: string, password2: string, isAdmin: boolean) => Promise<void>
   remove: () => Promise<void>
+
   fetchUser: () => Promise<void>
   fetchTokens: () => Promise<void>
+  fetchWebData: () => Promise<WebData>
+
   insertToken: (token: Token) => Promise<string>
   deleteToken: (token: Token) => Promise<void>
+
   authenticate: (oldPassword: string, newPassword1: string, newPassword2: string) => Promise<void>
   checkSession: () => Promise<void>
-  pushTrigger: (key: string, trigger: Trigger) => Promise<void>
-  trimTrigger: (key: string) => Promise<void>
+
+  pushTrigger: (key: string, trigger: Trigger) => void
+  trimTrigger: (key: string) => void
+
+  updateWebData: (data: FormWebData) => Promise<boolean>
 }
 
 type Trigger = (newUser: UserData, oldUser: UserData) => void
 
 interface Payload {
-  userData: UserData;
   hash: string;
-  triggers: Dict<Trigger>
+  userData: UserData;
   loaded: boolean;
 }
 
@@ -43,13 +53,22 @@ interface PayloadTokens {
   tokens: Token[];
 }
 
+interface PayloadWebData {
+  hash: string;
+  webData: WebData;
+}
+
 const StoreSession = createContext<StoreProviderSessionType | undefined>(undefined);
 
 export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const userDataRef = useRef<UserData>(newUserData());
+  const triggersRef = useRef<Dict<Trigger>>({});
+  const fetchingRef = useRef(false);
+  const forceTriggersRef = useRef(false);
+
   const [data, setData] = useState<Payload>({
-    userData: newUserData(),
     hash: "",
-    triggers: {},
+    userData: newUserData(),
     loaded: false
   });
 
@@ -63,9 +82,10 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     tokens: [],
   });
 
-  const userDataRef = useRef(data.userData);
-  const triggersRef = useRef(data.triggers);
-  const fetchingRef = useRef(false);
+  const [dataWeb, setDataWeb] = useState<PayloadWebData>({
+    hash: "",
+    webData: emptyWebData()
+  });
 
   useEffect(() => {
     fetchUserRetry();
@@ -80,14 +100,23 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
   }, []);
 
   useEffect(() => {
+    if (!data.loaded) {
+      return;
+    }
+
+    const oldUser = userDataRef.current;
     userDataRef.current = data.userData;
+
     fetchScopes();
     fetchTokens();
-  }, [data.userData]);
+    fetchWebData();
 
-  useEffect(() => {
-    triggersRef.current = data.triggers;
-  }, [data.triggers]);
+    if (forceTriggersRef.current || data.userData.username != oldUser.username) {
+      forceTriggersRef.current = false;
+      executeTriggers(data.userData, oldUser);
+    }
+
+  }, [data.userData]);
 
   const login = async (username: string, password: string) => {
     const userData = await fetchLogin(username, password);
@@ -142,7 +171,8 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
 
   const refresh = async () => {
     const userData = await fetchRefresh();
-    return defineUserData(userData, true);
+    forceTriggersRef.current = true;
+    return defineUserData(userData);
   };
 
   const fetchScopes = async () => {
@@ -159,6 +189,16 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     await fetchUserTokens()
       .then(async (tokens) => {
         defineTokens(tokens);
+      }).catch((err) => {
+        //TODO: Manage error.
+        throw err;
+      });
+  };
+
+  const fetchWebData = async () => {
+    return await fetchUserWebData()
+      .then(async (raw) => {
+        return defineWebData(raw);
       }).catch((err) => {
         //TODO: Manage error.
         throw err;
@@ -184,9 +224,8 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
     fetchTokens();
   };
 
-  const defineUserData = async (newUser: UserData, forceTriggers?: boolean) => {
+  const defineUserData = async (newUser: UserData) => {
     const newHash = await generateHash(newUser);
-    const oldUser = userDataRef.current;
 
     setData(prevData => {
       if (prevData.hash === newHash) {
@@ -198,15 +237,11 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
 
       return {
         ...prevData,
-        userData: newUser,
         hash: newHash,
+        userData: newUser,
         loaded: true,
       };
     });
-
-    if (forceTriggers || newUser.username != oldUser.username) {
-      executeTriggers(newUser, oldUser);
-    }
   };
 
   const defineScopes = async (scopes: Scopes[]) => {
@@ -220,8 +255,8 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       }
 
       return {
-        scopes: scopes,
         hash: newHash,
+        scopes: scopes,
       };
     });
   };
@@ -237,31 +272,60 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       }
 
       return {
-        tokens: tokens,
         hash: newHash,
+        tokens: tokens,
       };
     });
+  };
+
+  const defineWebData = async (raw: RawWebData) => {
+    const webData = rawToWebData(raw);
+
+    const newHash = await generateHash(webData);
+
+    setDataWeb(prevData => {
+      if (prevData.hash === newHash) {
+        return prevData;
+      }
+
+      return {
+        hash: newHash,
+        webData: webData,
+      };
+    });
+
+    return webData;
   };
 
   const executeTriggers = (newUser: UserData, oldUser: UserData) => {
     Object.values(triggersRef.current).forEach(f => f(newUser, oldUser));
   };
 
-  const pushTrigger = async (key: string, trigger: Trigger) => {
-    setData(prevData => ({
-      ...prevData,
-      triggers: { ...prevData.triggers, [key]: trigger }
-    }));
+  const pushTrigger = (key: string, trigger: Trigger) => {
+    triggersRef.current[key] = trigger;
   };
 
-  const trimTrigger = async (key: string) => {
-    setData(prevData => {
-      const { [key]: removed, ...rest } = prevData.triggers;
-      return {
-        ...prevData,
-        triggers: rest,
-      };
-    });
+  const trimTrigger = (key: string) => {
+    delete triggersRef.current[key];
+  };
+
+  const updateWebData = async (data: FormWebData) => {
+    const newWebData = {
+      ...dataWeb.webData,
+      data: {
+        theme: data.theme || dataWeb.webData.data.theme
+      }
+    };
+
+    return resolveUserWebData(newWebData)
+      .then(r => {
+        defineWebData(r);
+        return true;
+      })
+      .catch(e => {
+        console.error(e);
+        return false;
+      });
   };
 
   return (
@@ -269,10 +333,12 @@ export const StoreProviderSession: React.FC<{ children: ReactNode }> = ({ childr
       ...data,
       scopes: dataScopes.scopes,
       tokens: dataTokens.tokens,
+      webData: dataWeb.webData,
       login, logout, signin,
       remove, fetchUser, fetchTokens,
-      insertToken, deleteToken, authenticate,
-      checkSession, pushTrigger, trimTrigger
+      fetchWebData, insertToken, deleteToken,
+      authenticate, checkSession, pushTrigger,
+      trimTrigger, updateWebData
     }}>
       {data.loaded ? children :
         <>

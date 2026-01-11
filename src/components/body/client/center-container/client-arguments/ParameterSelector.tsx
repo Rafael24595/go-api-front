@@ -4,11 +4,11 @@ import { HeaderArguments } from './header-arguments/HeaderArguments';
 import { AuthArguments } from './auth-arguments/AuthArguments';
 import { BodyArguments } from './body-arguments/BodyArguments';
 import { ContextModal } from '../../../../client/context/ContextModal';
-import { useStoreContext } from '../../../../../store/client/StoreProviderContext';
+import { useStoreContext } from '../../../../../store/client/context/StoreProviderContext';
 import { useStoreStatus } from '../../../../../store/StoreProviderStatus';
 import { CookieArguments } from './cookie-arguments/CookieArguments';
 import { KeyValue } from '../../../../../interfaces/KeyValue';
-import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
+import { useStoreRequest } from '../../../../../store/client/request/StoreProviderRequest';
 import { allowPayload } from '../../../../../constants/HttpMethod';
 
 import './ParameterSelector.css';
@@ -60,7 +60,7 @@ export function ParameterSelector() {
 
     const [modalStatus, setModalStatus] = useState<boolean>(false);
 
-    const { initialHash, actualHash } = useStoreContext();
+    const { isModified } = useStoreContext();
 
     const cursorChangeEvent = (e: React.ChangeEvent<HTMLInputElement>) => {
         cursorChange(e.target.value);
@@ -113,7 +113,7 @@ export function ParameterSelector() {
                         })}
                         <div id="context-buttons">
                             <button type="button" className="button-tag" onClick={() => setModalStatus(true)}>
-                                <span className={`button-modified-status small display ${initialHash != actualHash && "visible"}`}></span>
+                                <span className={`button-modified-status small display ${isModified() && "visible"}`}></span>
                                 Context
                             </button>
                         </div>

@@ -12,8 +12,18 @@ export interface UserData {
   roles: string[]
 }
 
-export const hasRole = (user: UserData, role: Role) => {
-  return user.roles.includes(role)
+export const hasRole = (user: UserData, ...roles: Role[]) => {
+  if (roles.length == 0) {
+    return false;
+  }
+
+  for (const role of roles) {
+    if (!user.roles.includes(role)) {
+      return false;
+    }
+  }
+  
+  return true;
 }
 
 export const hasAnyRole = (user: UserData, ...role: Role[]) => {

@@ -17,7 +17,7 @@ export interface Token {
 export const newToken = (expire: number, name: string, description: string, ...scopes: string[]): Token => {
     return {
         id: "",
-        timestamp: Date.now(),
+        timestamp: 0,
         name,
         expire,
         description,

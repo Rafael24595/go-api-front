@@ -2,6 +2,7 @@ import { createContext, ReactNode, useContext, useEffect, useRef, useState } fro
 import { Dict } from "../types/Dict";
 import { Optional } from "../types/Optional";
 import { useStoreStatus } from "./StoreProviderStatus";
+import { jsonParser } from "./Helper";
 
 const CACHE_PROVIDER_KEY = "StoreProviderCacheTarget";
 
@@ -27,10 +28,7 @@ export const StoreProviderCache: React.FC<{ children: ReactNode }> = ({ children
   const { find, store } = useStoreStatus();
 
   const [data, setData] = useState<Payload>({
-    cache: find(CACHE_PROVIDER_KEY, {
-      def: {},
-      parser: (v) => JSON.parse(v)
-    })
+    cache: find(CACHE_PROVIDER_KEY, jsonParser())
   });
 
   const cacheRef = useRef(data.cache);

@@ -144,9 +144,7 @@ export const deepClone = <T>(object: T): T =>
         : JSON.parse(JSON.stringify(object));
 
 export const generateHash = async (obj: any) => {
-    const sortedObj = deepSort(obj);
-
-    const str = JSON.stringify(sortedObj);
+    const str = JSON.stringify(obj);
 
     if (!window.isSecureContext || !window.crypto?.subtle) {
         return SHA256(str).toString();
@@ -158,25 +156,6 @@ export const generateHash = async (obj: any) => {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
 
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-const deepSort = (obj: any): any => {
-    if (obj === null) {
-        return obj;
-    } else if (Array.isArray(obj)) {
-        return obj.map(deepSort).sort();
-    } else if (typeof obj !== 'object') {
-        return obj;
-    }
-
-    const sortedObj: any = {};
-    Object.keys(obj)
-        .sort()
-        .forEach((key) => {
-            sortedObj[key] = deepSort(obj[key]);
-        });
-
-    return sortedObj;
 }
 
 export const downloadFile = (name: string, data: any) => {

@@ -3,7 +3,7 @@ import { HistoricColumn } from './historic-column/HistoricColumn';
 import { StoredColumn } from './stored-column/StoredColumn';
 import { CollectionColumn } from './collection-column/CollectionColumn';
 import { useStoreStatus } from '../../../../store/StoreProviderStatus';
-import { useStoreCollections } from '../../../../store/client/StoreProviderCollections';
+import { useStoreCollections } from '../../../../store/client/collection/StoreProviderCollections';
 import { KeyValue } from '../../../../interfaces/KeyValue';
 
 import './LeftSidebar.css';

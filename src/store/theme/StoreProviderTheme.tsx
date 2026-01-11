@@ -1,6 +1,6 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { useStoreStatus } from "../StoreProviderStatus";
-import { isITheme, isIThemeData, ITheme, IThemeData, Themes, ThemesDefault, ThemeTemplate } from "./Themes";
+import { isIThemeData, ITheme, IThemeData, parseITheme, ThemeBase, ThemeDark, ThemeLight, Themes, ThemesDefault, ThemeTemplate } from "./Themes";
 import { Modal } from "../../components/utils/modal/Modal";
 import { useAlert } from "../../components/utils/alert/Alert";
 import { EAlertCategory } from "../../interfaces/AlertData";
@@ -12,14 +12,11 @@ import { useStoreSession } from "../system/StoreProviderSession";
 import { UserData } from "../../interfaces/system/UserData";
 import { createRoot } from "react-dom/client";
 import { windowPreferences } from "../../utils/Window";
+import { useThemeController } from "./StoreControllerTheme";
+import { makeCacheKey } from "./Helper";
 
-const STORAGE_THEME_KEY = "StoreProviderThemeCache";
+
 const TRIGGER_KEY = "StoreProviderThemeTrigger";
-
-const THEME_LIGHT = "light";
-const THEME_DARK = "dark";
-
-const DEFAULT_THEMES = [THEME_LIGHT, THEME_DARK];
 
 const CUSTOM_THEME = "custom-theme";
 
@@ -28,14 +25,11 @@ const CURSOR_TEXT = "text";
 
 const VALID_CURSORS = [CURSOR_LOCAL, CURSOR_TEXT];
 
-const DEFAULT_CURSOR = CURSOR_LOCAL;
-
 interface StoreProviderThemeType {
   theme: string;
   isDark: () => boolean;
   openModal: () => void;
   closeModal: () => void;
-  loadCustom: (themeName: string, themeObj: IThemeData) => void;
   toggleDefaultThemes: () => void;
   loadThemeWindow: (width: number, height: number, content: string | Blob | ReactNode) => void
 }
@@ -53,38 +47,33 @@ interface Payload {
 const StoreTheme = createContext<StoreProviderThemeType | undefined>(undefined);
 
 export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { userData, pushTrigger, trimTrigger } = useStoreSession();
-  const { find, findAll, store, remove } = useStoreStatus();
+  const { userData, pushTrigger, trimTrigger, updateWebData } = useStoreSession();
+  const { findAll, store, remove } = useStoreStatus();
   const { push } = useAlert();
-
-  const [customThemes, setCustomThemes] = useState<Dict<ITheme>>({});
-
-  const makeCacheKey = (userData: UserData) => {
-    return `${STORAGE_THEME_KEY}-${userData.username}`
-  }
-
-  const [theme, setTheme] = useState(
-    find(makeCacheKey(userData), {
-      def: THEME_LIGHT
-    })
-  );
 
   const [modalData, setModalData] = useState<Payload>({
     isOpen: false,
-    themeName: find(makeCacheKey(userData), {
-      def: THEME_LIGHT
-    }),
+    themeName: "",
     customName: "",
     theme: null,
     file: null,
     fileBlob: "",
-    fileType: DEFAULT_CURSOR
+    fileType: ThemeBase.code
+  });
+
+  const [theme, setTheme] = useState("");
+
+  const {
+    customRef, waitingRef,
+
+    findSyncThemeCode, applyTheme
+  } = useThemeController({
+    setTheme
   });
 
   useEffect(() => {
-    pushTrigger(TRIGGER_KEY, findSessionTheme);
-    preloadCustomThemes();
-    preloadCursorTheme();
+    pushTrigger(TRIGGER_KEY, onSessionChange);
+    fetchCustomThemes();
 
     return () => {
       trimTrigger(TRIGGER_KEY);
@@ -96,58 +85,42 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
       return;
     }
 
-    store(makeCacheKey(userData), theme);
     document.documentElement.setAttribute('data-theme', theme);
+
     setModalData((prevData) => ({
       ...prevData,
       themeName: theme
     }));
+
+    waitingRef.current = true;
+
+    const key = makeCacheKey(userData);
+    store(key, theme);
+
+    updateWebData({
+      theme: theme
+    }).then(() => {
+      waitingRef.current = false;
+    });
   }, [theme]);
 
-  const findSessionTheme = (userData: UserData) => {
-    const theme = find(makeCacheKey(userData), {
-      def: THEME_LIGHT
-    });
-    preloadCursorTheme(theme);
-  }
+  const onSessionChange = useCallback(async (userData: UserData) => {
+    const theme = await findSyncThemeCode(userData);
+    applyTheme(theme || ThemeBase.code);
+  }, []);
 
-  const preloadCustomThemes = async () => {
+  const fetchCustomThemes = () => {
     const cachedThemes = findAll(CUSTOM_THEME, {
       prefix: true,
-      parser: parseCache
+      parser: parseITheme
     });
 
-    const newCustomThemes: Dict<ITheme> = {};
+    const customThemes: Dict<ITheme> = {};
     for (const theme of cachedThemes) {
-      newCustomThemes[theme.code] = theme;
-    }
-    setCustomThemes(newCustomThemes);
-  }
-
-  const preloadCursorTheme = async (cursorTheme?: string) => {
-    if (cursorTheme == undefined) {
-      cursorTheme = theme;
+      customThemes[theme.code] = theme;
     }
 
-    if (DEFAULT_THEMES.includes(cursorTheme)) {
-      setTheme(cursorTheme);
-      return;
-    }
-
-    const themePreload = Themes[cursorTheme];
-    if (themePreload) {
-      loadCustom(themePreload.code, themePreload.theme);
-      return;
-    }
-
-    const themeCache = find(cursorTheme, {
-      def: ThemesDefault["light"],
-      parser: parseCache
-    });
-    if (themeCache && typeof themeCache === 'object') {
-      loadCustom(themeCache.code, themeCache.theme);
-      return;
-    }
+    customRef.current = customThemes;
   }
 
   const findTheme = (themeName: string): Optional<ITheme> => {
@@ -156,37 +129,54 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
       return themeDefault;
     }
 
-    const themePreload = Themes[themeName];
-    if (themePreload) {
-      return themePreload;
-    }
-
-    const customTheme = customThemes[modalData.themeName];
-    if (customTheme) {
-      return customTheme;
-    }
+    return Themes[themeName] || customRef.current[themeName];
   }
 
-  const parseCache = (cache: string) => {
-    try {
-      const data = JSON.parse(cache);
-      if (isITheme(data)) {
-        return data;
-      }
-    } catch (e) {
-      //
+  const defineCustomTheme = (name: string, theme: IThemeData) => {
+    const key = `${CUSTOM_THEME}-${name}`;
+
+    if (ThemesDefault[key] || Themes[key]) {
+      push({
+        category: EAlertCategory.ERRO,
+        content: `Cannot use the specified name: ${name}`
+      });
+      return "";
     }
-    return null;
+
+    customRef.current[key] = {
+      code: key,
+      description: name,
+      theme: theme,
+    };
+
+    store(key, theme, {
+      stringifier: (v) => JSON.stringify(v)
+    });
+
+    return key;
+  }
+
+  const deleteCustomTheme = () => {
+    remove(modalData.themeName);
+
+    const exists = customRef.current[modalData.themeName];
+    if (exists) {
+      delete customRef.current[modalData.themeName];
+    }
+
+    setTheme(ThemeBase.code);
+    setModalData((prevData) => ({
+      ...prevData,
+      themeName: ThemeBase.code
+    }));
   }
 
   const isDark = () => {
-    return theme == THEME_DARK;
+    return theme == ThemeDark.code;
   }
 
   const toggleDefaultThemes = () => {
-    setTheme(prev => {
-      return prev === THEME_LIGHT ? THEME_DARK : THEME_LIGHT;
-    });
+    setTheme(theme === ThemeLight.code ? ThemeDark.code : ThemeLight.code);
   }
 
   const loadThemeWindow = (width: number, height: number, content: string | Blob | ReactNode) => {
@@ -227,35 +217,6 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     }));
   }
 
-  const loadCustom = (themeName: string, themeObj: IThemeData) => {
-    injectCustomTheme(themeName, themeObj);
-    setTheme(themeName);
-  }
-
-  const injectCustomTheme = (themeName: string, themeObj: IThemeData) => {
-    const existingStyle = document.querySelector(`style[data-theme-name="${themeName}"]`);
-    const cssContent = jsonToCSS(themeName, themeObj);
-
-    document.documentElement.setAttribute("data-theme", themeName);
-
-    if (existingStyle) {
-      existingStyle.textContent = cssContent;
-      return;
-    }
-
-    const style = document.createElement('style');
-    style.setAttribute('data-theme-name', themeName);
-    style.textContent = cssContent;
-    document.head.appendChild(style);
-  }
-
-  const jsonToCSS = (themeName: string, themeObj: IThemeData) => {
-    const cssVars = Object.entries(themeObj)
-      .map(([key, value]) => `  --${key}: ${value};`)
-      .join('\n');
-    return `[data-theme="${themeName}"] {\n${cssVars}\n}`;
-  }
-
   const themeNameChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setModalData((prevData) => ({
       ...prevData,
@@ -284,10 +245,6 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
       fileType: value
     }));
   }
-
-  const downloadTemplate = async () => {
-    downloadFile("theme-template", ThemeTemplate);
-  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -362,63 +319,22 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
   }
 
   const applyChanges = async () => {
-    if (DEFAULT_THEMES.includes(modalData.themeName)) {
-      setTheme(modalData.themeName);
-      return;
-    }
-
-    const theme = Themes[modalData.themeName];
-    if (theme) {
-      loadCustom(theme.code, theme.theme);
-      return;
-    }
-
-    const customTheme = customThemes[modalData.themeName];
-    if (customTheme) {
-      loadCustom(customTheme.code, customTheme.theme);
-      return;
-    }
-
+    let name = modalData.themeName;
     if (modalData.theme != null) {
-      applyCustomChanges(modalData.customName, modalData.theme);
-      return;
+      const key = defineCustomTheme(modalData.customName, modalData.theme);
+      if (!key) {
+        return;
+      }
+
+      name = key;
     }
 
-    push({
-      category: EAlertCategory.ERRO,
-      content: `Cannot load theme: ${modalData.themeName}`
-    });
-  }
-
-  const applyCustomChanges = async (themeName: string, themeObj: IThemeData) => {
-    if (DEFAULT_THEMES.includes(modalData.customName)) {
+    if (!applyTheme(name)) {
       push({
         category: EAlertCategory.ERRO,
-        content: `Cannot use the specified name: ${modalData.customName}`
+        content: `Cannot load theme: ${name}`
       });
-      return;
     }
-
-    const key = `${CUSTOM_THEME}-${themeName}`;
-
-    loadCustom(key, themeObj);
-
-    const themeData: ITheme = {
-      code: key,
-      description: modalData.customName,
-      theme: themeObj,
-    };
-
-    store(key, themeData, {
-      stringifier: (v) => JSON.stringify(v)
-    });
-
-    const newCustomThemes = { ...customThemes };
-    newCustomThemes[themeData.code] = themeData;
-
-    setCustomThemes(newCustomThemes);
-
-    return;
   }
 
   const downloadTheme = () => {
@@ -434,23 +350,17 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
     });
   }
 
-  const deleteCustomTheme = () => {
-    remove(modalData.themeName);
-    const exists = customThemes[modalData.themeName];
-    if (exists) {
-      const newCustomThemes = { ...customThemes };
-      delete newCustomThemes[modalData.themeName];
-      setCustomThemes(newCustomThemes);
-    }
-    setTheme(THEME_LIGHT);
-    setModalData((prevData) => ({
-      ...prevData,
-      themeName: THEME_LIGHT
-    }));
-  }
+  const downloadTemplate = async () => {
+    downloadFile("theme-template", ThemeTemplate);
+  };
 
   return (
-    <StoreTheme.Provider value={{ theme, isDark, openModal, closeModal, loadCustom, toggleDefaultThemes, loadThemeWindow }}>
+    <StoreTheme.Provider value={{
+      theme,
+
+      isDark, openModal, closeModal,
+      toggleDefaultThemes, loadThemeWindow
+    }}>
       {children}
       <Modal
         buttons={[
@@ -490,10 +400,10 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
               {Object.values(Themes).map(v => (
                 <option key={v.code} value={v.code}>{v.description}</option>
               ))}
-              {Object.keys(customThemes).length > 0 && (
+              {Object.keys(customRef.current).length > 0 && (
                 <>(
                   <option disabled>---- STORAGE ----</option>
-                  {Object.values(customThemes).map(v => (
+                  {Object.values(customRef.current).map(v => (
                     <option key={v.code} value={v.code}>{v.description}</option>
                   ))}
                   )</>
@@ -554,7 +464,7 @@ export const StoreProviderTheme: React.FC<{ children: ReactNode }> = ({ children
                   <button type="button" onClick={downloadTheme}>Download</button>
                 </div>
               </div>
-              {customThemes[modalData.themeName] && (
+              {customRef.current[modalData.themeName] && (
                 <div className="form-fragment">
                   <div className="actions-fragment">
                     <p>Delete theme from local storage:</p>

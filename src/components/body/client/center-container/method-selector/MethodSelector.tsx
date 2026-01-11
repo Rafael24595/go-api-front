@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { HTTP_METHODS } from '../../../../../constants/HttpMethod';
-import { useStoreRequest } from '../../../../../store/client/StoreProviderRequest';
+import { useStoreRequest } from '../../../../../store/client/request/StoreProviderRequest';
 
 import './MethodSelector.css'
 

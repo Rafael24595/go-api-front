@@ -5,7 +5,9 @@ import { Scopes, Token } from "../../interfaces/system/Token";
 import { UserData } from "../../interfaces/system/UserData";
 import { apiManager, sessionApiManager, authApiManager } from "./ApiManager";
 import { RequestAuthentication, RequestLogin, RequestSignin } from "./Requests";
-import { ResponseExecuteAction, ResponseFetch } from "./Responses";
+import { CmdCompHelp, ResponseExecuteAction, ResponseFetch } from "./Responses";
+import { queryHelper } from "./HelperClient";
+import { RawWebData, WebData } from "../../interfaces/system/WebData";
 
 export const executeFormAction = (request: Request, context: Context): ResponseFetch<ResponseExecuteAction> => {
   const controller = new AbortController();
@@ -89,6 +91,24 @@ export const fetchRemove = async (): Promise<UserData> => {
   }
 };
 
+export const fetchUserWebData = async (): Promise<RawWebData> => {
+  try {
+    const apiResponse = await authApiManager.get(`/user/web`);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const resolveUserWebData = async (webData: WebData): Promise<RawWebData> => {
+  try {
+    const apiResponse = await authApiManager.post(`/user/web`, webData);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const fetchAuthenticate = async (oldPassword: string, newPassword1: string, newPassword2: string): Promise<UserData> => {
   try {
     const request: RequestAuthentication =  {
@@ -97,7 +117,7 @@ export const fetchAuthenticate = async (oldPassword: string, newPassword1: strin
       new_password_2: newPassword2
     };
 
-    const apiResponse = await authApiManager.put(`/user/verify`, request);
+    const apiResponse = await authApiManager.put(`/user`, request);
     return apiResponse.data;
   } catch (error) {
     throw error;
@@ -158,9 +178,19 @@ export const fetchTokenScopes = async (): Promise<Scopes[]> => {
   }
 };
 
-export const fetchCmd = async (cmd: string): Promise<string> => {
+export const fetchCmdExec = async (cmd: string): Promise<string> => {
   try {
-    const apiResponse = await authApiManager.post(`/system/cmd`, cmd);
+    const apiResponse = await authApiManager.post(`/system/cmd/exec`, cmd);
+    return apiResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchCmdComp = async (cmd: string, step?: number): Promise<CmdCompHelp> => {
+  try {
+    const query = queryHelper(["step", step != undefined ? step : -1]);
+    const apiResponse = await authApiManager.post(`/system/cmd/comp${query}`, cmd);
     return apiResponse.data;
   } catch (error) {
     throw error;

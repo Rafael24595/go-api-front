@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { HTTP_METHODS, httpStatusDescriptions } from '../../../../../constants/HttpMethod';
-import { useStoreEndPoint } from '../../../../../store/mock/StoreProviderEndPoint';
+import { useStoreEndPoint } from '../../../../../store/mock/endpoint/StoreProviderEndPoint';
 import { ResponseForm } from './response-form/ResponseForm';
 import { DEFAULT_RESPONSE, emptyItemResponse, ItemResponse } from '../../../../../interfaces/mock/Response';
 import { millisecondsToDate, statusCodeToCss } from '../../../../../services/Tools';
@@ -8,6 +8,7 @@ import { Combo } from '../../../../utils/combo/Combo';
 import { responseOptions, statusOptions } from './Constants';
 import { PositionWrapper, VerticalDragDrop } from '../../../../utils/drag/VerticalDragDrop';
 import { Optional } from '../../../../../types/Optional';
+import { Events } from '../../../../../types/EventAction';
 
 import './EndPointForm.css';
 
@@ -47,10 +48,8 @@ export function EndPointForm() {
 
     useEffect(() => {
         switch (event.reason) {
-            case "new":
-            case "define":
-            case "fetch":
-            case "discard":
+            case Events.DEFINE:
+            case Events.DISCARD:
                 hideResponseForm();
                 break;
             default:
@@ -244,7 +243,7 @@ export function EndPointForm() {
                                             onChange={(e) => onRequestChange(e, cursor)}
                                             title={`${cursor.status ? "Enabled response" : "Disabled response"}`}
                                             checked={cursor.status} />
-                                        <button className="request-link border-bottom" type="button" onClick={() => showResponseForm(cursor)}>
+                                        <button className="request-link" type="button" onClick={() => showResponseForm(cursor)}>
                                             <div className="response-sign">
                                                 <span className={`response-sign-code ${statusCodeToCss(cursor.code)}`}
                                                     title={httpStatusDescriptions.get(cursor.code) || ""}>{cursor.code}</span>
