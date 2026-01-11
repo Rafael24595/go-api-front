@@ -60,7 +60,7 @@ export function ParameterSelector() {
 
     const [modalStatus, setModalStatus] = useState<boolean>(false);
 
-    const { initialHash, actualHash } = useStoreContext();
+    const { isModified } = useStoreContext();
 
     const cursorChangeEvent = (e: React.ChangeEvent<HTMLInputElement>) => {
         cursorChange(e.target.value);
@@ -113,7 +113,7 @@ export function ParameterSelector() {
                         })}
                         <div id="context-buttons">
                             <button type="button" className="button-tag" onClick={() => setModalStatus(true)}>
-                                <span className={`button-modified-status small display ${initialHash != actualHash && "visible"}`}></span>
+                                <span className={`button-modified-status small display ${isModified() && "visible"}`}></span>
                                 Context
                             </button>
                         </div>
