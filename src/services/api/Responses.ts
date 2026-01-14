@@ -11,6 +11,11 @@ export interface ResponseFetch<T> {
     cancel: () => void
 }
 
+export interface CmdExecResult {
+    input: string
+    output: string
+}
+
 export interface CmdCompHelp {
     message: string
     application: string

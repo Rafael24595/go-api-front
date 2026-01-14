@@ -5,7 +5,7 @@ import { Scopes, Token } from "../../interfaces/system/Token";
 import { UserData } from "../../interfaces/system/UserData";
 import { apiManager, sessionApiManager, authApiManager } from "./ApiManager";
 import { RequestAuthentication, RequestLogin, RequestSignin } from "./Requests";
-import { CmdCompHelp, ResponseExecuteAction, ResponseFetch } from "./Responses";
+import { CmdCompHelp, CmdExecResult, ResponseExecuteAction, ResponseFetch } from "./Responses";
 import { queryHelper } from "./HelperClient";
 import { RawWebData, WebData } from "../../interfaces/system/WebData";
 
@@ -178,7 +178,7 @@ export const fetchTokenScopes = async (): Promise<Scopes[]> => {
   }
 };
 
-export const fetchCmdExec = async (cmd: string): Promise<string> => {
+export const fetchCmdExec = async (cmd: string): Promise<CmdExecResult> => {
   try {
     const apiResponse = await authApiManager.post(`/system/cmd/exec`, cmd);
     return apiResponse.data;

@@ -130,7 +130,14 @@ export function Cmd() {
 
     const exec = async (cmd: CmdRecord, ignore?: boolean) => {
         const result = await fetchCmdExec(cmd.content)
-            .catch(e => `${e.message || "something goes wrong"}`);
+            .catch(e => ({ input: "", output: `${e.message || "something goes wrong"}` }));
+
+        if (result.input != "") {
+            cmd = {
+                content: result.input,
+                request: cmd.request 
+            }
+        }
 
         setLinesData(prevData => {
             let newRecords = [...prevData.records];
@@ -143,7 +150,7 @@ export function Cmd() {
                 newCursor += 1;
             }
 
-            newRecords.push(...cmdToRecord(result));
+            newRecords.push(...cmdToRecord(result.output));
 
             return {
                 ...prevData,
