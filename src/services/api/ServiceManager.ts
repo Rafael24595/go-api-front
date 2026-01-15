@@ -4,10 +4,11 @@ import { Request } from "../../interfaces/client/request/Request";
 import { Scopes, Token } from "../../interfaces/system/Token";
 import { UserData } from "../../interfaces/system/UserData";
 import { apiManager, sessionApiManager, authApiManager } from "./ApiManager";
-import { RequestAuthentication, RequestLogin, RequestSignin } from "./Requests";
+import { CmdCompPayload, localToCmdApp, RequestAuthentication, RequestLogin, RequestSignin } from "./Requests";
 import { CmdCompHelp, CmdExecResult, ResponseExecuteAction, ResponseFetch } from "./Responses";
 import { queryHelper } from "./HelperClient";
 import { RawWebData, WebData } from "../../interfaces/system/WebData";
+import { CmdLocalApp } from "../../interfaces/system/Cmd";
 
 export const executeFormAction = (request: Request, context: Context): ResponseFetch<ResponseExecuteAction> => {
   const controller = new AbortController();
@@ -187,10 +188,16 @@ export const fetchCmdExec = async (cmd: string): Promise<CmdExecResult> => {
   }
 };
 
-export const fetchCmdComp = async (cmd: string, step?: number): Promise<CmdCompHelp> => {
+export const fetchCmdComp = async (cmd: string, step?: number, ...apps: CmdLocalApp[]): Promise<CmdCompHelp> => {
   try {
     const query = queryHelper(["step", step != undefined ? step : -1]);
-    const apiResponse = await authApiManager.post(`/system/cmd/comp${query}`, cmd);
+
+    const request: CmdCompPayload = {
+      cmd: cmd,
+      apps: apps.map(localToCmdApp)
+    };
+
+    const apiResponse = await authApiManager.post(`/system/cmd/comp${query}`, request);
     return apiResponse.data;
   } catch (error) {
     throw error;
