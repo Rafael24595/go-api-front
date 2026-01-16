@@ -26,6 +26,7 @@ export function Cmd() {
 
     const { userData, checkSession } = useStoreSession()
 
+    const bodyRef = useRef<HTMLDivElement | null>(null);
     const inputRef = useRef<HTMLDivElement | null>(null);
     const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -94,6 +95,30 @@ export function Cmd() {
     const handleKeyDown = async (e: KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Enter") {
             return resolveEnter();
+        }
+
+        if (e.key === "Home" && bodyRef.current) {
+            e.preventDefault();
+            bodyRef.current.scrollTop = 0
+            return;
+        }
+
+        if (e.key === "End" && bodyRef.current) {
+            e.preventDefault();
+            bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+            return;
+        }
+
+        if (e.key === "PageUp" && bodyRef.current) {
+            e.preventDefault();
+            bodyRef.current.scrollTop -= 10;
+            return;
+        }
+
+        if (e.key === "PageDown" && bodyRef.current) {
+            e.preventDefault();
+            bodyRef.current.scrollTop += 10;
+            return;
         }
 
         if (e.key === "ArrowUp") {
@@ -181,7 +206,7 @@ export function Cmd() {
 
     const comp = async (cmd: string) => {
         const step = Math.max(-1, linesData.step);
-        
+
         const result: CmdCompHelp = await fetchCmdComp(cmd, step, ...LocalApps)
             .catch(e => {
                 return {
@@ -301,7 +326,7 @@ export function Cmd() {
     };
 
     return (
-        <div id="terminal" onClick={focusCmd}>
+        <div id="terminal" ref={bodyRef} onClick={focusCmd}>
             {linesData.records.map((line, i) => (
                 <span key={i} className={`terminal-output ${line.request ? "request" : ""}`}>
                     {line.content}
