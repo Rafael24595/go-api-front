@@ -1,5 +1,6 @@
 import { Context } from "../../interfaces/client/context/Context";
 import { Request } from "../../interfaces/client/request/Request";
+import { CmdLocalApp } from "../../interfaces/system/Cmd";
 
 export type Movement = "clone" | "move";
 
@@ -46,4 +47,23 @@ export interface RequestSortNodes {
 export interface RequestNode {
 	order: number
 	item: string
+}
+
+export interface CmdCompPayload {
+    cmd: string
+    apps: CmdApp[]
+}
+
+export interface CmdApp {
+    order: number
+    flag: string
+    help: string
+}
+
+export function localToCmdApp(local: CmdLocalApp): CmdApp {
+	return {
+		order: local.order,
+		flag: local.flag,
+		help: local.help
+	}
 }

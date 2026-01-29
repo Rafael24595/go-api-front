@@ -3,13 +3,9 @@ import { fetchCmdComp, fetchCmdExec } from "../../services/api/ServiceManager";
 import { api } from "../../services/api/ApiManager";
 import { useStoreSession } from "../../store/system/StoreProviderSession";
 import { CmdCompHelp } from "../../services/api/Responses";
+import { CmdLocalApp, CmdRecord } from "../../interfaces/system/Cmd";
 
 import './Terminal.css';
-
-interface CmdRecord {
-    request: boolean
-    content: string
-}
 
 interface PayloadCmd {
     cursor: number
@@ -30,6 +26,7 @@ export function Cmd() {
 
     const { userData, checkSession } = useStoreSession()
 
+    const bodyRef = useRef<HTMLDivElement | null>(null);
     const inputRef = useRef<HTMLDivElement | null>(null);
     const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -52,9 +49,76 @@ export function Cmd() {
         inputRef.current?.focus();
     }
 
+    const clean = (cmd: CmdRecord) => {
+        setLinesData((prevData) => ({
+            cursor: prevData.history.length + 1,
+            records: [],
+            history: [
+                ...prevData.history,
+                cmd
+            ],
+            reference: "",
+            step: -1
+        }));
+
+        if (inputRef.current) {
+            inputRef.current.innerHTML = "";
+        }
+    };
+
+    const exit = async () => {
+        await checkSession();
+        window.close();
+    };
+
+    const LocalApps: CmdLocalApp[] = [
+        {
+            order: 0,
+            flag: "cls",
+            help: "Clean the screen",
+            exec: clean,
+        },
+        {
+            order: 1,
+            flag: "clear",
+            help: "Clean the screen",
+            exec: clean,
+        },
+        {
+            order: 2,
+            flag: "exit",
+            help: "Close the terminal",
+            exec: exit
+        },
+    ];
+
     const handleKeyDown = async (e: KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Enter") {
             return resolveEnter();
+        }
+
+        if (e.key === "Home" && bodyRef.current) {
+            e.preventDefault();
+            bodyRef.current.scrollTop = 0
+            return;
+        }
+
+        if (e.key === "End" && bodyRef.current) {
+            e.preventDefault();
+            bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+            return;
+        }
+
+        if (e.key === "PageUp" && bodyRef.current) {
+            e.preventDefault();
+            bodyRef.current.scrollTop -= 10;
+            return;
+        }
+
+        if (e.key === "PageDown" && bodyRef.current) {
+            e.preventDefault();
+            bodyRef.current.scrollTop += 10;
+            return;
         }
 
         if (e.key === "ArrowUp") {
@@ -95,42 +159,25 @@ export function Cmd() {
             content: input.trim() || ""
         };
 
-        switch (cmd.content) {
-            case "cls":
-            case "clear":
-                return clean(cmd);
-            case "exit":
-                return exit();
-            default:
-                return exec(cmd, ignore);
+        for (const app of LocalApps) {
+            if (cmd.content === app.flag) {
+                return app.exec(cmd);
+            }
         }
-    };
 
-    const clean = (cmd: CmdRecord) => {
-        setLinesData((prevData) => ({
-            cursor: prevData.history.length + 1,
-            records: [],
-            history: [
-                ...prevData.history,
-                cmd
-            ],
-            reference: "",
-            step: -1
-        }));
-
-        if (inputRef.current) {
-            inputRef.current.innerHTML = "";
-        }
-    };
-
-    const exit = async () => {
-        await checkSession();
-        window.close();
+        return exec(cmd, ignore);
     };
 
     const exec = async (cmd: CmdRecord, ignore?: boolean) => {
         const result = await fetchCmdExec(cmd.content)
-            .catch(e => `${e.message || "something goes wrong"}`);
+            .catch(e => ({ input: "", output: `${e.message || "something goes wrong"}` }));
+
+        if (result.input != "") {
+            cmd = {
+                content: result.input,
+                request: cmd.request
+            }
+        }
 
         setLinesData(prevData => {
             let newRecords = [...prevData.records];
@@ -143,7 +190,7 @@ export function Cmd() {
                 newCursor += 1;
             }
 
-            newRecords.push(...cmdToRecord(result));
+            newRecords.push(...cmdToRecord(result.output));
 
             return {
                 ...prevData,
@@ -158,7 +205,9 @@ export function Cmd() {
     };
 
     const comp = async (cmd: string) => {
-        const result: CmdCompHelp = await fetchCmdComp(cmd, linesData.step || -1)
+        const step = Math.max(-1, linesData.step);
+
+        const result: CmdCompHelp = await fetchCmdComp(cmd, step, ...LocalApps)
             .catch(e => {
                 return {
                     message: `${e.message || "something goes wrong"}`,
@@ -277,7 +326,7 @@ export function Cmd() {
     };
 
     return (
-        <div id="terminal" onClick={focusCmd}>
+        <div id="terminal" ref={bodyRef} onClick={focusCmd}>
             {linesData.records.map((line, i) => (
                 <span key={i} className={`terminal-output ${line.request ? "request" : ""}`}>
                     {line.content}

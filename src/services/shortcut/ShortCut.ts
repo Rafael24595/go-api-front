@@ -58,7 +58,6 @@ export const formatShortCut = (
     userData: UserData,
     action: ShortCutAction
 ): string => {
-    console.log(userData, action)
     if (action.roles && !hasRole(userData, ...action.roles)) {
         return ""
     }
